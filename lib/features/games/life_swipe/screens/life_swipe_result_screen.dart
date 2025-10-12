@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../services/local_storage_service.dart';
 
@@ -649,7 +650,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                context.go('/game/life-swipe');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
@@ -672,7 +673,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
             height: 56,
             child: OutlinedButton(
               onPressed: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
+                context.go('/');
               },
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: AppTheme.primaryColor),

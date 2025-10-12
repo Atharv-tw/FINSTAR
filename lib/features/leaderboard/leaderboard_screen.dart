@@ -119,16 +119,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          const Text(
-            'Leaderboard',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          const Flexible(
+            child: Text(
+              'Leaderboard',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 12),
           // Friends button
           GestureDetector(
             onTap: () => context.push('/friends'),
@@ -160,7 +164,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(

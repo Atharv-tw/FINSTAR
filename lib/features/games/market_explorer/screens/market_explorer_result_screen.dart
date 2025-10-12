@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../models/market_explorer_models.dart';
 import '../../../../models/game_progress_model.dart';
@@ -106,7 +107,7 @@ class _MarketExplorerResultScreenState
         title: const Text('Results'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+          onPressed: () => context.go('/'),
         ),
       ),
       body: SafeArea(
@@ -468,7 +469,7 @@ class _MarketExplorerResultScreenState
           height: 56,
           child: ElevatedButton.icon(
             onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              context.go('/');
             },
             icon: const Icon(Icons.home),
             label: const Text('Back to Home'),
@@ -486,8 +487,7 @@ class _MarketExplorerResultScreenState
           height: 56,
           child: OutlinedButton.icon(
             onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
+              context.go('/game/market-explorer');
             },
             icon: const Icon(Icons.replay),
             label: const Text('Play Again'),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../services/local_storage_service.dart';
 
@@ -552,7 +553,7 @@ class _QuizResultScreenState extends State<QuizResultScreen>
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                context.go('/game/quiz-battle');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.secondaryColor,
@@ -582,7 +583,7 @@ class _QuizResultScreenState extends State<QuizResultScreen>
             height: 56,
             child: OutlinedButton(
               onPressed: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
+                context.go('/');
               },
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: AppTheme.secondaryColor),

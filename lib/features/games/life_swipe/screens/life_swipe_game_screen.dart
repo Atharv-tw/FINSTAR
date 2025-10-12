@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../models/spending_scenario.dart';
 import 'life_swipe_result_screen.dart';
@@ -155,7 +156,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.go('/'),
               ),
               Expanded(
                 child: Column(
@@ -405,7 +406,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
         children: [
           IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.go('/'),
           ),
           Column(
             children: [

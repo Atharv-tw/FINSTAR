@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../models/quiz_question.dart';
 import 'quiz_result_screen.dart';
@@ -271,7 +272,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.go('/'),
               ),
               Expanded(
                 child: Column(
