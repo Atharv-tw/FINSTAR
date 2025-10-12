@@ -281,24 +281,21 @@ class _PlayGameScreenState extends State<PlayGameScreen>
         subtitle: 'Test your financial knowledge',
         icon: Icons.quiz_rounded,
         gradientColors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
+        route: '/game/quiz-battle',
       ),
       _CardData(
         title: 'Life Swipe',
         subtitle: 'Budget your way through life',
         icon: Icons.swipe_rounded,
         gradientColors: [DesignTokens.secondaryStart, DesignTokens.secondaryEnd],
+        route: '/game/life-swipe',
       ),
       _CardData(
-        title: 'Smart Shopper',
-        subtitle: 'Make wise spending choices',
-        icon: Icons.shopping_cart_rounded,
+        title: 'Market Explorer',
+        subtitle: 'Invest and grow your wealth',
+        icon: Icons.trending_up_rounded,
         gradientColors: [DesignTokens.accentStart, DesignTokens.accentEnd],
-      ),
-      _CardData(
-        title: 'Savings Challenge',
-        subtitle: 'Build your emergency fund',
-        icon: Icons.savings_rounded,
-        gradientColors: [const Color(0xFFFF6B9D), const Color(0xFFC06C84)],
+        route: '/game/market-explorer',
       ),
     ];
 
@@ -369,34 +366,41 @@ class _PlayGameScreenState extends State<PlayGameScreen>
       builder: (context, child) {
         final glowOpacity = 0.3 + (_glowController.value * 0.2); // 0.3 to 0.5
 
-        return Container(
-          height: screenHeight * 0.7, // Full card size (70% of screen height)
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(40), // Playing card style rounded edges
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0B0B0D).withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(40),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    width: 1,
+        return GestureDetector(
+          onTap: () {
+            // Navigate to game
+            HapticFeedback.mediumImpact();
+            context.go(card.route);
+          },
+          child: Container(
+            height: screenHeight * 0.7, // Full card size (70% of screen height)
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40), // Playing card style rounded edges
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0B0B0D).withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(40),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        offset: Offset(0, 12 + (index * 4)),
+                        blurRadius: 24 + (index * 8),
+                        color: Colors.black.withValues(alpha: 0.25),
+                      ),
+                      BoxShadow(
+                        blurRadius: 24,
+                        color: card.gradientColors[0].withValues(alpha: glowOpacity),
+                      ),
+                    ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      offset: Offset(0, 12 + (index * 4)),
-                      blurRadius: 24 + (index * 8),
-                      color: Colors.black.withValues(alpha: 0.25),
-                    ),
-                    BoxShadow(
-                      blurRadius: 24,
-                      color: card.gradientColors[0].withValues(alpha: glowOpacity),
-                    ),
-                  ],
+                  padding: const EdgeInsets.all(24),
+                  child: _buildCollapsedCardContent(card),
                 ),
-                padding: const EdgeInsets.all(24),
-                child: _buildCollapsedCardContent(card),
               ),
             ),
           ),
@@ -491,11 +495,13 @@ class _CardData {
   final String subtitle;
   final IconData icon;
   final List<Color> gradientColors;
+  final String route;
 
   _CardData({
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.gradientColors,
+    required this.route,
   });
 }

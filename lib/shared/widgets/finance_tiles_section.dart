@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
 
@@ -14,21 +16,25 @@ class FinanceTilesSection extends StatelessWidget {
         'title': 'Money Basics',
         'image': 'assets/images/money_basics_icon.png',
         'gradientColors': [DesignTokens.primaryStart, DesignTokens.primaryEnd],
+        'moduleId': 'money_basics',
       },
       {
         'title': 'Earning & Career',
         'image': 'assets/images/earning_career_icon.png',
         'gradientColors': [DesignTokens.secondaryStart, DesignTokens.secondaryEnd],
+        'moduleId': 'earning_career',
       },
       {
         'title': 'Banking & Institutes',
         'image': 'assets/images/banking_icon.png',
         'gradientColors': [DesignTokens.accentStart, DesignTokens.accentEnd],
+        'moduleId': 'banking',
       },
       {
         'title': 'Investing & Growth',
         'image': 'assets/images/investing_icon.png',
         'gradientColors': [const Color(0xFFFF6B9D), const Color(0xFFC06C84)],
+        'moduleId': 'investing',
       },
     ];
 
@@ -50,7 +56,12 @@ class FinanceTilesSection extends StatelessWidget {
             final tile = tiles[index];
             final gradientColors = tile['gradientColors'] as List<Color>;
 
-            return ClipRRect(
+            return GestureDetector(
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                context.push('/module/${tile['moduleId']}');
+              },
+              child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -104,6 +115,7 @@ class FinanceTilesSection extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
             );
           },
         ),

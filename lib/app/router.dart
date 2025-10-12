@@ -3,9 +3,14 @@ import 'package:go_router/go_router.dart';
 import '../features/home/basic_home_screen.dart';
 import '../features/home/play_game_screen.dart';
 import '../features/learn/learn_screen.dart';
-import '../features/rewards/rewards_screen.dart';
+import '../features/leaderboard/leaderboard_screen.dart';
 import '../features/friends/friends_screen.dart';
 import '../features/profile/profile_screen.dart';
+import '../features/learning/module_detail_screen.dart';
+import '../features/learning/lesson_screen.dart';
+import '../features/games/life_swipe/screens/life_swipe_game_screen.dart';
+import '../features/games/quiz_battle/screens/quiz_battle_screen.dart';
+import '../features/games/market_explorer/screens/market_explorer_allocation_screen.dart';
 
 /// App routing configuration using GoRouter
 class AppRouter {
@@ -33,42 +38,63 @@ class AppRouter {
         builder: (context, state) => const LearnScreen(),
       ),
 
-      // Rewards & Badges
+      // Leaderboard
       GoRoute(
         path: '/rewards',
         name: 'rewards',
-        builder: (context, state) => const RewardsScreen(),
+        builder: (context, state) => const LeaderboardScreen(),
       ),
 
       // Friends
       GoRoute(
         path: '/friends',
         name: 'friends',
-        builder: (context, state) => const FriendsScreen(),
+        builder: (context, state) => const FriendsListScreen(),
       ),
 
       // Profile
       GoRoute(
         path: '/profile',
         name: 'profile',
-        builder: (context, state) => const ProfileScreen(),
+        builder: (context, state) => const ProfileDetailScreen(),
       ),
 
-      // Games (placeholders for now)
+      // Learning Module Detail
+      GoRoute(
+        path: '/module/:moduleId',
+        name: 'module-detail',
+        builder: (context, state) {
+          final moduleId = state.pathParameters['moduleId']!;
+          return ModuleDetailScreen(moduleId: moduleId);
+        },
+      ),
+
+      // Lesson Screen
+      GoRoute(
+        path: '/lesson/:moduleId/:lessonId',
+        name: 'lesson',
+        builder: (context, state) {
+          final moduleId = state.pathParameters['moduleId']!;
+          final lessonId = state.pathParameters['lessonId']!;
+          return LessonScreen(moduleId: moduleId, lessonId: lessonId);
+        },
+      ),
+
+      // Games
       GoRoute(
         path: '/game/life-swipe',
         name: 'life-swipe',
-        builder: (context, state) => const Placeholder(), // TODO: LifeSwipeScreen
+        builder: (context, state) => const LifeSwipeGameScreen(),
       ),
       GoRoute(
         path: '/game/quiz-battle',
         name: 'quiz-battle',
-        builder: (context, state) => const Placeholder(), // TODO: QuizBattleScreen
+        builder: (context, state) => const QuizBattleScreen(),
       ),
       GoRoute(
         path: '/game/market-explorer',
         name: 'market-explorer',
-        builder: (context, state) => const Placeholder(), // TODO: MarketExplorerScreen
+        builder: (context, state) => const MarketExplorerAllocationScreen(),
       ),
     ],
 
