@@ -104,7 +104,7 @@ class _BlurDockState extends State<BlurDock>
 
         // Main dock
         Positioned(
-          bottom: 80,
+          bottom: 20,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(28),
             child: BackdropFilter(
@@ -136,7 +136,7 @@ class _BlurDockState extends State<BlurDock>
         // Central FAB
         if (widget.showFab)
           Positioned(
-            bottom: 104, // 80 + (56/2) - (56/2) + 8 elevation
+            bottom: 44, // 20 + (56/2) - (56/2) + 8 elevation
             child: RotationTransition(
               turns: _rotationAnimation,
               child: GestureDetector(
@@ -221,7 +221,7 @@ class _BlurDockState extends State<BlurDock>
         final y = radius * (angle == 0 ? 0 : -0.866); // cos/sin for 120°
 
         return Positioned(
-          bottom: 104,
+          bottom: 44,
           left: MediaQuery.of(context).size.width / 2 - 24,
           child: TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.0, end: _menuOpen ? 1.0 : 0.0),

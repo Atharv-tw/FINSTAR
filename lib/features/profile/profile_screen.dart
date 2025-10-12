@@ -61,13 +61,14 @@ class ProfileScreen extends StatelessWidget {
               child: BlurDock(
                 items: const [
                   NavItem(icon: Icons.home_rounded, label: 'Home', route: '/'),
-                  NavItem(icon: Icons.school_rounded, label: 'Learn', route: '/learn'),
-                  NavItem(icon: Icons.people_rounded, label: 'Friends', route: '/friends'),
+                  NavItem(icon: Icons.videogame_asset_rounded, label: 'Play Games', route: '/game'),
+                  NavItem(icon: Icons.leaderboard_rounded, label: 'Leaderboard', route: '/rewards'),
                   NavItem(icon: Icons.person_rounded, label: 'Profile', route: '/profile'),
                 ],
                 selectedIndex: 3,
+                showFab: false,
                 onItemTap: (index) {
-                  final routes = ['/', '/learn', '/friends', '/profile'];
+                  final routes = ['/', '/game', '/rewards', '/profile'];
                   context.go(routes[index]);
                 },
               ),

@@ -151,25 +151,15 @@ class _PlayGameScreenState extends State<PlayGameScreen>
             bottom: 0,
             child: BlurDock(
               items: const [
-                NavItem(
-                    icon: Icons.home_rounded, label: 'Home', route: '/'),
-                NavItem(
-                    icon: Icons.leaderboard_rounded,
-                    label: 'Leaderboard',
-                    route: '/rewards'),
-                NavItem(
-                    icon: Icons.people_rounded,
-                    label: 'Friends',
-                    route: '/friends'),
-                NavItem(
-                    icon: Icons.person_rounded,
-                    label: 'Profile',
-                    route: '/profile'),
+                NavItem(icon: Icons.home_rounded, label: 'Home', route: '/'),
+                NavItem(icon: Icons.videogame_asset_rounded, label: 'Play Games', route: '/game'),
+                NavItem(icon: Icons.leaderboard_rounded, label: 'Leaderboard', route: '/rewards'),
+                NavItem(icon: Icons.person_rounded, label: 'Profile', route: '/profile'),
               ],
-              selectedIndex: 0,
+              selectedIndex: 1,
               showFab: false,
               onItemTap: (index) {
-                final routes = ['/', '/rewards', '/friends', '/profile'];
+                final routes = ['/', '/game', '/rewards', '/profile'];
                 context.go(routes[index]);
               },
             ),

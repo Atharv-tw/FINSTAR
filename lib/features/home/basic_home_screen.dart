@@ -7,6 +7,8 @@ import '../../core/motion_tokens.dart';
 import '../../shared/widgets/xp_ring.dart';
 import '../../shared/widgets/coin_pill.dart';
 import '../../shared/widgets/blur_dock.dart';
+import '../../shared/widgets/finance_tiles_section.dart';
+import '../../shared/widgets/dual_progress_dial.dart';
 
 /// FINSTAR Home Screen - Redesigned for maximum impact
 class BasicHomeScreen extends StatefulWidget {
@@ -21,14 +23,12 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
   late AnimationController _greetingController;
   late AnimationController _progressController;
   late AnimationController _pandaController;
-  late AnimationController _tilesController;
   late AnimationController _breathingController;
 
   late Animation<double> _greetingFadeAnimation;
   late Animation<Offset> _greetingSlideAnimation;
   late Animation<double> _progressScaleAnimation;
   late Animation<double> _pandaSlideAnimation;
-  late Animation<double> _tilesStaggerAnimation;
 
   // User data
   final String _userName = "Star";
@@ -75,15 +75,6 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
       CurvedAnimation(parent: _pandaController, curve: Curves.easeOutQuart),
     );
 
-    // Tiles animation
-    _tilesController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _tilesStaggerAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _tilesController, curve: Curves.easeOutQuart),
-    );
-
     // Breathing animation for panda
     _breathingController = AnimationController(
       duration: const Duration(milliseconds: 2000),
@@ -99,9 +90,6 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
       Future.delayed(const Duration(milliseconds: 400), () {
         if (mounted) _pandaController.forward();
       });
-      Future.delayed(const Duration(milliseconds: 600), () {
-        if (mounted) _tilesController.forward();
-      });
     });
   }
 
@@ -110,7 +98,6 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
     _greetingController.dispose();
     _progressController.dispose();
     _pandaController.dispose();
-    _tilesController.dispose();
     _breathingController.dispose();
     super.dispose();
   }
@@ -139,25 +126,15 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 150),
 
-                    // Greeting Section
-                    _buildGreetingSection(),
-
-                    const SizedBox(height: 24),
-
-                    // Progress Section
-                    _buildProgressSection(),
-
-                    const SizedBox(height: 24),
-
-                    // Panda Mascot Section
-                    _buildPandaSection(screenWidth),
+                    // Progress Section with Panda
+                    _buildProgressWithPandaSection(screenWidth),
 
                     const SizedBox(height: 32),
 
                     // Learning Categories
-                    _buildCategoriesSection(),
+                    const FinanceTilesSection(),
 
                     const SizedBox(height: 120), // Space for bottom nav
                   ],
@@ -210,38 +187,19 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
           child: FadeTransition(
             opacity: _greetingFadeAnimation,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Greeting text
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getGreeting(),
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white.withValues(alpha: 0.7),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _userName,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+                // Level counter dial (tap to open profile)
+                GestureDetector(
+                  onTap: () => context.go('/profile'),
+                  child: XpRing(
+                    currentXp: _currentXp,
+                    xpForNextLevel: _xpForNextLevel,
+                    level: _userLevel,
+                    size: 56,
                   ),
                 ),
-
-                // Coin pill
-                CoinPill(coins: _coins, height: 40),
               ],
             ),
           ),
@@ -250,335 +208,195 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
     );
   }
 
-  Widget _buildProgressSection() {
+  Widget _buildProgressWithPandaSection(double screenWidth) {
     return AnimatedBuilder(
-      animation: _progressController,
+      animation: Listenable.merge([_progressController, _pandaController, _breathingController]),
       builder: (context, child) {
-        return Transform.scale(
-          scale: _progressScaleAnimation.value,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // XP Ring
-                    XpRing(
-                      currentXp: _currentXp,
-                      xpForNextLevel: _xpForNextLevel,
-                      level: _userLevel,
-                      size: 60,
-                    ),
-
-                    const SizedBox(width: 16),
-
-                    // Progress bars
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Level progress
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Level Progress',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                ),
-                              ),
-                              Text(
-                                '$_currentXp / $_xpForNextLevel XP',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.white.withValues(alpha: 0.5),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          _buildProgressBar(_currentXp / _xpForNextLevel, DesignTokens.primaryGradient),
-
-                          const SizedBox(height: 16),
-
-                          // Study progress
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Study Progress',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                ),
-                              ),
-                              Text(
-                                '${(_studyProgress * 100).toInt()}%',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.white.withValues(alpha: 0.5),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          _buildProgressBar(_studyProgress, DesignTokens.secondaryGradient),
-                        ],
+        final breathingScale = 1.0 + (_breathingController.value * 0.03);
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Progress card
+            Transform.scale(
+              scale: _progressScaleAnimation.value,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A90E2).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFF4A90E2).withValues(alpha: 0.2),
+                        width: 1.5,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                        BoxShadow(
+                          color: const Color(0xFF4A90E2).withValues(alpha: 0.15),
+                          blurRadius: 24,
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Row(
+                      children: [
+                        // XP Ring
+                        XpRing(
+                          currentXp: _currentXp,
+                          xpForNextLevel: _xpForNextLevel,
+                          level: _userLevel,
+                          size: 60,
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        // Progress bars
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Level progress
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Level Progress',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                  Text(
+                                    '$_currentXp / $_xpForNextLevel XP',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white.withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              _buildProgressBar(_currentXp / _xpForNextLevel, DesignTokens.primaryGradient),
+
+                              const SizedBox(height: 16),
+
+                              // Study progress
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Study Progress',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${(_studyProgress * 100).toInt()}%',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white.withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              _buildProgressBar(_studyProgress, DesignTokens.secondaryGradient),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+
+            // Panda sitting on right top corner
+            Positioned(
+              right: -70,
+              top: -175,
+              child: Transform.translate(
+                offset: Offset(0, _pandaSlideAnimation.value),
+                child: FadeTransition(
+                  opacity: _pandaController,
+                  child: Transform.scale(
+                    scale: breathingScale,
+                    child: Image.asset(
+                      'assets/images/pandahome.png',
+                      width: screenWidth * 0.75,
+                      height: screenWidth * 0.75,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
   Widget _buildProgressBar(double progress, LinearGradient gradient) {
-    return Container(
-      height: 8,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: progress),
-          duration: const Duration(milliseconds: 1200),
-          curve: Curves.easeOutQuart,
-          builder: (context, value, child) {
-            return FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: value,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: gradient,
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPandaSection(double screenWidth) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([_pandaController, _breathingController]),
-      builder: (context, child) {
-        final breathingScale = 1.0 + (_breathingController.value * 0.03);
-        return Transform.translate(
-          offset: Offset(0, _pandaSlideAnimation.value),
-          child: FadeTransition(
-            opacity: _pandaController,
-            child: Center(
-              child: Transform.scale(
-                scale: breathingScale,
-                child: Image.asset(
-                  'assets/images/pandahome.png',
-                  width: screenWidth * 0.5,
-                  height: screenWidth * 0.5,
-                  fit: BoxFit.contain,
-                ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: progress),
+      duration: const Duration(milliseconds: 1500),
+      curve: Curves.easeOutQuart,
+      builder: (context, value, child) {
+        return Stack(
+          children: [
+            // Background bar
+            Container(
+              height: 10,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(5),
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCategoriesSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section title
-        AnimatedBuilder(
-          animation: _tilesController,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _tilesStaggerAnimation,
-              child: const Text(
-                'Start Learning',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+            // Progress bar with glow
+            Container(
+              height: 10,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                boxShadow: [
+                  BoxShadow(
+                    color: gradient.colors[0].withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    spreadRadius: 0,
+                  ),
+                ],
               ),
-            );
-          },
-        ),
-
-        const SizedBox(height: 16),
-
-        // Categories grid
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final tileWidth = (constraints.maxWidth - 16) / 2;
-            return Column(
-              children: [
-                // First row
-                Row(
-                  children: [
-                    _buildCategoryTile(
-                      0,
-                      'Money\nBasics',
-                      Icons.account_balance_wallet_rounded,
-                      DesignTokens.primaryGradient,
-                      tileWidth,
-                    ),
-                    const SizedBox(width: 16),
-                    _buildCategoryTile(
-                      1,
-                      'Earning &\nCareer',
-                      Icons.work_rounded,
-                      DesignTokens.secondaryGradient,
-                      tileWidth,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Second row
-                Row(
-                  children: [
-                    _buildCategoryTile(
-                      2,
-                      'Banking &\nInstitutes',
-                      Icons.account_balance_rounded,
-                      DesignTokens.accentGradient,
-                      tileWidth,
-                    ),
-                    const SizedBox(width: 16),
-                    _buildCategoryTile(
-                      3,
-                      'Investing &\nGrowth',
-                      Icons.trending_up_rounded,
-                      const LinearGradient(
-                        colors: [Color(0xFFFF6B9D), Color(0xFFC06C84)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      tileWidth,
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCategoryTile(
-    int index,
-    String title,
-    IconData icon,
-    LinearGradient gradient,
-    double width,
-  ) {
-    final delay = index * 0.1;
-    return AnimatedBuilder(
-      animation: _tilesController,
-      builder: (context, child) {
-        final staggerValue = (_tilesStaggerAnimation.value - delay).clamp(0.0, 1.0);
-        return Transform.scale(
-          scale: staggerValue,
-          child: Opacity(
-            opacity: staggerValue,
-            child: SizedBox(
-              width: width,
-              height: width,
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  context.push('/learn');
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: gradient.colors[0].withValues(alpha: 0.2),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Icon with gradient
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                gradient: gradient,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                icon,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ),
-
-                            // Title
-                            Text(
-                              title,
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                height: 1.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: value,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: gradient,
+                      borderRadius: BorderRadius.circular(5),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
         );
       },
     );
