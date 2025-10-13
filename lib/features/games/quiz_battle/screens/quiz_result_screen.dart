@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
+import '../../../../core/design_tokens.dart';
 import '../../../../services/local_storage_service.dart';
 
 class QuizResultScreen extends StatefulWidget {
@@ -106,18 +107,21 @@ class _QuizResultScreenState extends State<QuizResultScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: DesignTokens.beigeGradient,
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
                       ScaleTransition(
                         scale: _scaleAnimation,
                         child: _buildGradeCard(),
@@ -126,14 +130,15 @@ class _QuizResultScreenState extends State<QuizResultScreen>
                       _buildStatsGrid(),
                       const SizedBox(height: 24),
                       _buildAnswerHistory(),
-                      const SizedBox(height: 24),
-                      _buildRewardsCard(),
-                    ],
+                        const SizedBox(height: 24),
+                        _buildRewardsCard(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              _buildActionButtons(),
-            ],
+                _buildActionButtons(),
+              ],
+            ),
           ),
         ),
       ),

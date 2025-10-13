@@ -6,9 +6,10 @@ import '../../core/design_tokens.dart';
 import '../../core/motion_tokens.dart';
 import '../../shared/widgets/xp_ring.dart';
 import '../../shared/widgets/coin_pill.dart';
-import '../../shared/widgets/blur_dock.dart';
 import '../../shared/widgets/finance_tiles_section.dart';
 import '../../shared/widgets/dual_progress_dial.dart';
+import '../../shared/widgets/daily_streak_card.dart';
+import '../../shared/widgets/featured_hero_card.dart';
 
 /// FINSTAR Home Screen - Redesigned for maximum impact
 class BasicHomeScreen extends StatefulWidget {
@@ -37,6 +38,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
   final int _xpForNextLevel = 1000;
   final int _coins = 340;
   final double _studyProgress = 0.65; // 65% study progress
+  final int _streakDays = 7;
 
   @override
   void initState() {
@@ -110,10 +112,10 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Dark background
+          // Vibrant animated gradient background
           Container(
             decoration: const BoxDecoration(
-              color: Color(0xFF000000),
+              gradient: DesignTokens.vibrantBackgroundGradient,
             ),
           ),
 
@@ -126,51 +128,27 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 150),
+                    const SizedBox(height: 120),
 
-                    // Progress Section with Panda
+                    // Progress Section with Panda and Streak
                     _buildProgressWithPandaSection(screenWidth),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 20),
+
+                    // Featured Hero Card
+                    FeaturedHeroCard(
+                      onTap: () => context.go('/game'),
+                    ),
+
+                    const SizedBox(height: 24),
 
                     // Learning Categories
                     const FinanceTilesSection(),
 
-                    const SizedBox(height: 120), // Space for bottom nav
+                    const SizedBox(height: 24), // Bottom spacing
                   ],
                 ),
               ),
-            ),
-          ),
-
-          // Bottom navigation dock
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: BlurDock(
-              items: const [
-                NavItem(
-                    icon: Icons.home_rounded, label: 'Home', route: '/'),
-                NavItem(
-                    icon: Icons.videogame_asset_rounded,
-                    label: 'Play Games',
-                    route: '/game'),
-                NavItem(
-                    icon: Icons.leaderboard_rounded,
-                    label: 'Leaderboard',
-                    route: '/rewards'),
-                NavItem(
-                    icon: Icons.person_rounded,
-                    label: 'Profile',
-                    route: '/profile'),
-              ],
-              selectedIndex: 0,
-              showFab: false,
-              onItemTap: (index) {
-                final routes = ['/', '/game', '/rewards', '/profile'];
-                context.go(routes[index]);
-              },
             ),
           ),
         ],
@@ -212,7 +190,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
     return AnimatedBuilder(
       animation: Listenable.merge([_progressController, _pandaController, _breathingController]),
       builder: (context, child) {
-        final breathingScale = 1.0 + (_breathingController.value * 0.03);
+        final breathingScale = 1.0 + (_breathingController.value * 0.06);
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -226,10 +204,10 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4A90E2).withValues(alpha: 0.15),
+                      color: const Color.fromARGB(255, 26, 73, 128).withValues(alpha: 0.35),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFF4A90E2).withValues(alpha: 0.2),
+                        color: const Color(0xFF4A90E2).withValues(alpha: 0.7),
                         width: 1.5,
                       ),
                       boxShadow: [
@@ -271,7 +249,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                                       fontFamily: 'Poppins',
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white.withValues(alpha: 0.7),
+                                      color: Colors.white,
                                     ),
                                   ),
                                   Text(
@@ -280,7 +258,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                                       fontFamily: 'Poppins',
                                       fontSize: 11,
                                       fontWeight: FontWeight.w400,
-                                      color: Colors.white.withValues(alpha: 0.5),
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ],
@@ -300,7 +278,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                                       fontFamily: 'Poppins',
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white.withValues(alpha: 0.7),
+                                      color: Colors.white,
                                     ),
                                   ),
                                   Text(
@@ -309,7 +287,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                                       fontFamily: 'Poppins',
                                       fontSize: 11,
                                       fontWeight: FontWeight.w400,
-                                      color: Colors.white.withValues(alpha: 0.5),
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ],
@@ -344,6 +322,16 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                     ),
                   ),
                 ),
+              ),
+            ),
+
+            // Daily Streak Card on left side
+            Positioned(
+              left: 0,
+              top: -100,
+              child: FadeTransition(
+                opacity: _pandaController,
+                child: DailyStreakCard(streakDays: _streakDays),
               ),
             ),
           ],

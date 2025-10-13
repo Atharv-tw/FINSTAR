@@ -25,16 +25,26 @@ class DesignTokens {
   static const Color backgroundPrimary = Color(0xFF0B0B0D);
   static const Color backgroundSecondary = Color(0xFF15151A);
 
+  // Beige Background
+  static const Color beigeLight = Color(0xFFF5E6D3);
+  static const Color beigeDark = Color(0xFFE8D4BA);
+
   // Surface
   static const Color surfaceCard = Color(0x0B0B0B0D); // rgba(11, 11, 13, 0.7)
   static const Color surfaceCardLight = Color(0x1AFFFFFF); // rgba(255, 255, 255, 0.1)
   static const Color surfaceOverlay = Color(0x80000000); // rgba(0, 0, 0, 0.5)
 
-  // Text
+  // Text (for dark backgrounds)
   static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xB3FFFFFF); // rgba(255, 255, 255, 0.7)
   static const Color textTertiary = Color(0x80FFFFFF); // rgba(255, 255, 255, 0.5)
   static const Color textDisabled = Color(0x4DFFFFFF); // rgba(255, 255, 255, 0.3)
+
+  // Text (for light/beige backgrounds)
+  static const Color textDarkPrimary = Color(0xFF1A1A1A);
+  static const Color textDarkSecondary = Color(0xFF4A4A4A); // rgba(74, 74, 74, 1)
+  static const Color textDarkTertiary = Color(0xFF6B6B6B); // rgba(107, 107, 107, 1)
+  static const Color textDarkDisabled = Color(0xFF9E9E9E); // rgba(158, 158, 158, 1)
 
   // Semantic
   static const Color success = Color(0xFF2FD176);
@@ -66,6 +76,38 @@ class DesignTokens {
     colors: [backgroundPrimary, backgroundSecondary],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient beigeGradient = LinearGradient(
+    colors: [beigeLight, beigeDark],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  // Vibrant animated background gradient
+  static const LinearGradient vibrantBackgroundGradient = LinearGradient(
+    colors: [
+      Color(0xFFFFE5CC), // Peachy orange
+      Color(0xFFFFCCE5), // Pink
+      Color(0xFFE5CCFF), // Purple
+      Color(0xFFCCE5FF), // Blue
+    ],
+    stops: [0.0, 0.35, 0.65, 1.0],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // Mesh gradient stops for animated background
+  static const LinearGradient meshGradient1 = LinearGradient(
+    colors: [Color(0xFFFFD6E8), Color(0xFFFFE8D6)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient meshGradient2 = LinearGradient(
+    colors: [Color(0xFFE8D6FF), Color(0xFFD6F3FF)],
+    begin: Alignment.topRight,
+    end: Alignment.bottomLeft,
   );
 
   static const LinearGradient diagonalGradient = LinearGradient(

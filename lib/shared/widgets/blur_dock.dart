@@ -106,18 +106,18 @@ class _BlurDockState extends State<BlurDock>
         Positioned(
           bottom: 20,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(32.5),
             child: BackdropFilter(
               filter: ImageFilter.blur(
                 sigmaX: DesignTokens.blurGlassmorphic,
                 sigmaY: DesignTokens.blurGlassmorphic,
               ),
               child: Container(
-                width: dockWidth.clamp(280.0, 360.0),
-                height: 56,
+                width: dockWidth.clamp(320.0, 420.0),
+                height: 65,
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(32.5),
                   border: Border.all(
                     color: Colors.white.withValues(alpha: 0.2),
                     width: 1,
@@ -136,7 +136,7 @@ class _BlurDockState extends State<BlurDock>
         // Central FAB
         if (widget.showFab)
           Positioned(
-            bottom: 44, // 20 + (56/2) - (56/2) + 8 elevation
+            bottom: 48.5, // 20 + (65/2) - (56/2) + 8 elevation
             child: RotationTransition(
               turns: _rotationAnimation,
               child: GestureDetector(
@@ -181,8 +181,8 @@ class _BlurDockState extends State<BlurDock>
           duration: MotionTokens.fast,
           curve: MotionTokens.easeOut,
           child: Container(
-            width: 40,
-            height: 40,
+            width: 50,
+            height: 50,
             decoration: BoxDecoration(
               color: isSelected
                   ? DesignTokens.primarySolid.withValues(alpha: 0.2)
@@ -191,7 +191,7 @@ class _BlurDockState extends State<BlurDock>
             ),
             child: Icon(
               item.icon,
-              size: DesignTokens.iconSM,
+              size: DesignTokens.iconMD,
               color: isSelected
                   ? DesignTokens.primarySolid
                   : DesignTokens.textSecondary,

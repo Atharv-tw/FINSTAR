@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
+import '../../../../core/design_tokens.dart';
 import '../../../../services/local_storage_service.dart';
 
 class LifeSwipeResultScreen extends StatefulWidget {
@@ -106,19 +107,22 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: DesignTokens.beigeGradient,
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                       _buildGradeCard(),
                       const SizedBox(height: 24),
                       _buildFinancialSummary(),
@@ -126,14 +130,15 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                       _buildScoreBreakdown(),
                       const SizedBox(height: 24),
                       _buildInsights(),
-                      const SizedBox(height: 24),
-                      _buildDecisionHistory(),
-                    ],
+                        const SizedBox(height: 24),
+                        _buildDecisionHistory(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              _buildActionButtons(),
-            ],
+                _buildActionButtons(),
+              ],
+            ),
           ),
         ),
       ),

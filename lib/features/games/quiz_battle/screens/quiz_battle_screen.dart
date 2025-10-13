@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
+import '../../../../core/design_tokens.dart';
 import '../models/quiz_question.dart';
 import 'quiz_result_screen.dart';
 import '../../../../services/mascot_service.dart';
@@ -250,9 +251,13 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
-        child: hasStarted ? _buildQuizScreen() : _buildInstructionsScreen(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: DesignTokens.beigeGradient,
+        ),
+        child: SafeArea(
+          child: hasStarted ? _buildQuizScreen() : _buildInstructionsScreen(),
+        ),
       ),
     );
   }

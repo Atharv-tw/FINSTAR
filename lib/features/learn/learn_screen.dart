@@ -11,7 +11,7 @@ class LearnScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: DesignTokens.backgroundGradient,
+          gradient: DesignTokens.beigeGradient,
         ),
         child: Stack(
           children: [
@@ -33,7 +33,7 @@ class LearnScreen extends StatelessWidget {
                             fontFamily: 'Poppins',
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
-                            color: DesignTokens.textPrimary,
+                            color: DesignTokens.textDarkPrimary,
                           ),
                         ),
                       ],
@@ -48,7 +48,7 @@ class LearnScreen extends StatelessWidget {
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 24,
-                          color: DesignTokens.textSecondary,
+                          color: DesignTokens.textDarkSecondary,
                         ),
                       ),
                     ),

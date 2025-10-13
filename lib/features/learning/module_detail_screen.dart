@@ -61,7 +61,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
       return Scaffold(
         body: Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF000000),
+            gradient: DesignTokens.beigeGradient,
           ),
           child: SafeArea(
             child: Column(
@@ -69,7 +69,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                 AppBar(
                   backgroundColor: Colors.transparent,
                   leading: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(Icons.arrow_back, color: DesignTokens.textDarkPrimary),
                     onPressed: () => context.pop(),
                   ),
                 ),
@@ -123,7 +123,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF000000),
+          gradient: DesignTokens.beigeGradient,
         ),
         child: SafeArea(
           child: CustomScrollView(
@@ -133,7 +133,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
               SliverAppBar(
                 backgroundColor: Colors.transparent,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  icon: const Icon(Icons.arrow_back, color: DesignTokens.textDarkPrimary),
                   onPressed: () => context.pop(),
                 ),
                 floating: true,
@@ -158,7 +158,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                           fontFamily: 'Poppins',
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: DesignTokens.textDarkPrimary,
                         ),
                       ),
 
@@ -171,7 +171,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                           fontFamily: 'Poppins',
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
-                          color: Colors.white.withValues(alpha: 0.7),
+                          color: DesignTokens.textDarkSecondary,
                           height: 1.5,
                         ),
                       ),
@@ -190,7 +190,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                           fontFamily: 'Poppins',
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: DesignTokens.textDarkPrimary,
                         ),
                       ),
 

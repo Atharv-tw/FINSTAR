@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../config/theme.dart';
+import '../../../../core/design_tokens.dart';
 import '../models/market_explorer_models.dart';
 import 'market_explorer_simulation_screen.dart';
 
@@ -106,14 +107,18 @@ class _MarketExplorerAllocationScreenState
       appBar: AppBar(
         title: const Text('Market Explorer'),
       ),
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: DesignTokens.beigeGradient,
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Header
                 _buildHeader(),
                 const SizedBox(height: 24),
@@ -129,13 +134,15 @@ class _MarketExplorerAllocationScreenState
                 // Asset Allocation Cards
                 Text(
                   'Choose Your Islands',
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: DesignTokens.textDarkPrimary,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Allocate your capital across different investment islands',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
+                        color: DesignTokens.textDarkSecondary,
                       ),
                 ),
                 const SizedBox(height: 20),
@@ -144,10 +151,11 @@ class _MarketExplorerAllocationScreenState
 
                 const SizedBox(height: 32),
 
-                // Start Button
-                _buildStartButton(),
-                const SizedBox(height: 20),
-              ],
+                  // Start Button
+                  _buildStartButton(),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
@@ -213,7 +221,9 @@ class _MarketExplorerAllocationScreenState
       children: [
         Text(
           'Select Difficulty',
-          style: Theme.of(context).textTheme.titleLarge,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: DesignTokens.textDarkPrimary,
+              ),
         ),
         const SizedBox(height: 12),
         Row(
@@ -276,7 +286,7 @@ class _MarketExplorerAllocationScreenState
         Text(
           _selectedDifficulty.description,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.textSecondary,
+                color: DesignTokens.textDarkSecondary,
               ),
           textAlign: TextAlign.center,
         ),

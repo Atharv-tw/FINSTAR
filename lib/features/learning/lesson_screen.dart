@@ -73,7 +73,7 @@ class _LessonScreenState extends State<LessonScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF000000),
+          gradient: DesignTokens.beigeGradient,
         ),
         child: SafeArea(
           child: Column(

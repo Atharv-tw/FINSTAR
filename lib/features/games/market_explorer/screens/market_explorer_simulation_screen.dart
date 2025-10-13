@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../../config/theme.dart';
+import '../../../../core/design_tokens.dart';
 import '../models/market_explorer_models.dart';
 import '../services/market_simulator.dart';
 import 'market_explorer_result_screen.dart';
@@ -225,12 +226,16 @@ class _MarketExplorerSimulationScreenState
             ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: DesignTokens.beigeGradient,
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // Year Progress
               _buildYearProgress(),
               const SizedBox(height: 24),
@@ -243,9 +248,10 @@ class _MarketExplorerSimulationScreenState
               _buildChart(),
               const SizedBox(height: 24),
 
-              // Asset Performance
-              if (_currentYear > 0) _buildAssetPerformance(),
-            ],
+                // Asset Performance
+                if (_currentYear > 0) _buildAssetPerformance(),
+              ],
+            ),
           ),
         ),
       ),
@@ -475,7 +481,9 @@ class _MarketExplorerSimulationScreenState
       children: [
         Text(
           'Asset Performance',
-          style: Theme.of(context).textTheme.headlineMedium,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: DesignTokens.textDarkPrimary,
+              ),
         ),
         const SizedBox(height: 16),
         ...widget.portfolio.assets.entries.map((entry) {

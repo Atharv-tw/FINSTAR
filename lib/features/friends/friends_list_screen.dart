@@ -50,7 +50,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF000000),
+          gradient: DesignTokens.beigeGradient,
         ),
         child: SafeArea(
           child: Column(
@@ -80,7 +80,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: DesignTokens.textDarkPrimary),
             onPressed: () => context.pop(),
           ),
           const SizedBox(width: 8),
@@ -90,7 +90,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
               fontFamily: 'Poppins',
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: DesignTokens.textDarkPrimary,
             ),
           ),
           const Spacer(),
@@ -182,7 +182,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
                                 fontFamily: 'Poppins',
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: DesignTokens.textDarkPrimary,
                               ),
                             ),
                             Text(
@@ -190,7 +190,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
                               style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.7),
+                                color: DesignTokens.textDarkPrimary.withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -326,7 +326,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
                               fontFamily: 'Poppins',
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: DesignTokens.textDarkPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -346,7 +346,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
                               fontFamily: 'Poppins',
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(alpha: 0.7),
+                              color: DesignTokens.textDarkPrimary.withValues(alpha: 0.7),
                             ),
                           ),
                         ),
@@ -371,7 +371,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.6),
+                              color: DesignTokens.textDarkPrimary.withValues(alpha: 0.6),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

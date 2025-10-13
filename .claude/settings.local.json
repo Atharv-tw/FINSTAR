@@ -5,7 +5,10 @@
       "Bash(flutter pub:*)",
       "Bash(flutter analyze:*)",
       "Bash(flutter run:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "mcp__ide__getDiagnostics",
+      "Read(//c/Users/tiwar/Desktop/**)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

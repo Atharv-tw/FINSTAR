@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
-import '../../shared/widgets/blur_dock.dart';
 import '../../models/user_profile.dart';
 import '../../data/user_data.dart';
 
@@ -56,7 +55,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF000000),
+          gradient: DesignTokens.vibrantBackgroundGradient,
         ),
         child: Stack(
           children: [
@@ -78,36 +77,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 ],
               ),
             ),
-
-            // Bottom navigation
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: BlurDock(
-                items: const [
-                  NavItem(icon: Icons.home_rounded, label: 'Home', route: '/'),
-                  NavItem(
-                      icon: Icons.videogame_asset_rounded,
-                      label: 'Play Games',
-                      route: '/game'),
-                  NavItem(
-                      icon: Icons.leaderboard_rounded,
-                      label: 'Leaderboard',
-                      route: '/rewards'),
-                  NavItem(
-                      icon: Icons.person_rounded,
-                      label: 'Profile',
-                      route: '/profile'),
-                ],
-                selectedIndex: 2,
-                showFab: false,
-                onItemTap: (index) {
-                  final routes = ['/', '/game', '/rewards', '/profile'];
-                  context.go(routes[index]);
-                },
-              ),
-            ),
           ],
         ),
       ),
@@ -126,7 +95,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 fontFamily: 'Poppins',
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: DesignTokens.textDarkPrimary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -356,7 +325,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       itemCount: remainingEntries.length,
       itemBuilder: (context, index) {
         final entry = remainingEntries[index];

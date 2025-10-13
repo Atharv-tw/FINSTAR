@@ -6,7 +6,6 @@ import '../../core/design_tokens.dart';
 import '../../core/motion_tokens.dart';
 import '../../shared/widgets/xp_ring.dart';
 import '../../shared/widgets/coin_pill.dart';
-import '../../shared/widgets/blur_dock.dart';
 
 /// Play game screen with STACKED CARDS hero interface (Spec 2.1)
 class PlayGameScreen extends StatefulWidget {
@@ -100,7 +99,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Diagonal gradient background with hue shift
+          // Beige gradient background
           RepaintBoundary(
             child: AnimatedBuilder(
               animation: _hueController,
@@ -108,7 +107,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                 final hueShift = (_hueController.value - 0.5) * 16; // ±8°
                 return Container(
                   decoration: const BoxDecoration(
-                    color: Color(0xFF000000), // Pitch black
+                    gradient: DesignTokens.vibrantBackgroundGradient,
                   ),
                 );
               },
@@ -143,27 +142,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
           // Sticky header
           _buildStickyHeader(),
-
-          // Bottom navigation dock
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: BlurDock(
-              items: const [
-                NavItem(icon: Icons.home_rounded, label: 'Home', route: '/'),
-                NavItem(icon: Icons.videogame_asset_rounded, label: 'Play Games', route: '/game'),
-                NavItem(icon: Icons.leaderboard_rounded, label: 'Leaderboard', route: '/rewards'),
-                NavItem(icon: Icons.person_rounded, label: 'Profile', route: '/profile'),
-              ],
-              selectedIndex: 1,
-              showFab: false,
-              onItemTap: (index) {
-                final routes = ['/', '/game', '/rewards', '/profile'];
-                context.go(routes[index]);
-              },
-            ),
-          ),
         ],
       ),
     );
@@ -279,6 +257,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
       _CardData(
         title: 'Quiz Battle',
         subtitle: 'Test your financial knowledge',
+        description: '⚡ Lightning-fast questions, epic rewards! Can you outsmart the market?\n\nRace against the clock to answer financial trivia. Each correct answer boosts your XP and unlocks new challenges. Think you know money? Prove it!',
         icon: Icons.quiz_rounded,
         gradientColors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
         route: '/game/quiz-battle',
@@ -286,6 +265,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
       _CardData(
         title: 'Life Swipe',
         subtitle: 'Budget your way through life',
+        description: '💳 Swipe right on smart choices! Every decision shapes your fortune.\n\nNavigate real-life scenarios—from buying coffee to choosing a career. Swipe left to save, right to spend. Can you balance fun and financial freedom?',
         icon: Icons.swipe_rounded,
         gradientColors: [DesignTokens.secondaryStart, DesignTokens.secondaryEnd],
         route: '/game/life-swipe',
@@ -293,9 +273,18 @@ class _PlayGameScreenState extends State<PlayGameScreen>
       _CardData(
         title: 'Market Explorer',
         subtitle: 'Invest and grow your wealth',
+        description: '📈 Build your empire! Watch your portfolio soar or crash—you decide!\n\nDive into stocks, bonds, and crypto. Learn to diversify, manage risk, and time the market. Will you play it safe or go all-in on that hot tech stock?',
         icon: Icons.trending_up_rounded,
         gradientColors: [DesignTokens.accentStart, DesignTokens.accentEnd],
         route: '/game/market-explorer',
+      ),
+      _CardData(
+        title: 'Budget Blitz',
+        subtitle: 'Master your monthly money',
+        description: '⚡ Race the clock to balance your budget! Allocate income, pay bills, and save before time runs out.\n\nJuggle rent, groceries, entertainment, and surprise expenses. Can you end the month in the green? Fast-paced financial decisions await!',
+        icon: Icons.bolt_rounded,
+        gradientColors: [const Color(0xFFFF6B9D), const Color(0xFFC06C84)],
+        route: '/game/budget-blitz',
       ),
     ];
 
@@ -370,7 +359,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
           onTap: () {
             // Navigate to game
             HapticFeedback.mediumImpact();
-            context.go(card.route);
+            context.push(card.route);
           },
           child: Container(
             height: screenHeight * 0.7, // Full card size (70% of screen height)
@@ -451,15 +440,31 @@ class _PlayGameScreenState extends State<PlayGameScreen>
         const SizedBox(height: 4),
 
         // Subtitle - Inter Regular 14px
-        Text(
-          card.subtitle,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Colors.white.withValues(alpha: 0.7),
+        if (card.subtitle.isNotEmpty)
+          Text(
+            card.subtitle,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
           ),
-        ),
+
+        if (card.subtitle.isNotEmpty) const SizedBox(height: 12),
+
+        // Description - Fun and catchy info
+        if (card.description.isNotEmpty)
+          Text(
+            card.description,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withValues(alpha: 0.85),
+              height: 1.4,
+            ),
+          ),
       ],
     );
   }
@@ -493,6 +498,7 @@ class GridPatternPainter extends CustomPainter {
 class _CardData {
   final String title;
   final String subtitle;
+  final String description;
   final IconData icon;
   final List<Color> gradientColors;
   final String route;
@@ -500,6 +506,7 @@ class _CardData {
   _CardData({
     required this.title,
     required this.subtitle,
+    required this.description,
     required this.icon,
     required this.gradientColors,
     required this.route,

@@ -11,25 +11,49 @@ import '../features/learning/lesson_screen.dart';
 import '../features/games/life_swipe/screens/life_swipe_game_screen.dart';
 import '../features/games/quiz_battle/screens/quiz_battle_screen.dart';
 import '../features/games/market_explorer/screens/market_explorer_allocation_screen.dart';
+import '../features/games/budget_blitz/screens/budget_blitz_game_screen.dart';
+import '../shared/layouts/main_layout.dart';
 
 /// App routing configuration using GoRouter
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
-      // Basic Home route
-      GoRoute(
-        path: '/',
-        name: 'basic-home',
-        builder: (context, state) => const BasicHomeScreen(),
+      // Shell route for main navigation screens (with bottom nav bar)
+      ShellRoute(
+        builder: (context, state, child) => MainLayout(child: child),
+        routes: [
+          // Home
+          GoRoute(
+            path: '/',
+            name: 'basic-home',
+            builder: (context, state) => const BasicHomeScreen(),
+          ),
+
+          // Play Games
+          GoRoute(
+            path: '/game',
+            name: 'game',
+            builder: (context, state) => const PlayGameScreen(),
+          ),
+
+          // Leaderboard
+          GoRoute(
+            path: '/rewards',
+            name: 'rewards',
+            builder: (context, state) => const LeaderboardScreen(),
+          ),
+
+          // Profile
+          GoRoute(
+            path: '/profile',
+            name: 'profile',
+            builder: (context, state) => const ProfileDetailScreen(),
+          ),
+        ],
       ),
 
-      // Game route (card screen with panda)
-      GoRoute(
-        path: '/game',
-        name: 'game',
-        builder: (context, state) => const PlayGameScreen(),
-      ),
+      // Routes without bottom navigation bar
 
       // Learn module
       GoRoute(
@@ -38,25 +62,11 @@ class AppRouter {
         builder: (context, state) => const LearnScreen(),
       ),
 
-      // Leaderboard
-      GoRoute(
-        path: '/rewards',
-        name: 'rewards',
-        builder: (context, state) => const LeaderboardScreen(),
-      ),
-
       // Friends
       GoRoute(
         path: '/friends',
         name: 'friends',
         builder: (context, state) => const FriendsListScreen(),
-      ),
-
-      // Profile
-      GoRoute(
-        path: '/profile',
-        name: 'profile',
-        builder: (context, state) => const ProfileDetailScreen(),
       ),
 
       // Learning Module Detail
@@ -95,6 +105,11 @@ class AppRouter {
         path: '/game/market-explorer',
         name: 'market-explorer',
         builder: (context, state) => const MarketExplorerAllocationScreen(),
+      ),
+      GoRoute(
+        path: '/game/budget-blitz',
+        name: 'budget-blitz',
+        builder: (context, state) => const BudgetBlitzGameScreen(),
       ),
     ],
 

@@ -62,33 +62,41 @@ class FinanceTilesSection extends StatelessWidget {
                 context.push('/module/${tile['moduleId']}');
               },
               child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B0B0D).withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(20),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.3),
+                        Colors.white.withValues(alpha: 0.15),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      width: 1,
+                      color: const Color(0xFF2D7A3E).withValues(alpha: 0.6),
+                      width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
                       BoxShadow(
-                        color: const Color.fromARGB(255, 233, 131, 165).withValues(alpha: 0.6),
+                        color: const Color(0xFF4AE56B).withValues(alpha: 0.35),
                         blurRadius: 24,
+                        spreadRadius: -5,
                       ),
                     ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Icon
+                      // Icon without background
                       Image.asset(
                         tile['image'],
                         width: 80,
@@ -102,11 +110,11 @@ class FinanceTilesSection extends StatelessWidget {
                         child: Text(
                           tile['title'],
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: Colors.white,
+                            color: DesignTokens.textDarkPrimary,
                             height: 1.2,
                           ),
                         ),

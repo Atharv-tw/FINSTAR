@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
+import '../../../../core/design_tokens.dart';
 import '../models/spending_scenario.dart';
 import 'life_swipe_result_screen.dart';
 
@@ -134,9 +135,13 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
-        child: hasStarted ? _buildGameScreen() : _buildInstructionsScreen(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: DesignTokens.beigeGradient,
+        ),
+        child: SafeArea(
+          child: hasStarted ? _buildGameScreen() : _buildInstructionsScreen(),
+        ),
       ),
     );
   }

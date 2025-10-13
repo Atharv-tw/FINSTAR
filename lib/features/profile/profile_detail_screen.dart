@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
-import '../../shared/widgets/blur_dock.dart';
 import '../../shared/widgets/xp_ring.dart';
 import '../../models/user_profile.dart';
 import '../../data/user_data.dart';
@@ -44,7 +43,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF000000),
+          gradient: DesignTokens.vibrantBackgroundGradient,
         ),
         child: Stack(
           children: [
@@ -76,40 +75,10 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                       // Achievements Section
                       _buildAchievementsSection(),
 
-                      const SizedBox(height: 120), // Space for bottom nav
+                      const SizedBox(height: 24), // Bottom spacing
                     ],
                   ),
                 ),
-              ),
-            ),
-
-            // Bottom navigation
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: BlurDock(
-                items: const [
-                  NavItem(icon: Icons.home_rounded, label: 'Home', route: '/'),
-                  NavItem(
-                      icon: Icons.videogame_asset_rounded,
-                      label: 'Play Games',
-                      route: '/game'),
-                  NavItem(
-                      icon: Icons.leaderboard_rounded,
-                      label: 'Leaderboard',
-                      route: '/rewards'),
-                  NavItem(
-                      icon: Icons.person_rounded,
-                      label: 'Profile',
-                      route: '/profile'),
-                ],
-                selectedIndex: 3,
-                showFab: false,
-                onItemTap: (index) {
-                  final routes = ['/', '/game', '/rewards', '/profile'];
-                  context.go(routes[index]);
-                },
               ),
             ),
           ],
@@ -128,11 +97,11 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
             fontFamily: 'Poppins',
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: DesignTokens.textDarkPrimary,
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.settings, color: Colors.white),
+          icon: const Icon(Icons.settings, color: DesignTokens.textDarkPrimary),
           onPressed: () {
             // TODO: Navigate to settings
           },
@@ -219,7 +188,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                         fontFamily: 'Poppins',
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: DesignTokens.textDarkPrimary,
                       ),
                     ),
 
@@ -248,7 +217,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: DesignTokens.textDarkPrimary,
                                 ),
                               ),
                             ],
@@ -274,7 +243,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: DesignTokens.textDarkPrimary,
                                 ),
                               ),
                             ],
@@ -309,7 +278,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                               fontFamily: 'Poppins',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: DesignTokens.textDarkPrimary,
                             ),
                           ),
                         ],
@@ -376,7 +345,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
@@ -391,24 +360,24 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
               Icon(
                 stat['icon'] as IconData,
                 color: DesignTokens.primarySolid,
-                size: 32,
+                size: 28,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 stat['value'] as String,
                 style: const TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: DesignTokens.textDarkPrimary,
                 ),
               ),
               Text(
                 stat['label'] as String,
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 11,
+                  color: DesignTokens.textDarkPrimary.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -430,7 +399,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
             fontFamily: 'Poppins',
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: DesignTokens.textDarkPrimary,
           ),
         ),
         const SizedBox(height: 16),
@@ -516,8 +485,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: achievement.isUnlocked
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.3),
+                      ? DesignTokens.textDarkPrimary
+                      : DesignTokens.textDarkPrimary.withValues(alpha: 0.3),
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
+import '../../../../core/design_tokens.dart';
 import '../models/market_explorer_models.dart';
 import '../../../../models/game_progress_model.dart';
 import '../../../../services/local_storage_service.dart';
@@ -110,14 +111,18 @@ class _MarketExplorerResultScreenState
           onPressed: () => context.go('/'),
         ),
       ),
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: DesignTokens.beigeGradient,
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Performance Rating
                 _buildPerformanceCard(),
                 const SizedBox(height: 24),
@@ -140,8 +145,9 @@ class _MarketExplorerResultScreenState
 
                 // Action Buttons
                 _buildActionButtons(),
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
@@ -217,7 +223,9 @@ class _MarketExplorerResultScreenState
         children: [
           Text(
             'Score Breakdown',
-            style: Theme.of(context).textTheme.headlineMedium,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: DesignTokens.textDarkPrimary,
+                ),
           ),
           const SizedBox(height: 20),
           _buildScoreRow(
@@ -296,7 +304,9 @@ class _MarketExplorerResultScreenState
         children: [
           Text(
             'Portfolio Summary',
-            style: Theme.of(context).textTheme.headlineMedium,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: DesignTokens.textDarkPrimary,
+                ),
           ),
           const SizedBox(height: 20),
           _buildSummaryRow('Initial Capital',
@@ -360,7 +370,9 @@ class _MarketExplorerResultScreenState
               const SizedBox(width: 12),
               Text(
                 'Key Insights',
-                style: Theme.of(context).textTheme.headlineMedium,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: DesignTokens.textDarkPrimary,
+                    ),
               ),
             ],
           ),
