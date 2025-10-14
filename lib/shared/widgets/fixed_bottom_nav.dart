@@ -17,41 +17,40 @@ class FixedBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 30,
-            offset: const Offset(0, -10),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: const Color(0xFF4A9FE5).withValues(alpha: 0.15),
-            blurRadius: 40,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: ClipRect(
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           child: Container(
-            height: 69,
+            height: 72,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withValues(alpha: 0.9),
-                  Colors.white.withValues(alpha: 0.85),
+                  const Color(0xFFFFFFFF).withValues(alpha: 0.15),
+                  const Color(0xFFE8E8FF).withValues(alpha: 0.20),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
-              border: Border(
-                top: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  width: 2,
-                ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 1.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, -10),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: const Color(0xFF4A9FE5).withValues(alpha: 0.2),
+                  blurRadius: 40,
+                  offset: const Offset(0, -5),
+                ),
+              ],
             ),
             child: SafeArea(
               top: false,
@@ -198,7 +197,7 @@ class _NavBarItemState extends State<_NavBarItem>
                   size: 26,
                   color: widget.isSelected
                       ? Colors.white
-                      : DesignTokens.textDarkSecondary.withValues(alpha: 0.65),
+                      : Colors.white.withValues(alpha: 0.6),
                 ),
               ),
               const SizedBox(height: 3),
@@ -211,8 +210,8 @@ class _NavBarItemState extends State<_NavBarItem>
                   fontSize: 10,
                   fontWeight: widget.isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: widget.isSelected
-                      ? const Color(0xFF2F7FD1)
-                      : DesignTokens.textDarkSecondary.withValues(alpha: 0.6),
+                      ? const Color(0xFF4A9FE5)
+                      : Colors.white.withValues(alpha: 0.6),
                 ),
                 child: Text(widget.label),
               ),

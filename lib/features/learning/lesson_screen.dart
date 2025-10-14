@@ -73,7 +73,7 @@ class _LessonScreenState extends State<LessonScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: DesignTokens.beigeGradient,
+          gradient: DesignTokens.vibrantBackgroundGradient,
         ),
         child: SafeArea(
           child: Column(
@@ -103,8 +103,18 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0B0B0D).withValues(alpha: 0.85),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           IconButton(
@@ -122,6 +132,7 @@ class _LessonScreenState extends State<LessonScreen> {
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
           ),
           Container(
@@ -223,127 +234,239 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   Widget _buildTextContent(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontFamily: 'Poppins',
-        fontSize: 18,
-        fontWeight: FontWeight.w400,
+    // Parse text to identify questions, headers, and bullet points
+    final lines = text.split('\n');
+    final List<Widget> widgets = [];
+
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+      if (line.isEmpty) {
+        widgets.add(const SizedBox(height: 12));
+        continue;
+      }
+
+      // Check if line is a question (ends with ?)
+      if (line.endsWith('?')) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Text(
+              line,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+                height: 1.4,
+              ),
+            ),
+          ),
+        );
+      }
+      // Check if line is a header (starts with emoji or special character)
+      else if (RegExp(r'^[🎯💰📊✨💡🚀⚡🌟🎓💪🏦📱💵🔥🛡️⚠️📋💊🆚💝🌪️🗺️🏖️]').hasMatch(line)) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12, top: 8),
+            child: Text(
+              line,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+                height: 1.4,
+              ),
+            ),
+          ),
+        );
+      }
+      // Check if line is a bullet point
+      else if (line.startsWith('•') || line.startsWith('-')) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '• ',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                    height: 1.6,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    line.replaceFirst(RegExp(r'^[•\-]\s*'), ''),
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                      height: 1.6,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      // Regular text
+      else {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              line,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+                height: 1.7,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
         color: Colors.white,
-        height: 1.6,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: widgets,
       ),
     );
   }
 
   Widget _buildTipContent(String text) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: module.gradientColors[0].withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: module.gradientColors[0].withValues(alpha: 0.3),
-              width: 2,
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: module.gradientColors[0].withValues(alpha: 0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.lightbulb_rounded,
+            color: module.gradientColors[0],
+            size: 32,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '💡 Pro Tip',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: module.gradientColors[0],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  text,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                    height: 1.6,
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.lightbulb,
-                color: module.gradientColors[0],
-                size: 28,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Tip',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: module.gradientColors[0],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      text,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildExampleContent(String text) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.1),
-              width: 1,
-            ),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF4A90E2).withValues(alpha: 0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.description_outlined,
-                    color: Colors.white.withValues(alpha: 0.7),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Example',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
+              Icon(
+                Icons.auto_stories_rounded,
+                color: const Color(0xFF4A90E2),
+                size: 26,
               ),
-              const SizedBox(height: 12),
-              Text(
-                text,
-                style: const TextStyle(
+              const SizedBox(width: 12),
+              const Text(
+                '📖 Example',
+                style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white,
-                  height: 1.5,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF4A90E2),
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+          Text(
+            text,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+              height: 1.6,
+            ),
+          ),
+        ],
       ),
     );
   }

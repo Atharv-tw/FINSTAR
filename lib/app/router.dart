@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/home/basic_home_screen.dart';
 import '../features/home/play_game_screen.dart';
+import '../features/home/streak_detail_screen.dart';
 import '../features/learn/learn_screen.dart';
 import '../features/leaderboard/leaderboard_screen.dart';
 import '../features/friends/friends_screen.dart';
@@ -9,6 +10,7 @@ import '../features/profile/profile_screen.dart';
 import '../features/learning/module_detail_screen.dart';
 import '../features/learning/lesson_screen.dart';
 import '../features/games/life_swipe/screens/life_swipe_game_screen.dart';
+import '../features/games/life_swipe/screens/life_swipe_result_screen.dart';
 import '../features/games/quiz_battle/screens/quiz_battle_screen.dart';
 import '../features/games/market_explorer/screens/market_explorer_allocation_screen.dart';
 import '../features/games/budget_blitz/screens/budget_blitz_game_screen.dart';
@@ -69,6 +71,16 @@ class AppRouter {
         builder: (context, state) => const FriendsListScreen(),
       ),
 
+      // Streak Detail
+      GoRoute(
+        path: '/streak-detail',
+        name: 'streak-detail',
+        builder: (context, state) {
+          final streakDays = state.extra as int? ?? 0;
+          return StreakDetailScreen(streakDays: streakDays);
+        },
+      ),
+
       // Learning Module Detail
       GoRoute(
         path: '/module/:moduleId',
@@ -95,6 +107,27 @@ class AppRouter {
         path: '/game/life-swipe',
         name: 'life-swipe',
         builder: (context, state) => const LifeSwipeGameScreen(),
+      ),
+      GoRoute(
+        path: '/game/life-swipe-result',
+        name: 'life-swipe-result',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return LifeSwipeResultScreen(
+            totalBudget: extra['totalBudget'] as int,
+            remainingBudget: extra['remainingBudget'] as int,
+            spentMoney: extra['spentMoney'] as int,
+            savedMoney: extra['savedMoney'] as int,
+            happinessScore: extra['happinessScore'] as int,
+            disciplineScore: extra['disciplineScore'] as int,
+            socialScore: extra['socialScore'] as int,
+            futureScore: extra['futureScore'] as int,
+            financialHealth: extra['financialHealth'] as double,
+            decisions: extra['decisions'] as List<Map<String, dynamic>>,
+            badges: extra['badges'] as List<String>?,
+            maxStreak: extra['maxStreak'] as int?,
+          );
+        },
       ),
       GoRoute(
         path: '/game/quiz-battle',

@@ -12,6 +12,7 @@ class XpRing extends StatefulWidget {
   final double strokeWidth;
   final Gradient? gradient;
   final bool showLevel;
+  final Color? levelTextColor;
 
   const XpRing({
     super.key,
@@ -22,6 +23,7 @@ class XpRing extends StatefulWidget {
     this.strokeWidth = 4,
     this.gradient,
     this.showLevel = true,
+    this.levelTextColor,
   });
 
   @override
@@ -118,7 +120,7 @@ class _XpRingState extends State<XpRing> with SingleTickerProviderStateMixin {
                     fontFamily: 'Poppins',
                     fontSize: widget.size * 0.4,
                     fontWeight: FontWeight.bold,
-                    color: DesignTokens.textPrimary,
+                    color: widget.levelTextColor ?? DesignTokens.textPrimary,
                     height: 1.0,
                   ),
                 ),

@@ -99,7 +99,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Beige gradient background
+          // Darker vibrant background gradient (same colors, darker)
           RepaintBoundary(
             child: AnimatedBuilder(
               animation: _hueController,
@@ -107,7 +107,17 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                 final hueShift = (_hueController.value - 0.5) * 16; // ±8°
                 return Container(
                   decoration: const BoxDecoration(
-                    gradient: DesignTokens.vibrantBackgroundGradient,
+                    gradient: LinearGradient(
+                      colors: [
+                        Color(0xFF8B6A50), // Darker peachy orange
+                        Color(0xFF8B5065), // Darker pink
+                        Color(0xFF6A508B), // Darker purple
+                        Color(0xFF50658B), // Darker blue
+                      ],
+                      stops: [0.0, 0.35, 0.65, 1.0],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
                 );
               },
@@ -169,10 +179,58 @@ class _PlayGameScreenState extends State<PlayGameScreen>
               xpForNextLevel: _xpForNextLevel,
               level: _userLevel,
               size: 48,
+              levelTextColor: Colors.black,
             ),
 
-            // Coin Pill
-            CoinPill(coins: _coins, height: 40),
+            // Coin Pill and Shop Button
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CoinPill(coins: _coins, height: 40),
+                const SizedBox(width: 12),
+                // Shop icon button
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: DesignTokens.accentStart.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        // TODO: Navigate to shop screen
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Shop coming soon!'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      child: const Icon(
+                        Icons.shopping_bag_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -196,6 +254,14 @@ class _PlayGameScreenState extends State<PlayGameScreen>
             child: CustomPaint(
               painter: GridPatternPainter(),
             ),
+          ),
+
+          // Level Progress Bar above panda
+          Positioned(
+            top: 120,
+            left: 8,
+            right: 8,
+            child: _buildLevelProgressBar(),
           ),
 
           // 3D Mascot with parallax and breathing - positioned to sit on cards
@@ -235,11 +301,14 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                           ),
                         );
                       },
-                      child: Image.asset(
-                        'assets/images/panda.png',
-                        width: 500,
-                        height: 500,
-                        fit: BoxFit.contain,
+                      child: Transform.scale(
+                        scale: 1.26, // Zoom the panda
+                        child: Image.asset(
+                          'assets/images/panda1.png',
+                          width: 500,
+                          height: 500,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
@@ -252,16 +321,130 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     );
   }
 
+  Widget _buildLevelProgressBar() {
+    final levelProgress = _currentXp / _xpForNextLevel;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeOutQuart,
+      builder: (context, animValue, child) {
+        return Opacity(
+          opacity: animValue,
+          child: Transform.translate(
+            offset: Offset(0, (1 - animValue) * -20),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0B0B0D).withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Level progress label and XP
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Level Progress',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                          ),
+                          Text(
+                            '$_currentXp / $_xpForNextLevel XP',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Progress bar
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: levelProgress),
+                        duration: const Duration(milliseconds: 1200),
+                        curve: Curves.easeOutQuart,
+                        builder: (context, value, child) {
+                          return Stack(
+                            children: [
+                              // Background bar
+                              Container(
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                              ),
+                              // Progress bar with glow
+                              Container(
+                                height: 10,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: DesignTokens.primaryStart.withValues(alpha: 0.4),
+                                      blurRadius: 8,
+                                      spreadRadius: 0,
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(5),
+                                  child: FractionallySizedBox(
+                                    alignment: Alignment.centerLeft,
+                                    widthFactor: value,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
+                                        ),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCardStackZone(double screenHeight, double screenWidth) {
     final cards = [
-      _CardData(
-        title: 'Quiz Battle',
-        subtitle: 'Test your financial knowledge',
-        description: '⚡ Lightning-fast questions, epic rewards! Can you outsmart the market?\n\nRace against the clock to answer financial trivia. Each correct answer boosts your XP and unlocks new challenges. Think you know money? Prove it!',
-        icon: Icons.quiz_rounded,
-        gradientColors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
-        route: '/game/quiz-battle',
-      ),
       _CardData(
         title: 'Life Swipe',
         subtitle: 'Budget your way through life',
@@ -285,6 +468,14 @@ class _PlayGameScreenState extends State<PlayGameScreen>
         icon: Icons.bolt_rounded,
         gradientColors: [const Color(0xFFFF6B9D), const Color(0xFFC06C84)],
         route: '/game/budget-blitz',
+      ),
+      _CardData(
+        title: 'Quiz Battle',
+        subtitle: 'Test your financial knowledge',
+        description: '⚡ Lightning-fast questions, epic rewards! Can you outsmart the market?\n\nRace against the clock to answer financial trivia. Each correct answer boosts your XP and unlocks new challenges. Think you know money? Prove it!',
+        icon: Icons.quiz_rounded,
+        gradientColors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
+        route: '/game/quiz-battle',
       ),
     ];
 

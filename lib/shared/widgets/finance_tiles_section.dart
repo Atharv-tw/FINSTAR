@@ -62,68 +62,61 @@ class FinanceTilesSection extends StatelessWidget {
                 context.push('/module/${tile['moduleId']}');
               },
               child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withValues(alpha: 0.3),
-                        Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0B0B0D).withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: gradientColors[0].withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                        BoxShadow(
+                          color: gradientColors[0].withValues(alpha: 0.25),
+                          blurRadius: 20,
+                          spreadRadius: -2,
+                        ),
                       ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: const Color(0xFF2D7A3E).withValues(alpha: 0.6),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: const Color(0xFF4AE56B).withValues(alpha: 0.35),
-                        blurRadius: 24,
-                        spreadRadius: -5,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Icon without background
-                      Image.asset(
-                        tile['image'],
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(height: 12),
-                      // Title
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text(
-                          tile['title'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                            color: DesignTokens.textDarkPrimary,
-                            height: 1.2,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Icon without background
+                        Image.asset(
+                          tile['image'],
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(height: 12),
+                        // Title
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            tile['title'],
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              color: Colors.white,
+                              height: 1.2,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
             );
           },
         ),

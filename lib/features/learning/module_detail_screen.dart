@@ -123,101 +123,160 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: DesignTokens.beigeGradient,
+          gradient: DesignTokens.vibrantBackgroundGradient,
+        ),
+        child: Stack(
+          children: [
+            // Main scrollable content
+            CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Spacer for fixed header
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 72),
+                ),
+
+                // Header Section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+
+                        // Module Icon
+                        _buildModuleIcon(screenWidth),
+
+                        const SizedBox(height: 24),
+
+                        // Module Title
+                        Text(
+                          module!.title,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Module Description
+                        Text(
+                          module!.description,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            height: 1.5,
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Progress Card
+                        _buildProgressCard(),
+
+                        const SizedBox(height: 32),
+
+                        // Lessons Header
+                        Text(
+                          'Lessons (${module!.lessons.length})',
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Lessons List
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final lesson = module!.lessons[index];
+                        return _buildLessonCard(lesson, index);
+                      },
+                      childCount: module!.lessons.length,
+                    ),
+                  ),
+                ),
+
+                // Bottom spacing
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 40),
+                ),
+              ],
+            ),
+
+            // Fixed top header
+            _buildFixedHeader(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFixedHeader() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        height: 72,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0B0B0D).withValues(alpha: 0.85),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: SafeArea(
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // App Bar
-              SliverAppBar(
-                backgroundColor: Colors.transparent,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: DesignTokens.textDarkPrimary),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Back button on left
+              Positioned(
+                left: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () => context.pop(),
                 ),
-                floating: true,
               ),
 
-              // Header Section
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Module Icon
-                      _buildModuleIcon(screenWidth),
+              const Spacer(),
 
-                      const SizedBox(height: 24),
-
-                      // Module Title
-                      Text(
-                        module!.title,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: DesignTokens.textDarkPrimary,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Module Description
-                      Text(
-                        module!.description,
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          color: DesignTokens.textDarkSecondary,
-                          height: 1.5,
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Progress Card
-                      _buildProgressCard(),
-
-                      const SizedBox(height: 32),
-
-                      // Lessons Header
-                      Text(
-                        'Lessons (${module!.lessons.length})',
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: DesignTokens.textDarkPrimary,
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-                    ],
-                  ),
+              // Centered title
+              Text(
+                module!.title,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
                 ),
+                textAlign: TextAlign.center,
               ),
 
-              // Lessons List
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final lesson = module!.lessons[index];
-                      return _buildLessonCard(lesson, index);
-                    },
-                    childCount: module!.lessons.length,
-                  ),
-                ),
-              ),
+              const Spacer(),
 
-              // Bottom spacing
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 40),
-              ),
+              // Invisible spacer for centering
+              const SizedBox(width: 48),
             ],
           ),
         ),
@@ -265,12 +324,19 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: const Color(0xFF0B0B0D).withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: Colors.white.withValues(alpha: 0.15),
               width: 1,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -284,7 +350,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                       fontFamily: 'Poppins',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                   Text(
@@ -293,7 +359,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                       fontFamily: 'Poppins',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -311,7 +377,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                       fontFamily: 'Poppins',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                   Text(
@@ -372,6 +438,17 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
   Widget _buildLessonCard(Lesson lesson, int index) {
     final delay = index * 0.1;
 
+    // Sequential unlocking logic:
+    // First 3 lessons (index 0, 1, 2): Always unlocked
+    // Lessons 4+ (index 3+): Locked unless previous lesson is completed
+    final bool isLocked;
+    if (index < 3) {
+      isLocked = false; // First 3 lessons always unlocked
+    } else {
+      final previousLesson = module!.lessons[index - 1];
+      isLocked = !previousLesson.isCompleted; // Locked if previous not completed
+    }
+
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -389,9 +466,12 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
         padding: const EdgeInsets.only(bottom: 16),
         child: GestureDetector(
           onTap: () {
-            if (!lesson.isLocked) {
+            if (!isLocked) {
               HapticFeedback.mediumImpact();
-              context.push('/lesson/${widget.moduleId}/${lesson.id}');
+              context.push('/lesson/${widget.moduleId}/${lesson.id}').then((_) {
+                // Refresh the UI when returning from lesson screen
+                setState(() {});
+              });
             }
           },
           child: ClipRRect(
@@ -401,16 +481,23 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: lesson.isLocked
-                      ? Colors.white.withValues(alpha: 0.02)
-                      : Colors.white.withValues(alpha: 0.05),
+                  color: isLocked
+                      ? const Color(0xFF0B0B0D).withValues(alpha: 0.3)
+                      : const Color(0xFF0B0B0D).withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: lesson.isCompleted
-                        ? module!.gradientColors[0].withValues(alpha: 0.3)
-                        : Colors.white.withValues(alpha: 0.1),
-                    width: 1,
+                        ? module!.gradientColors[0].withValues(alpha: 0.5)
+                        : Colors.white.withValues(alpha: 0.15),
+                    width: 1.5,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -419,18 +506,18 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        gradient: lesson.isLocked
+                        gradient: isLocked
                             ? null
                             : LinearGradient(
                                 colors: module!.gradientColors,
                               ),
-                        color: lesson.isLocked
+                        color: isLocked
                             ? Colors.white.withValues(alpha: 0.1)
                             : null,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        lesson.isLocked
+                        isLocked
                             ? Icons.lock
                             : lesson.isCompleted
                                 ? Icons.check_circle
@@ -453,7 +540,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                               fontFamily: 'Poppins',
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: lesson.isLocked
+                              color: isLocked
                                   ? Colors.white.withValues(alpha: 0.3)
                                   : Colors.white,
                             ),
@@ -497,7 +584,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                     ),
 
                     // Arrow Icon
-                    if (!lesson.isLocked)
+                    if (!isLocked)
                       Icon(
                         Icons.arrow_forward_ios,
                         color: Colors.white.withValues(alpha: 0.3),

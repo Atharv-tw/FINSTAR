@@ -58,10 +58,22 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: widget.child,
-      bottomNavigationBar: FixedBottomNav(
-        currentIndex: _currentIndex,
-        onTap: _onNavTap,
+      body: Stack(
+        children: [
+          // Main content
+          widget.child,
+
+          // Floating nav bar on top
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: FixedBottomNav(
+              currentIndex: _currentIndex,
+              onTap: _onNavTap,
+            ),
+          ),
+        ],
       ),
     );
   }

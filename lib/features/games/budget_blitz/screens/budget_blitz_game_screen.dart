@@ -27,6 +27,8 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
   int _gameSpeed = 2000; // milliseconds
   final List<FallingExpense> _fallingExpenses = [];
   final Random _random = Random();
+  List<Expense> _shuffledExpenses = [];
+  int _expenseIndex = 0;
 
   // Score thresholds for popups
   final Map<int, String> _scoreMessages = {
@@ -76,6 +78,10 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
       _gameOverReason = '';
       _triggeredMessages.clear();
       _fallingExpenses.clear();
+
+      // Shuffle the expenses list for better variety
+      _shuffledExpenses = List.from(allExpenses)..shuffle(_random);
+      _expenseIndex = 0;
     });
 
     _spawnExpense();
@@ -106,7 +112,15 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
   }
 
   void _spawnExpense() {
-    final expense = allExpenses[_random.nextInt(allExpenses.length)];
+    // Get next expense from shuffled list, reshuffle when we reach the end
+    if (_expenseIndex >= _shuffledExpenses.length) {
+      _shuffledExpenses.shuffle(_random);
+      _expenseIndex = 0;
+    }
+
+    final expense = _shuffledExpenses[_expenseIndex];
+    _expenseIndex++;
+
     final controller = AnimationController(
       duration: const Duration(seconds: 8),
       vsync: this,
@@ -444,10 +458,20 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
     return AnimatedBuilder(
       animation: fallingExpense.controller,
       builder: (context, child) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        // Use a constraint to limit chip width and center it properly
         return Positioned(
-          left: MediaQuery.of(context).size.width * fallingExpense.startX,
+          left: 20,
+          right: 20,
           top: MediaQuery.of(context).size.height * fallingExpense.controller.value * 0.6,
-          child: child!,
+          child: Align(
+            alignment: Alignment(
+              // Convert 0.1-0.8 range to -1.0 to 1.0 range for Alignment
+              (fallingExpense.startX - 0.45) * 2.2,
+              0,
+            ),
+            child: child!,
+          ),
         );
       },
       child: Draggable<FallingExpense>(
@@ -568,7 +592,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
         return Transform.scale(
           scale: value,
           child: Opacity(
-            opacity: value,
+            opacity: value.clamp(0.0, 1.0),
             child: child,
           ),
         );

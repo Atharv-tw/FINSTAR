@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
 import '../../core/motion_tokens.dart';
 import '../../shared/widgets/xp_ring.dart';
@@ -10,6 +11,7 @@ import '../../shared/widgets/finance_tiles_section.dart';
 import '../../shared/widgets/dual_progress_dial.dart';
 import '../../shared/widgets/daily_streak_card.dart';
 import '../../shared/widgets/featured_hero_card.dart';
+import '../../shared/widgets/streak_title_bar.dart';
 
 /// FINSTAR Home Screen - Redesigned for maximum impact
 class BasicHomeScreen extends StatefulWidget {
@@ -120,35 +122,45 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
           ),
 
           // Main scrollable content
-          SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 120),
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Streak Title Bar at top
+                StreakTitleBar(streakDays: _streakDays),
 
-                    // Progress Section with Panda and Streak
-                    _buildProgressWithPandaSection(screenWidth),
+                const SizedBox(height: 8),
 
-                    const SizedBox(height: 20),
+                // Content with padding
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 110),
+
+                      // Progress Section with Panda
+                      _buildProgressWithPandaSection(screenWidth),
+
+                    const SizedBox(height: 12),
 
                     // Featured Hero Card
                     FeaturedHeroCard(
                       onTap: () => context.go('/game'),
                     ),
 
-                    const SizedBox(height: 24),
+                      // Learning Categories
+                      Transform.translate(
+                        offset: const Offset(0, -20),
+                        child: const FinanceTilesSection(),
+                      ),
 
-                    // Learning Categories
-                    const FinanceTilesSection(),
-
-                    const SizedBox(height: 24), // Bottom spacing
-                  ],
+                      const SizedBox(height: 24), // Bottom spacing
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
@@ -190,7 +202,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
     return AnimatedBuilder(
       animation: Listenable.merge([_progressController, _pandaController, _breathingController]),
       builder: (context, child) {
-        final breathingScale = 1.0 + (_breathingController.value * 0.06);
+        final breathingScale = 1.0 + (_breathingController.value * 0.045);
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -307,7 +319,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
             // Panda sitting on right top corner
             Positioned(
               right: -70,
-              top: -175,
+              top: -169,
               child: Transform.translate(
                 offset: Offset(0, _pandaSlideAnimation.value),
                 child: FadeTransition(
@@ -316,8 +328,8 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                     scale: breathingScale,
                     child: Image.asset(
                       'assets/images/pandahome.png',
-                      width: screenWidth * 0.75,
-                      height: screenWidth * 0.75,
+                      width: screenWidth * 0.7,
+                      height: screenWidth * 0.7,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -325,15 +337,64 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
               ),
             ),
 
-            // Daily Streak Card on left side
+            // "Hello" text
             Positioned(
-              left: 0,
-              top: -100,
+              left: 1,
+              top: -117,
               child: FadeTransition(
                 opacity: _pandaController,
-                child: DailyStreakCard(streakDays: _streakDays),
+                child: Text(
+                  'Hello',
+                  style: GoogleFonts.silkscreen(
+                    fontSize: 43,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withValues(alpha: 0.8),
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
+                      ),
+                      Shadow(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
+
+            // "STAR!" text
+            Positioned(
+              left: 1,
+              top: -73,
+              child: FadeTransition(
+                opacity: _pandaController,
+                child: Text(
+                  'STAR!',
+                  style: GoogleFonts.silkscreen(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withValues(alpha: 0.8),
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
+                      ),
+                      Shadow(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           ],
         );
       },
