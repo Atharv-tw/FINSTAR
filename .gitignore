@@ -43,4 +43,19 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Claude Code
+.claude/
+
+# Documentation (internal)
+BACKEND_IMPLEMENTATION_GUIDE.md
+FLUTTER_BACKEND_INTEGRATION.md
+ONBOARDING_INTEGRATION_COMPLETE.md
+PROJECT_STATUS.md
+IMPLEMENTATION_STATUS.md
+UI_UX_IMPLEMENTATION.md
+FINSTAR_DESIGN_SPECIFICATION.md
+finstar_high_level_design_hld_v_1.md
+QUICK_START.md
+
 nul
