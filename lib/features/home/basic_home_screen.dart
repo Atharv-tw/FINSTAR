@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
@@ -12,16 +13,17 @@ import '../../shared/widgets/dual_progress_dial.dart';
 import '../../shared/widgets/daily_streak_card.dart';
 import '../../shared/widgets/featured_hero_card.dart';
 import '../../shared/widgets/streak_title_bar.dart';
+import '../../providers/user_provider.dart';
 
 /// FINSTAR Home Screen - Redesigned for maximum impact
-class BasicHomeScreen extends StatefulWidget {
+class BasicHomeScreen extends ConsumerStatefulWidget {
   const BasicHomeScreen({super.key});
 
   @override
-  State<BasicHomeScreen> createState() => _BasicHomeScreenState();
+  ConsumerState<BasicHomeScreen> createState() => _BasicHomeScreenState();
 }
 
-class _BasicHomeScreenState extends State<BasicHomeScreen>
+class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
     with TickerProviderStateMixin {
   late AnimationController _greetingController;
   late AnimationController _progressController;
@@ -32,15 +34,6 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
   late Animation<Offset> _greetingSlideAnimation;
   late Animation<double> _progressScaleAnimation;
   late Animation<double> _pandaSlideAnimation;
-
-  // User data
-  final String _userName = "Star";
-  final int _userLevel = 5;
-  final int _currentXp = 750;
-  final int _xpForNextLevel = 1000;
-  final int _coins = 340;
-  final double _studyProgress = 0.65; // 65% study progress
-  final int _streakDays = 7;
 
   @override
   void initState() {
@@ -111,6 +104,9 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // Get real user data from Firebase
+    final userDataAsync = ref.watch(userProfileProvider);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -122,13 +118,19 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
           ),
 
           // Main scrollable content
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Streak Title Bar at top
-                StreakTitleBar(streakDays: _streakDays),
+          userDataAsync.when(
+            data: (userData) {
+              if (userData == null) {
+                return const Center(child: Text('No user data'));
+              }
+
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Streak Title Bar at top
+                    StreakTitleBar(streakDays: userData.streakDays),
 
                 const SizedBox(height: 8),
 
@@ -141,7 +143,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                       const SizedBox(height: 110),
 
                       // Progress Section with Panda
-                      _buildProgressWithPandaSection(screenWidth),
+                      _buildProgressWithPandaSection(screenWidth, userData),
 
                     const SizedBox(height: 12),
 
@@ -162,43 +164,27 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                 ),
               ],
             ),
+          );
+        },
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
+        error: (error, stack) => Center(
+          child: Text(
+            'Error loading profile: $error',
+            style: const TextStyle(color: Colors.white),
           ),
+        ),
+      ),
         ],
       ),
     );
   }
 
-  Widget _buildGreetingSection() {
-    return AnimatedBuilder(
-      animation: _greetingController,
-      builder: (context, child) {
-        return SlideTransition(
-          position: _greetingSlideAnimation,
-          child: FadeTransition(
-            opacity: _greetingFadeAnimation,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Level counter dial (tap to open profile)
-                GestureDetector(
-                  onTap: () => context.go('/profile'),
-                  child: XpRing(
-                    currentXp: _currentXp,
-                    xpForNextLevel: _xpForNextLevel,
-                    level: _userLevel,
-                    size: 56,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildProgressWithPandaSection(double screenWidth) {
+  Widget _buildProgressWithPandaSection(double screenWidth, dynamic userData) {
+    // Calculate XP for next level
+    final xpForNextLevel = (userData.level * 1000);
+    final studyProgress = 0.65; // TODO: Calculate from learning progress
     return AnimatedBuilder(
       animation: Listenable.merge([_progressController, _pandaController, _breathingController]),
       builder: (context, child) {
@@ -238,9 +224,9 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                       children: [
                         // XP Ring
                         XpRing(
-                          currentXp: _currentXp,
-                          xpForNextLevel: _xpForNextLevel,
-                          level: _userLevel,
+                          currentXp: userData.xp,
+                          xpForNextLevel: xpForNextLevel,
+                          level: userData.level,
                           size: 60,
                         ),
 
@@ -265,7 +251,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                                     ),
                                   ),
                                   Text(
-                                    '$_currentXp / $_xpForNextLevel XP',
+                                    '${userData.xp} / $xpForNextLevel XP',
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
                                       fontSize: 11,
@@ -276,7 +262,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              _buildProgressBar(_currentXp / _xpForNextLevel, DesignTokens.primaryGradient),
+                              _buildProgressBar(userData.xp / xpForNextLevel, DesignTokens.primaryGradient),
 
                               const SizedBox(height: 16),
 
@@ -294,7 +280,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                                     ),
                                   ),
                                   Text(
-                                    '${(_studyProgress * 100).toInt()}%',
+                                    '${(studyProgress * 100).toInt()}%',
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
                                       fontSize: 11,
@@ -305,7 +291,7 @@ class _BasicHomeScreenState extends State<BasicHomeScreen>
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              _buildProgressBar(_studyProgress, DesignTokens.secondaryGradient),
+                              _buildProgressBar(studyProgress, DesignTokens.secondaryGradient),
                             ],
                           ),
                         ),

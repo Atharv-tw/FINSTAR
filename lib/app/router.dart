@@ -1,5 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../features/auth/login_screen.dart';
+import '../features/auth/signup_screen.dart';
 import '../features/home/basic_home_screen.dart';
 import '../features/home/play_game_screen.dart';
 import '../features/home/streak_detail_screen.dart';
@@ -15,12 +20,70 @@ import '../features/games/quiz_battle/screens/quiz_battle_screen.dart';
 import '../features/games/market_explorer/screens/market_explorer_allocation_screen.dart';
 import '../features/games/budget_blitz/screens/budget_blitz_game_screen.dart';
 import '../shared/layouts/main_layout.dart';
+import '../providers/auth_provider.dart';
 
-/// App routing configuration using GoRouter
+/// Helper class to refresh GoRouter when auth state changes
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<User?> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (User? _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<User?> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
+/// App routing configuration using GoRouter with authentication
 class AppRouter {
-  static final GoRouter router = GoRouter(
-    initialLocation: '/',
+  static final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+  static GoRouter router(WidgetRef ref) => GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: '/login',
+    refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
+    redirect: (context, state) {
+      final authState = ref.watch(authStateProvider);
+      final isAuthenticated = authState.when(
+        data: (user) => user != null,
+        loading: () => false,
+        error: (_, __) => false,
+      );
+
+      final isLoggingIn = state.matchedLocation == '/login' ||
+          state.matchedLocation == '/signup';
+
+      // If not authenticated and not on login/signup, redirect to login
+      if (!isAuthenticated && !isLoggingIn) {
+        return '/login';
+      }
+
+      // If authenticated and on login/signup, redirect to home
+      if (isAuthenticated && isLoggingIn) {
+        return '/';
+      }
+
+      return null; // No redirect needed
+    },
     routes: [
+      // Authentication routes (no bottom nav)
+      GoRoute(
+        path: '/login',
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/signup',
+        name: 'signup',
+        builder: (context, state) => const SignupScreen(),
+      ),
+
       // Shell route for main navigation screens (with bottom nav bar)
       ShellRoute(
         builder: (context, state, child) => MainLayout(child: child),

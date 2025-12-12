@@ -1,19 +1,21 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
-import '../../models/user_profile.dart';
-import '../../data/user_data.dart';
+import '../../providers/leaderboard_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/auth_provider.dart';
 
-/// Leaderboard Screen - Shows top players rankings
-class LeaderboardScreen extends StatefulWidget {
+/// Leaderboard Screen - Shows top players rankings with REAL Firebase data
+class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
 
   @override
-  State<LeaderboardScreen> createState() => _LeaderboardScreenState();
+  ConsumerState<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
-class _LeaderboardScreenState extends State<LeaderboardScreen>
+class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   final ScrollController _scrollController = ScrollController();
@@ -28,18 +30,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _animationController.forward();
-      // Scroll to current user position
-      Future.delayed(const Duration(milliseconds: 500), () {
-        final currentUserIndex = UserData.leaderboard
-            .indexWhere((entry) => entry.userId == UserData.currentUser.id);
-        if (currentUserIndex > 3 && mounted) {
-          _scrollController.animateTo(
-            (currentUserIndex - 3) * 100.0,
-            duration: const Duration(milliseconds: 800),
-            curve: Curves.easeOutQuart,
-          );
-        }
-      });
     });
   }
 
@@ -134,28 +124,55 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              gradient: DesignTokens.primaryGradient,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.emoji_events, color: Colors.white, size: 16),
-                const SizedBox(width: 6),
-                Text(
-                  'Rank #${UserData.currentUser.rank}',
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+          Consumer(
+            builder: (context, ref, child) {
+              final userRank = ref.watch(currentUserRankProvider);
+              return userRank.when(
+                data: (rank) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: DesignTokens.primaryGradient,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.emoji_events, color: Colors.white, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Rank #${rank ?? "?"}',
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+                loading: () => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: DesignTokens.primaryGradient,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.emoji_events, color: Colors.white, size: 16),
+                      SizedBox(width: 6),
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                error: (_, __) => const SizedBox(),
+              );
+            },
           ),
         ],
       ),
@@ -163,10 +180,24 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildPodium() {
-    final top3 = UserData.leaderboard.take(3).toList();
-    if (top3.length < 3) return const SizedBox();
+    final leaderboardAsync = ref.watch(leaderboardProvider);
 
-    return TweenAnimationBuilder<double>(
+    return leaderboardAsync.when(
+      data: (leaderboard) {
+        final top3 = leaderboard.take(3).toList();
+        if (top3.length < 3) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: Text(
+                'Not enough players yet!',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+            ),
+          );
+        }
+
+        return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeOutQuart,
@@ -192,6 +223,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
         );
       },
+    );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(60),
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
+      ),
+      error: (error, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Text(
+            'Error loading leaderboard',
+            style: TextStyle(color: Colors.red.shade300, fontSize: 16),
+          ),
+        ),
+      ),
     );
   }
 
@@ -230,7 +278,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 ),
                 child: Center(
                   child: Text(
-                    entry.username[0].toUpperCase(),
+                    entry.displayName[0].toUpperCase(),
                     style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 24,
@@ -271,7 +319,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
           // Username
           Text(
-            entry.username,
+            entry.displayName,
             style: const TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
@@ -303,7 +351,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   const Icon(Icons.stars, color: Colors.white, size: 20),
                   const SizedBox(height: 4),
                   Text(
-                    '${entry.totalXp} XP',
+                    '${entry.xp} XP',
                     style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
@@ -321,16 +369,33 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildLeaderboardList() {
-    final remainingEntries = UserData.leaderboard.skip(3).toList();
+    final leaderboardAsync = ref.watch(leaderboardProvider);
+    final currentUserId = ref.watch(currentUserIdProvider);
 
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      itemCount: remainingEntries.length,
-      itemBuilder: (context, index) {
-        final entry = remainingEntries[index];
-        final isCurrentUser = entry.userId == UserData.currentUser.id;
-        final delay = index * 0.05;
+    return leaderboardAsync.when(
+      data: (leaderboard) {
+        final remainingEntries = leaderboard.skip(3).toList();
+
+        if (remainingEntries.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: Text(
+                'No more players yet!',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          itemCount: remainingEntries.length,
+          itemBuilder: (context, index) {
+            final entry = remainingEntries[index];
+            final isCurrentUser = entry.userId == currentUserId;
+            final delay = index * 0.05;
 
         return AnimatedBuilder(
           animation: _animationController,
@@ -351,6 +416,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
         );
       },
+    );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(60),
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
+      ),
+      error: (error, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Text(
+            'Error loading leaderboard',
+            style: TextStyle(color: Colors.red.shade300, fontSize: 16),
+          ),
+        ),
+      ),
     );
   }
 
@@ -406,7 +488,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 ),
                 child: Center(
                   child: Text(
-                    entry.username[0].toUpperCase(),
+                    entry.displayName[0].toUpperCase(),
                     style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 18,
@@ -428,7 +510,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       children: [
                         Flexible(
                           child: Text(
-                            entry.username,
+                            entry.displayName,
                             style: const TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 16,
@@ -493,7 +575,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${entry.totalXp}',
+                    '${entry.xp}',
                     style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 18,

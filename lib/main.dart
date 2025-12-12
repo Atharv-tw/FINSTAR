@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'firebase_options.dart';
 import 'app/router.dart';
 import 'core/app_theme.dart';
+import 'services/firebase_service_free.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase FIRST (CRITICAL for all backend features)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Initialize Firebase service with optimal settings (FREE TIER)
+  await FirebaseServiceFree().initialize();
+
+  // Set up Crashlytics error handling
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
@@ -30,16 +45,16 @@ void main() {
   );
 }
 
-class FinstarApp extends StatelessWidget {
+class FinstarApp extends ConsumerWidget {
   const FinstarApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
       title: 'Finstar',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      routerConfig: AppRouter.router,
+      routerConfig: AppRouter.router(ref),
     );
   }
 }

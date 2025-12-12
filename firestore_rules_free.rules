@@ -1,0 +1,182 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isValidXPUpdate() {
+      // Ensure XP only increases, not decreases (basic anti-cheat)
+      return request.resource.data.xp >= resource.data.xp;
+    }
+
+    function isValidCoinsUpdate() {
+      // Coins can increase or decrease (for purchases)
+      return true;
+    }
+
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+
+    match /users/{uid} {
+      // Anyone signed in can read any user profile (for leaderboards, friends, etc.)
+      allow read: if isSignedIn();
+
+      // Users can create their own profile
+      allow create: if isSignedIn() && isOwner(uid);
+
+      // Users can update their own profile
+      // But we validate XP/coins/level changes
+      allow update: if isSignedIn() && isOwner(uid)
+        && isValidXPUpdate()
+        && isValidCoinsUpdate();
+
+      // Users cannot delete their profile
+      allow delete: if false;
+
+      // ============================================
+      // USER SUB-COLLECTIONS
+      // ============================================
+
+      // Game progress (private)
+      match /progress/{gameId} {
+        allow read: if isOwner(uid);
+        allow write: if isOwner(uid);
+      }
+
+      // Lesson progress (private)
+      match /lessonProgress/{lessonId} {
+        allow read: if isOwner(uid);
+        allow write: if isOwner(uid);
+      }
+
+      // Inventory (read-only after purchase)
+      match /inventory/{itemId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid); // Created during purchase
+        allow update: if isOwner(uid); // Can update 'equipped' status
+        allow delete: if false;
+      }
+
+      // Achievements (unlocked by client, read-only)
+      match /achievements/{achievementId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid); // Client unlocks achievements
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+
+    // ============================================
+    // LESSONS (Read-only for users)
+    // ============================================
+
+    match /lessons/{lessonId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Admin only (via Firebase Console)
+    }
+
+    // ============================================
+    // STORE (Read-only for users)
+    // ============================================
+
+    match /store/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if false; // Admin only
+    }
+
+    // ============================================
+    // BADGES (Read-only)
+    // ============================================
+
+    match /badges/{badgeId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Admin only
+    }
+
+    // ============================================
+    // LEADERBOARDS (Read-only for users)
+    // ============================================
+
+    match /leaderboards/{seasonId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Updated by scheduled job or admin
+    }
+
+    // ============================================
+    // FRIENDS
+    // ============================================
+
+    match /friends/{uid} {
+      // Users can read their own friends data
+      // And friends can see if they're connected
+      allow read: if isSignedIn() && (
+        isOwner(uid) ||
+        exists(/databases/$(database)/documents/friends/$(request.auth.uid)/requests/$(uid))
+      );
+
+      allow write: if false; // Use sub-collection for writes
+
+      match /requests/{friendUid} {
+        // Anyone can read their own requests (sent or received)
+        allow read: if isOwner(uid) || isOwner(friendUid);
+
+        // User can create a friend request
+        allow create: if isSignedIn() && isOwner(uid);
+
+        // The recipient can update (accept/reject)
+        allow update: if isOwner(friendUid);
+
+        // Can delete own sent requests
+        allow delete: if isOwner(uid);
+      }
+    }
+
+    // ============================================
+    // QUIZ ROOMS (Temporary, multiplayer)
+    // ============================================
+
+    match /rooms/{roomId} {
+      // Anyone can read active rooms (for finding games)
+      allow read: if isSignedIn();
+
+      // Anyone can create a room
+      allow create: if isSignedIn();
+
+      // Players in the room can update it
+      allow update: if isSignedIn() &&
+        request.auth.uid in resource.data.players.keys();
+
+      // Host can delete the room
+      allow delete: if isSignedIn() &&
+        request.auth.uid == resource.data.hostUid;
+    }
+
+    // ============================================
+    // ADMIN COLLECTIONS (No user access)
+    // ============================================
+
+    match /admin/{document=**} {
+      allow read, write: if false; // Admin only via Firebase Console
+    }
+
+    // ============================================
+    // DEFAULT DENY
+    // ============================================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

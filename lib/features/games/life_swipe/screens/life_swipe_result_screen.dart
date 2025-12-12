@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../core/design_tokens.dart';
-import '../../../../services/local_storage_service.dart';
+import '../../../../services/game_logic_service.dart';
 import '../models/spending_scenario.dart';
 
 class LifeSwipeResultScreen extends StatefulWidget {
@@ -45,6 +45,9 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  int _xpEarned = 0;
+  int _coinsEarned = 0;
+  final GameLogicService _gameLogic = GameLogicService();
 
   @override
   void initState() {
@@ -62,14 +65,33 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
   }
 
   Future<void> _saveResults() async {
-    final storage = await LocalStorageService.getInstance();
-    final overallScore = _calculateOverallScore();
+    try {
+      final overallScore = _calculateOverallScore();
 
-    // Award coins and XP
-    final coinsEarned = (overallScore * 2).toInt();
-    final xpEarned = (overallScore * 5).toInt();
+      // Prepare allocations data (simplified)
+      final Map<String, int> allocations = {
+        'spent': widget.spentMoney,
+        'saved': widget.savedMoney,
+        'remaining': widget.remainingBudget,
+      };
 
-    await storage.addReward(coins: coinsEarned, xp: xpEarned);
+      // Submit to Firebase
+      final result = await _gameLogic.submitLifeSwipe(
+        seed: DateTime.now().millisecondsSinceEpoch, // Use timestamp as seed
+        allocations: allocations,
+        score: overallScore,
+        eventChoices: widget.decisions,
+      );
+
+      if (result['success'] == true && mounted) {
+        setState(() {
+          _xpEarned = result['xpEarned'] ?? 0;
+          _coinsEarned = result['coinsEarned'] ?? 0;
+        });
+      }
+    } catch (e) {
+      print('Error saving Life Swipe results: $e');
+    }
   }
 
   int _calculateOverallScore() {
@@ -426,6 +448,74 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                 ),
             textAlign: TextAlign.center,
           ),
+          if (_xpEarned > 0 || _coinsEarned > 0) ...[
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      const Text(
+                        'XP Earned',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '+$_xpEarned',
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF63E6BE),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: Colors.white.withOpacity(0.3),
+                  ),
+                  Column(
+                    children: [
+                      const Text(
+                        'Coins Earned',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '+$_coinsEarned',
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFFFD700),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

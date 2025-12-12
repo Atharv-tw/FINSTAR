@@ -32,6 +32,43 @@ dependencies:
   # Charts
   fl_chart: ^0.69.0
 
+  # Firebase Core
+  firebase_core: ^3.8.1
+  firebase_analytics: ^11.3.7
+
+  # Firebase Auth
+  firebase_auth: ^5.3.3
+  google_sign_in: ^6.2.2
+
+  # Firebase Database
+  cloud_firestore: ^5.5.2
+  firebase_database: ^11.3.4
+
+  # Firebase Storage - REMOVED (requires billing, using Cloudinary instead)
+  # firebase_storage: ^12.3.7
+
+  # Firebase Functions - REMOVED (requires billing, using client-side logic)
+  # cloud_functions: ^5.2.3
+
+  # Cloudinary for image uploads (free tier: 25GB storage, 25GB bandwidth)
+  cloudinary_url_gen: ^1.7.0
+  image_picker: ^1.1.2
+
+  # Firebase Messaging
+  firebase_messaging: ^15.1.7
+
+  # Firebase Remote Config
+  firebase_remote_config: ^5.1.7
+
+  # Firebase Performance
+  firebase_performance: ^0.10.0+8
+
+  # Firebase Crashlytics
+  firebase_crashlytics: ^4.1.7
+
+  # HTTP (for Cloud Run webhooks if needed)
+  http: ^1.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

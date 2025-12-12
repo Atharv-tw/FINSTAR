@@ -1,0 +1,244 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    // Check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Check if user is accessing their own document
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // Check if user is admin (custom claim)
+    function isAdmin() {
+      return request.auth.token.admin == true;
+    }
+
+    // Check if user is trying to modify server-managed fields
+    function hasServerFields() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['level', 'xp', 'coins', 'rank', 'isPremium']);
+    }
+
+    // Check if request is from Cloud Functions
+    function isServerRequest() {
+      return request.auth.token.function == true;
+    }
+
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+
+    match /users/{uid} {
+      // Anyone authenticated can read user profiles (for leaderboards, friends)
+      allow read: if isSignedIn();
+
+      // Users can create their own profile on signup
+      allow create: if isSignedIn() && isOwner(uid);
+
+      // Users can update their own profile BUT NOT server-managed fields
+      allow update: if isSignedIn() && isOwner(uid) && !hasServerFields();
+
+      // No deletes (only via Cloud Functions for GDPR)
+      allow delete: if false;
+
+      // ========================================
+      // SUBCOLLECTION: progress/{gameId}
+      // ========================================
+      match /progress/{gameId} {
+        // Read own progress
+        allow read: if isOwner(uid);
+
+        // Only Cloud Functions can write game progress
+        allow write: if false;
+      }
+
+      // ========================================
+      // SUBCOLLECTION: achievements/{badgeId}
+      // ========================================
+      match /achievements/{badgeId} {
+        // Read own achievements
+        allow read: if isOwner(uid);
+
+        // Only Cloud Functions can award badges
+        allow write: if false;
+      }
+
+      // ========================================
+      // SUBCOLLECTION: inventory/{itemId}
+      // ========================================
+      match /inventory/{itemId} {
+        // Read own inventory
+        allow read: if isOwner(uid);
+
+        // Only Cloud Functions can add items (after purchase)
+        allow write: if false;
+      }
+
+      // ========================================
+      // SUBCOLLECTION: lessonProgress/{lessonId}
+      // ========================================
+      match /lessonProgress/{lessonId} {
+        // Read own lesson progress
+        allow read: if isOwner(uid);
+
+        // Only Cloud Functions can mark lessons complete
+        allow write: if false;
+      }
+    }
+
+    // ============================================
+    // LESSONS COLLECTION (Read-only)
+    // ============================================
+
+    match /lessons/{lessonId} {
+      // All authenticated users can read lessons
+      allow read: if isSignedIn();
+
+      // Only admins can create/update/delete lessons
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // BADGES COLLECTION (Read-only)
+    // ============================================
+
+    match /badges/{badgeId} {
+      // All authenticated users can read badge definitions
+      allow read: if isSignedIn();
+
+      // Only admins can create/update badges
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // STORE COLLECTION (Read-only)
+    // ============================================
+
+    match /store/items/{itemId} {
+      // All authenticated users can browse store
+      allow read: if isSignedIn();
+
+      // Only admins can manage store items
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // QUIZ QUESTIONS COLLECTION (Read-only)
+    // ============================================
+
+    match /quizQuestions/{questionId} {
+      // All authenticated users can read quiz questions
+      allow read: if isSignedIn();
+
+      // Only admins can manage quiz questions
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // LEADERBOARDS COLLECTION (Read-only snapshots)
+    // ============================================
+
+    match /leaderboards/{seasonId} {
+      // Anyone can read leaderboards
+      allow read: if isSignedIn();
+
+      // Only Cloud Functions can update leaderboards
+      allow write: if false;
+    }
+
+    // ============================================
+    // FRIENDS COLLECTION
+    // ============================================
+
+    match /friends/{uid}/requests/{friendUid} {
+      // Users can read their own friend requests
+      // Users can also read requests they sent (where they are friendUid)
+      allow read: if isSignedIn() && (isOwner(uid) || request.auth.uid == friendUid);
+
+      // Users can send friend requests (create)
+      allow create: if isSignedIn() && isOwner(uid) &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.keys().hasAll(['status', 'sentAt']) &&
+        request.resource.data.sentAt == request.time;
+
+      // Friend can accept/reject request (update)
+      allow update: if isSignedIn() && request.auth.uid == friendUid &&
+        request.resource.data.status in ['accepted', 'rejected'] &&
+        request.resource.data.respondedAt == request.time;
+
+      // Users can delete their own sent requests
+      allow delete: if isSignedIn() && isOwner(uid);
+    }
+
+    // ============================================
+    // QUIZ ROOMS COLLECTION (Live multiplayer)
+    // ============================================
+
+    match /rooms/{roomId} {
+      // Anyone can read room they're participating in
+      allow read: if isSignedIn() &&
+        (resource.data.hostUid == request.auth.uid ||
+         request.auth.uid in resource.data.players.keys());
+
+      // Host can create room
+      allow create: if isSignedIn() &&
+        request.resource.data.hostUid == request.auth.uid &&
+        request.resource.data.status == 'waiting';
+
+      // Participants can update their own player data
+      allow update: if isSignedIn() &&
+        request.auth.uid in resource.data.players.keys();
+
+      // Host can delete room
+      allow delete: if isSignedIn() && resource.data.hostUid == request.auth.uid;
+    }
+
+    // ============================================
+    // PURCHASES COLLECTION (Payment records)
+    // ============================================
+
+    match /purchases/{purchaseId} {
+      // Users can read their own purchases
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      // Only Cloud Functions (webhooks) can write purchases
+      allow write: if false;
+    }
+
+    // ============================================
+    // ORDERS COLLECTION (Pre-payment)
+    // ============================================
+
+    match /orders/{orderId} {
+      // Users can read their own orders
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      // Users can create orders for themselves
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'created';
+
+      // Only Cloud Functions can update orders (after payment)
+      allow update: if false;
+
+      allow delete: if false;
+    }
+
+    // ============================================
+    // DEFAULT DENY
+    // ============================================
+
+    // Deny all other collections by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

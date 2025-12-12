@@ -4,7 +4,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/design_tokens.dart';
+import '../../../../services/game_logic_service.dart';
 import '../models/expense.dart';
 
 class BudgetBlitzGameScreen extends StatefulWidget {
@@ -22,6 +25,10 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
   bool _gameStarted = false;
   bool _gameOver = false;
   String _gameOverReason = '';
+  int _xpEarned = 0;
+  int _coinsEarned = 0;
+  int _correctDecisions = 0;
+  int _totalDecisions = 0;
 
   Timer? _spawnTimer;
   int _gameSpeed = 2000; // milliseconds
@@ -29,6 +36,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
   final Random _random = Random();
   List<Expense> _shuffledExpenses = [];
   int _expenseIndex = 0;
+  final GameLogicService _gameLogic = GameLogicService();
 
   // Score thresholds for popups
   final Map<int, String> _scoreMessages = {
@@ -56,15 +64,50 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
     super.dispose();
   }
 
-  void _loadHighScore() {
-    // TODO: Load from shared preferences
-    _highScore = 0;
+  void _loadHighScore() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) return;
+
+      final progressDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('progress')
+          .doc('budget_blitz')
+          .get();
+
+      if (progressDoc.exists && mounted) {
+        setState(() {
+          _highScore = progressDoc.data()?['bestScore'] ?? 0;
+        });
+      }
+    } catch (e) {
+      print('Error loading high score: $e');
+    }
   }
 
-  void _saveHighScore() {
-    // TODO: Save to shared preferences
-    if (_score > _highScore) {
-      _highScore = _score;
+  Future<void> _saveHighScore() async {
+    try {
+      if (_score > _highScore) {
+        _highScore = _score;
+      }
+
+      // Submit to Firebase and get rewards
+      final result = await _gameLogic.submitBudgetBlitz(
+        score: _score,
+        level: _level,
+        correctDecisions: _correctDecisions,
+        totalDecisions: _totalDecisions,
+      );
+
+      if (result['success'] == true && mounted) {
+        setState(() {
+          _xpEarned = result['xpEarned'] ?? 0;
+          _coinsEarned = result['coinsEarned'] ?? 0;
+        });
+      }
+    } catch (e) {
+      print('Error saving high score: $e');
     }
   }
 
@@ -76,6 +119,10 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
       _gameStarted = true;
       _gameOver = false;
       _gameOverReason = '';
+      _xpEarned = 0;
+      _coinsEarned = 0;
+      _correctDecisions = 0;
+      _totalDecisions = 0;
       _triggeredMessages.clear();
       _fallingExpenses.clear();
 
@@ -148,8 +195,11 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
   }
 
   void _onExpenseDropped(FallingExpense fallingExpense, ExpenseCategory droppedCategory) {
+    _totalDecisions++;
+
     if (fallingExpense.expense.category == droppedCategory) {
       // Correct!
+      _correctDecisions++;
       _updateScore(10);
       _removeFallingExpense(fallingExpense);
     } else {
@@ -195,9 +245,8 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
     fallingExpense.controller.dispose();
   }
 
-  void _endGame(String reason) {
+  void _endGame(String reason) async {
     _spawnTimer?.cancel();
-    _saveHighScore();
 
     setState(() {
       _gameOver = true;
@@ -210,6 +259,9 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
       expense.controller.dispose();
     }
     _fallingExpenses.clear();
+
+    // Save score and get rewards
+    await _saveHighScore();
   }
 
   void _restartGame() {
@@ -706,6 +758,61 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                               color: DesignTokens.textDarkSecondary,
                             ),
                           ),
+                          if (_xpEarned > 0 || _coinsEarned > 0) ...[
+                            const SizedBox(height: 16),
+                            const Divider(color: Colors.white24),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Column(
+                                  children: [
+                                    const Text(
+                                      'XP Earned',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 14,
+                                        color: DesignTokens.textDarkSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '+$_xpEarned',
+                                      style: const TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF63E6BE),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 40),
+                                Column(
+                                  children: [
+                                    const Text(
+                                      'Coins Earned',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 14,
+                                        color: DesignTokens.textDarkSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '+$_coinsEarned',
+                                      style: const TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFFFD700),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),

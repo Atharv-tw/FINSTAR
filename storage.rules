@@ -1,0 +1,117 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isValidImage() {
+      return request.resource.size < 5 * 1024 * 1024 // 5MB max
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    function isValidVideo() {
+      return request.resource.size < 50 * 1024 * 1024 // 50MB max
+        && request.resource.contentType.matches('video/.*');
+    }
+
+    // ============================================
+    // USER AVATARS
+    // ============================================
+
+    match /avatars/{uid}/{fileName} {
+      // Anyone can read avatars (for profiles, leaderboards)
+      allow read: if true;
+
+      // Users can upload their own avatar
+      allow create: if isSignedIn() && isOwner(uid) && isValidImage();
+
+      // Users can update their own avatar
+      allow update: if isSignedIn() && isOwner(uid) && isValidImage();
+
+      // Users can delete their own avatar
+      allow delete: if isSignedIn() && isOwner(uid);
+    }
+
+    // ============================================
+    // LESSON CONTENT (Admin-managed via Console)
+    // ============================================
+
+    match /lessons/{lessonId}/{fileName} {
+      // All authenticated users can read lessons
+      allow read: if isSignedIn();
+
+      // Only write via Firebase Console (admin)
+      allow write: if false;
+    }
+
+    // ============================================
+    // BADGE ICONS (Static assets)
+    // ============================================
+
+    match /badges/{badgeId}/{fileName} {
+      // All authenticated users can read badge icons
+      allow read: if isSignedIn();
+
+      // Only write via Firebase Console (admin)
+      allow write: if false;
+    }
+
+    // ============================================
+    // STORE ITEMS (Static assets)
+    // ============================================
+
+    match /store/{itemId}/{fileName} {
+      // All authenticated users can read store items
+      allow read: if isSignedIn();
+
+      // Only write via Firebase Console (admin)
+      allow write: if false;
+    }
+
+    // ============================================
+    // LOTTIE ANIMATIONS (Static assets)
+    // ============================================
+
+    match /animations/{fileName} {
+      // Anyone can read animations
+      allow read: if true;
+
+      // Only write via Firebase Console (admin)
+      allow write: if false;
+    }
+
+    // ============================================
+    // TEMPORARY UPLOADS (e.g., bug reports)
+    // ============================================
+
+    match /temp/{uid}/{fileName} {
+      // Users can read their own temp files
+      allow read: if isSignedIn() && isOwner(uid);
+
+      // Users can upload temp files (screenshots, logs)
+      allow create: if isSignedIn() && isOwner(uid) &&
+        request.resource.size < 10 * 1024 * 1024; // 10MB max
+
+      // Auto-deleted via lifecycle policy (30 days)
+      allow delete: if isSignedIn() && isOwner(uid);
+    }
+
+    // ============================================
+    // DEFAULT DENY
+    // ============================================
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

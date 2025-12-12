@@ -1,23 +1,25 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
 import '../../shared/widgets/xp_ring.dart';
-import '../../models/user_profile.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/user_profile.dart' hide UserProfile;
 import '../../data/user_data.dart';
 
 /// Profile Detail Screen - Shows user stats, achievements, and progress
-class ProfileDetailScreen extends StatefulWidget {
+class ProfileDetailScreen extends ConsumerStatefulWidget {
   const ProfileDetailScreen({super.key});
 
   @override
-  State<ProfileDetailScreen> createState() => _ProfileDetailScreenState();
+  ConsumerState<ProfileDetailScreen> createState() => _ProfileDetailScreenState();
 }
 
-class _ProfileDetailScreenState extends State<ProfileDetailScreen>
+class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  final user = UserData.currentUser;
 
   @override
   void initState() {
@@ -40,54 +42,104 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
-        ),
-        child: Stack(
-          children: [
-            SafeArea(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
+    final userProfileAsync = ref.watch(userProfileProvider);
 
-                      // Header
-                      _buildHeader(),
-
-                      const SizedBox(height: 32),
-
-                      // Profile Card
-                      _buildProfileCard(),
-
-                      const SizedBox(height: 24),
-
-                      // Stats Grid
-                      _buildStatsGrid(),
-
-                      const SizedBox(height: 24),
-
-                      // Achievements Section
-                      _buildAchievementsSection(),
-
-                      const SizedBox(height: 24), // Bottom spacing
-                    ],
+    return userProfileAsync.when(
+      data: (user) {
+        if (user == null) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('No user data found'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await ref.read(authServiceProvider).signOut();
+                      if (context.mounted) context.go('/login');
+                    },
+                    child: const Text('Logout'),
                   ),
-                ),
+                ],
               ),
             ),
-          ],
+          );
+        }
+
+        return Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: DesignTokens.vibrantBackgroundGradient,
+            ),
+            child: Stack(
+              children: [
+                SafeArea(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
+
+                          // Header with logout
+                          _buildHeader(user),
+
+                          const SizedBox(height: 32),
+
+                          // Profile Card
+                          _buildProfileCard(user),
+
+                          const SizedBox(height: 24),
+
+                          // Stats Grid
+                          _buildStatsGrid(user),
+
+                          const SizedBox(height: 24),
+
+                          // Achievements Section
+                          _buildAchievementsSection(),
+
+                          const SizedBox(height: 24), // Bottom spacing
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, stack) => Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Error: $error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  await ref.read(authServiceProvider).signOut();
+                  if (context.mounted) context.go('/login');
+                },
+                child: const Text('Logout'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(UserProfile user) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -100,17 +152,28 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
             color: DesignTokens.textDarkPrimary,
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.settings, color: DesignTokens.textDarkPrimary),
-          onPressed: () {
-            // TODO: Navigate to settings
-          },
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.logout, color: DesignTokens.textDarkPrimary),
+              onPressed: () async {
+                await ref.read(authServiceProvider).signOut();
+                if (context.mounted) context.go('/login');
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings, color: DesignTokens.textDarkPrimary),
+              onPressed: () {
+                // TODO: Navigate to settings
+              },
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(UserProfile user) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 800),
@@ -152,7 +215,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                       alignment: Alignment.center,
                       children: [
                         XpRing(
-                          currentXp: user.currentXp,
+                          currentXp: user.currentXpInLevel,
                           xpForNextLevel: user.xpForNextLevel,
                           level: user.level,
                           size: 120,
@@ -166,7 +229,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                           ),
                           child: Center(
                             child: Text(
-                              user.username[0].toUpperCase(),
+                              user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : 'U',
                               style: const TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 36,
@@ -183,7 +246,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
 
                     // Username
                     Text(
-                      user.username,
+                      user.displayName,
                       style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 24,
@@ -212,7 +275,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                                   color: Colors.white, size: 16),
                               const SizedBox(width: 6),
                               Text(
-                                'Rank #${user.rank}',
+                                'Level ${user.level}',
                                 style: const TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
@@ -238,7 +301,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
                                   color: Colors.white, size: 16),
                               const SizedBox(width: 6),
                               Text(
-                                '${user.totalXp} XP',
+                                '${user.xp} XP',
                                 style: const TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
@@ -294,15 +357,15 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen>
     );
   }
 
-  Widget _buildStatsGrid() {
+  Widget _buildStatsGrid(UserProfile user) {
     final stats = [
-      {'icon': Icons.school, 'label': 'Modules', 'value': '${user.completedModules}/4'},
-      {'icon': Icons.quiz, 'label': 'Quizzes', 'value': '${user.quizzesCompleted}'},
-      {'icon': Icons.videogame_asset, 'label': 'Games', 'value': '${user.gamesPlayed}'},
+      {'icon': Icons.school, 'label': 'Level', 'value': '${user.level}'},
+      {'icon': Icons.quiz, 'label': 'XP', 'value': '${user.xp}'},
+      {'icon': Icons.monetization_on, 'label': 'Coins', 'value': '${user.coins}'},
       {
-        'icon': Icons.monetization_on,
-        'label': 'Coins',
-        'value': '${user.coins}'
+        'icon': Icons.local_fire_department,
+        'label': 'Streak',
+        'value': '${user.streakDays} days'
       },
     ];
 
