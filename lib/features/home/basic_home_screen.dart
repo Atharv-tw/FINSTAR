@@ -1,16 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
-import '../../core/motion_tokens.dart';
 import '../../shared/widgets/xp_ring.dart';
-import '../../shared/widgets/coin_pill.dart';
 import '../../shared/widgets/finance_tiles_section.dart';
-import '../../shared/widgets/dual_progress_dial.dart';
-import '../../shared/widgets/daily_streak_card.dart';
 import '../../shared/widgets/featured_hero_card.dart';
 import '../../shared/widgets/streak_title_bar.dart';
 import '../../providers/user_provider.dart';

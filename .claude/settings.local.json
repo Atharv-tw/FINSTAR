@@ -8,7 +8,8 @@
       "Bash(mkdir:*)",
       "mcp__ide__getDiagnostics",
       "Read(//c/Users/tiwar/Desktop/**)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

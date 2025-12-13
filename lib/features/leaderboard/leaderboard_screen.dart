@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
 import '../../providers/leaderboard_provider.dart';
-import '../../providers/user_provider.dart';
 import '../../providers/auth_provider.dart';
 
 /// Leaderboard Screen - Shows top players rankings with REAL Firebase data

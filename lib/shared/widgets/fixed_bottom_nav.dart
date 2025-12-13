@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/design_tokens.dart';
 
 /// Premium floating navigation bar with glassmorphic design
 class FixedBottomNav extends StatelessWidget {

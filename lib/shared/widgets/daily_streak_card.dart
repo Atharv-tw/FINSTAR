@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../core/design_tokens.dart';
 
 /// Daily streak counter card with fire icon and animations
 class DailyStreakCard extends StatefulWidget {

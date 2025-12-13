@@ -1,8 +1,6 @@
 import 'dart:ui';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/design_tokens.dart';
 
 /// Streak-based title bar that displays user achievement level
 class StreakTitleBar extends StatefulWidget {
