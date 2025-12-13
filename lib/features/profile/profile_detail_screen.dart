@@ -154,18 +154,31 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
         ),
         Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.logout, color: DesignTokens.textDarkPrimary),
-              onPressed: () async {
-                await ref.read(authServiceProvider).signOut();
-                if (context.mounted) context.go('/login');
-              },
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.logout, color: DesignTokens.textDarkSecondary),
+                onPressed: () async {
+                  await ref.read(authServiceProvider).signOut();
+                  if (mounted) context.go('/login');
+                },
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.settings, color: DesignTokens.textDarkPrimary),
-              onPressed: () {
-                // TODO: Navigate to settings
-              },
+            const SizedBox(width: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.settings, color: DesignTokens.textDarkSecondary),
+                onPressed: () {
+                  // Navigate to settings
+                },
+              ),
             ),
           ],
         ),
@@ -190,21 +203,22 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      DesignTokens.primarySolid.withValues(alpha: 0.2),
-                      DesignTokens.primarySolid.withValues(alpha: 0.05),
+                      Colors.white.withValues(alpha: 0.8),
+                      Colors.white.withValues(alpha: 0.6),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: DesignTokens.primarySolid.withValues(alpha: 0.3),
+                    color: DesignTokens.primarySolid.withValues(alpha: 0.25),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: DesignTokens.primarySolid.withValues(alpha: 0.2),
-                      blurRadius: 24,
+                      color: DesignTokens.primarySolid.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -265,14 +279,18 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: DesignTokens.primarySolid.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: DesignTokens.primarySolid.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(Icons.emoji_events,
-                                  color: Colors.white, size: 16),
+                                  color: DesignTokens.primarySolid, size: 16),
                               const SizedBox(width: 6),
                               Text(
                                 'Level ${user.level}',
@@ -291,14 +309,18 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: DesignTokens.accentSolid.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: DesignTokens.accentSolid.withValues(alpha: 0.4),
+                              width: 1,
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(Icons.stars,
-                                  color: Colors.white, size: 16),
+                                  color: DesignTokens.accentEnd, size: 16),
                               const SizedBox(width: 6),
                               Text(
                                 '${user.xp} XP',
@@ -403,6 +425,15 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
   }
 
   Widget _buildStatCard(Map<String, dynamic> stat) {
+    // Define colors for each stat type
+    final statColors = {
+      'Level': DesignTokens.primarySolid,
+      'XP': DesignTokens.accentEnd,
+      'Coins': DesignTokens.secondaryEnd,
+      'Streak': const Color(0xFFFF6B35),
+    };
+    final color = statColors[stat['label']] ?? DesignTokens.primarySolid;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
@@ -410,22 +441,36 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: Colors.white.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.1),
-              width: 1,
+              color: color.withValues(alpha: 0.3),
+              width: 1.5,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                stat['icon'] as IconData,
-                color: DesignTokens.primarySolid,
-                size: 28,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  stat['icon'] as IconData,
+                  color: color,
+                  size: 24,
+                ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 stat['value'] as String,
                 style: const TextStyle(
@@ -440,7 +485,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11,
-                  color: DesignTokens.textDarkPrimary.withValues(alpha: 0.7),
+                  color: DesignTokens.textDarkSecondary,
                 ),
               ),
             ],
@@ -510,15 +555,24 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: achievement.isUnlocked
-                ? achievement.color.withValues(alpha: 0.2)
-                : Colors.white.withValues(alpha: 0.03),
+                ? Colors.white.withValues(alpha: 0.7)
+                : Colors.white.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: achievement.isUnlocked
-                  ? achievement.color.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.1),
-              width: 1,
+                  ? achievement.color.withValues(alpha: 0.5)
+                  : DesignTokens.textDarkDisabled.withValues(alpha: 0.3),
+              width: achievement.isUnlocked ? 2 : 1,
             ),
+            boxShadow: achievement.isUnlocked
+                ? [
+                    BoxShadow(
+                      color: achievement.color.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -528,15 +582,15 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                 height: 48,
                 decoration: BoxDecoration(
                   color: achievement.isUnlocked
-                      ? achievement.color.withValues(alpha: 0.3)
-                      : Colors.white.withValues(alpha: 0.1),
+                      ? achievement.color.withValues(alpha: 0.2)
+                      : DesignTokens.textDarkDisabled.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   achievement.icon,
                   color: achievement.isUnlocked
                       ? achievement.color
-                      : Colors.white.withValues(alpha: 0.3),
+                      : DesignTokens.textDarkDisabled,
                   size: 24,
                 ),
               ),
@@ -549,7 +603,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                   fontWeight: FontWeight.w600,
                   color: achievement.isUnlocked
                       ? DesignTokens.textDarkPrimary
-                      : DesignTokens.textDarkPrimary.withValues(alpha: 0.3),
+                      : DesignTokens.textDarkDisabled,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
