@@ -57,7 +57,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCT0gv3kiAB-OMLd9mz4S87OpGpT-dJnrw',
-    appId: '1:479746642557:ios:YOUR_IOS_APP_ID',
+    appId: '1:479746642557:ios:6ea4c794dffd05fe551714',
     messagingSenderId: '479746642557',
     projectId: 'finstar-prod',
     databaseURL: 'https://finstar-prod-default-rtdb.asia-southeast1.firebasedatabase.app',
@@ -67,7 +67,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyCT0gv3kiAB-OMLd9mz4S87OpGpT-dJnrw',
-    appId: '1:479746642557:ios:YOUR_IOS_APP_ID',
+    appId: '1:479746642557:ios:6ea4c794dffd05fe551714',
     messagingSenderId: '479746642557',
     projectId: 'finstar-prod',
     databaseURL: 'https://finstar-prod-default-rtdb.asia-southeast1.firebasedatabase.app',
