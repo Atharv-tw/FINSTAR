@@ -9,6 +9,7 @@ import '../../shared/widgets/finance_tiles_section.dart';
 import '../../shared/widgets/featured_hero_card.dart';
 import '../../shared/widgets/streak_title_bar.dart';
 import '../../providers/user_provider.dart';
+import '../../shared/widgets/nature_background.dart';
 
 /// FINSTAR Home Screen - Redesigned for maximum impact
 class BasicHomeScreen extends ConsumerStatefulWidget {
@@ -20,6 +21,7 @@ class BasicHomeScreen extends ConsumerStatefulWidget {
 
 class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
     with TickerProviderStateMixin {
+  late ScrollController _scrollController;
   late AnimationController _greetingController;
   late AnimationController _progressController;
   late AnimationController _pandaController;
@@ -33,6 +35,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
 
     // Greeting animation
     _greetingController = AnimationController(
@@ -87,6 +90,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _greetingController.dispose();
     _progressController.dispose();
     _pandaController.dispose();
@@ -105,12 +109,8 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Vibrant animated gradient background
-          Container(
-            decoration: const BoxDecoration(
-              gradient: DesignTokens.vibrantBackgroundGradient,
-            ),
-          ),
+          // Calm Nature Background
+          const NatureBackground(),
 
           // Main scrollable content
           userDataAsync.when(
@@ -120,6 +120,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
               }
 
               return SingleChildScrollView(
+                controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,39 +128,34 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                     // Streak Title Bar at top
                     StreakTitleBar(streakDays: userData.streakDays),
 
-                const SizedBox(height: 8),
+                    const SizedBox(height: 118),
 
-                // Content with padding
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 110),
+                    // Padded Content
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Progress Section with Panda
+                          _buildProgressWithPandaSection(screenWidth, userData),
 
-                      // Progress Section with Panda
-                      _buildProgressWithPandaSection(screenWidth, userData),
+                          const SizedBox(height: 12),
 
-                    const SizedBox(height: 12),
-
-                    // Featured Hero Card
-                    FeaturedHeroCard(
-                      onTap: () => context.go('/game'),
+                          // Featured Hero Card
+                          FeaturedHeroCard(
+                            onTap: () => context.go('/game'),
+                          ),
+                        ],
+                      ),
                     ),
 
-                      // Learning Categories
-                      Transform.translate(
-                        offset: const Offset(0, -20),
-                        child: const FinanceTilesSection(),
-                      ),
+                    // Learning Categories - Full Width
+                    FinanceTilesSection(scrollController: _scrollController),
 
-                      const SizedBox(height: 24), // Bottom spacing
-                    ],
-                  ),
+                    const SizedBox(height: 120), // Bottom spacing for nav bar
+                  ],
                 ),
-              ],
-            ),
-          );
+              );
         },
         loading: () => const Center(
           child: CircularProgressIndicator(color: Colors.white),
@@ -195,7 +191,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(255, 26, 73, 128).withValues(alpha: 0.35),
                       borderRadius: BorderRadius.circular(20),
@@ -222,10 +218,10 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                           currentXp: userData.xp,
                           xpForNextLevel: xpForNextLevel,
                           level: userData.level,
-                          size: 60,
+                          size: 48,
                         ),
 
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
 
                         // Progress bars
                         Expanded(
@@ -240,7 +236,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                     'Level Progress',
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white,
                                     ),
@@ -249,17 +245,17 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                     '${userData.xp} / $xpForNextLevel XP',
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
-                                      fontSize: 11,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.w400,
                                       color: Colors.white,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               _buildProgressBar(userData.xp / xpForNextLevel, DesignTokens.primaryGradient),
 
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 10),
 
                               // Study progress
                               Row(
@@ -269,7 +265,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                     'Study Progress',
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white,
                                     ),
@@ -278,14 +274,14 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                     '${(studyProgress * 100).toInt()}%',
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
-                                      fontSize: 11,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.w400,
                                       color: Colors.white,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               _buildProgressBar(studyProgress, DesignTokens.secondaryGradient),
                             ],
                           ),
@@ -318,60 +314,70 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
               ),
             ),
 
-            // "Hello" text
+            // Centered "Hello STAR!" - Fitted perfectly in the gap
             Positioned(
-              left: 1,
-              top: -117,
+              left: 8,
+              top: -115, // Lowered to stay within the upper boundary
+              width: screenWidth * 0.6,
+              height: 115, // Matched to the gap size
               child: FadeTransition(
                 opacity: _pandaController,
-                child: Text(
-                  'Hello',
-                  style: GoogleFonts.silkscreen(
-                    fontSize: 43,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withValues(alpha: 0.8),
-                        blurRadius: 12,
-                        offset: const Offset(0, 3),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hello',
+                      style: GoogleFonts.pixelifySans(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        height: 0.8,
+                        color: Colors.white,
+                        letterSpacing: 3.5, // Increased horizontally
+                        shadows: [
+                          Shadow(
+                            color: const Color(0xFF2E5BFF).withValues(alpha: 0.8),
+                            offset: const Offset(1.5, 1.5),
+                          ),
+                          Shadow(
+                            color: const Color(0xFF00D4FF).withValues(alpha: 0.6),
+                            offset: const Offset(3, 3),
+                          ),
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            offset: const Offset(4, 4),
+                            blurRadius: 3,
+                          ),
+                        ],
                       ),
-                      Shadow(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'STAR!',
+                      style: GoogleFonts.pixelifySans(
+                        fontSize: 66,
+                        fontWeight: FontWeight.bold,
+                        height: 0.8,
+                        color: Colors.white,
+                        letterSpacing: 0.0,
+                        shadows: [
+                          Shadow(
+                            color: const Color(0xFF2E5BFF).withValues(alpha: 0.8),
+                            offset: const Offset(1.5, 1.5),
+                          ),
+                          Shadow(
+                            color: const Color(0xFF00D4FF).withValues(alpha: 0.6),
+                            offset: const Offset(3, 3),
+                          ),
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            offset: const Offset(4, 4),
+                            blurRadius: 3,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // "STAR!" text
-            Positioned(
-              left: 1,
-              top: -73,
-              child: FadeTransition(
-                opacity: _pandaController,
-                child: Text(
-                  'STAR!',
-                  style: GoogleFonts.silkscreen(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withValues(alpha: 0.8),
-                        blurRadius: 12,
-                        offset: const Offset(0, 3),
-                      ),
-                      Shadow(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),

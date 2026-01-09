@@ -87,10 +87,10 @@ class DesignTokens {
   // Vibrant animated background gradient
   static const LinearGradient vibrantBackgroundGradient = LinearGradient(
     colors: [
-      Color(0xFFEFD5C0), // Medium peachy orange
-      Color(0xFFEFC0D5), // Medium pink
-      Color(0xFFD5C0EF), // Medium purple
-      Color(0xFFC0D5EF), // Medium blue
+      Color(0xFFFFE5CC), // Peachy orange
+      Color(0xFFFFCCE5), // Pink
+      Color(0xFFE5CCFF), // Purple
+      Color(0xFFCCE5FF), // Blue
     ],
     stops: [0.0, 0.35, 0.65, 1.0],
     begin: Alignment.topLeft,

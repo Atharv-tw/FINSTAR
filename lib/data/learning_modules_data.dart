@@ -257,7 +257,7 @@ class LearningModulesData {
     id: 'banking',
     title: '💼 Banking & Institutions',
     description: 'Navigate banks, loans, and financial institutions like a pro',
-    iconPath: 'assets/images/banking_icon.png',
+    iconPath: 'assets/images/banking_final_v2.jpg',
     gradientColors: [DesignTokens.accentStart, DesignTokens.accentEnd],
     totalXp: 650,
     lessons: [
@@ -407,7 +407,7 @@ class LearningModulesData {
     id: 'earning_career',
     title: '💰 Earning & Career',
     description: 'Build wealth through smart career choices and multiple income streams',
-    iconPath: 'assets/images/earning_career_icon.png',
+    iconPath: 'assets/images/earning_career_3d.jpg',
     gradientColors: [DesignTokens.secondaryStart, DesignTokens.secondaryEnd],
     totalXp: 700,
     lessons: [
@@ -561,7 +561,7 @@ class LearningModulesData {
     id: 'investing',
     title: '📈 Investing & Growth',
     description: 'Make your money work for you and build lasting wealth',
-    iconPath: 'assets/images/investing_icon.png',
+    iconPath: 'assets/images/investing_3d.webp',
     gradientColors: [const Color(0xFFFF6B9D), const Color(0xFFC06C84)],
     totalXp: 800,
     lessons: [
@@ -683,7 +683,7 @@ class LearningModulesData {
     id: 'social_finance',
     title: '💖 Social & Personal Finance',
     description: 'Money with meaning - give back and be financially responsible',
-    iconPath: 'assets/images/social_finance_icon.png',
+    iconPath: 'assets/images/money_basics_icon.png', // Using existing icon as placeholder
     gradientColors: [const Color(0xFFFF6B9D), const Color(0xFFFFB347)],
     totalXp: 300,
     lessons: [

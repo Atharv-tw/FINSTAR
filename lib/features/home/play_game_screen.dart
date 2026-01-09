@@ -446,36 +446,40 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   Widget _buildCardStackZone(double screenHeight, double screenWidth) {
     final cards = [
       _CardData(
-        title: 'Life Swipe',
-        subtitle: 'Budget your way through life',
-        description: '💳 Swipe right on smart choices! Every decision shapes your fortune.\n\nNavigate real-life scenarios—from buying coffee to choosing a career. Swipe left to save, right to spend. Can you balance fun and financial freedom?',
+        title: '',
+        subtitle: '',
+        description: '',
         icon: Icons.swipe_rounded,
-        gradientColors: [DesignTokens.secondaryStart, DesignTokens.secondaryEnd],
+        gradientColors: [const Color(0xFFFFE5CC), const Color(0xFFE5CCFF)],
         route: '/game/life-swipe',
+        imagePath: 'assets/images/life_swipe_cover.png',
       ),
       _CardData(
-        title: 'Market Explorer',
-        subtitle: 'Invest and grow your wealth',
-        description: '📈 Build your empire! Watch your portfolio soar or crash—you decide!\n\nDive into stocks, bonds, and crypto. Learn to diversify, manage risk, and time the market. Will you play it safe or go all-in on that hot tech stock?',
+        title: '',
+        subtitle: '',
+        description: '',
         icon: Icons.trending_up_rounded,
         gradientColors: [DesignTokens.accentStart, DesignTokens.accentEnd],
         route: '/game/market-explorer',
+        imagePath: 'assets/images/market_explorer_cover.png',
       ),
       _CardData(
-        title: 'Budget Blitz',
-        subtitle: 'Master your monthly money',
-        description: '⚡ Race the clock to balance your budget! Allocate income, pay bills, and save before time runs out.\n\nJuggle rent, groceries, entertainment, and surprise expenses. Can you end the month in the green? Fast-paced financial decisions await!',
+        title: '',
+        subtitle: '',
+        description: '',
         icon: Icons.bolt_rounded,
         gradientColors: [const Color(0xFFFF6B9D), const Color(0xFFC06C84)],
         route: '/game/budget-blitz',
+        imagePath: 'assets/images/budget_blitz_cover.png',
       ),
       _CardData(
-        title: 'Quiz Battle',
-        subtitle: 'Test your financial knowledge',
-        description: '⚡ Lightning-fast questions, epic rewards! Can you outsmart the market?\n\nRace against the clock to answer financial trivia. Each correct answer boosts your XP and unlocks new challenges. Think you know money? Prove it!',
+        title: '',
+        subtitle: '',
+        description: '',
         icon: Icons.quiz_rounded,
-        gradientColors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
+        gradientColors: [DesignTokens.secondaryStart, DesignTokens.secondaryEnd],
         route: '/game/quiz-battle',
+        imagePath: 'assets/images/quiz_battle_cover.png',
       ),
     ];
 
@@ -556,31 +560,58 @@ class _PlayGameScreenState extends State<PlayGameScreen>
             height: screenHeight * 0.7, // Full card size (70% of screen height)
             child: ClipRRect(
               borderRadius: BorderRadius.circular(40), // Playing card style rounded edges
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0B0B0D).withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(40),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      width: 1,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // 1. Background Layer
+                  if (card.imagePath != null) ...[
+                    // CASE A: Clear Full Cover (Text in Image)
+                    
+                    // Dark Base
+                    Container(color: const Color(0xFF0B0B0D)),
+                    
+                    // The Image: Full fill, clear visibility, no overlays
+                    Image.asset(
+                      card.imagePath!,
+                      fit: BoxFit.fill,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        offset: Offset(0, 12 + (index * 4)),
-                        blurRadius: 24 + (index * 8),
-                        color: Colors.black.withValues(alpha: 0.25),
+                  ] else ...[
+                    // CASE B: Standard Glassmorphic Background
+                    BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0B0B0D).withValues(alpha: 0.7),
+                        ),
                       ),
-                      BoxShadow(
-                        blurRadius: 24,
-                        color: card.gradientColors[0].withValues(alpha: glowOpacity),
+                    ),
+                  ],
+
+                  // 2. Border & Outer Glow (Applied to both)
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        width: 1,
                       ),
-                    ],
+                      boxShadow: [
+                        // Only add outer glow if no image (images have their own visual weight)
+                        if (card.imagePath == null)
+                          BoxShadow(
+                            blurRadius: 24,
+                            color: card.gradientColors[0].withValues(alpha: glowOpacity),
+                          ),
+                      ],
+                    ),
                   ),
-                  padding: const EdgeInsets.all(24),
-                  child: _buildCollapsedCardContent(card),
-                ),
+
+                  // 3. Content Layer
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: _buildCollapsedCardContent(card),
+                  ),
+                ],
               ),
             ),
           ),
@@ -594,41 +625,50 @@ class _PlayGameScreenState extends State<PlayGameScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // FIX: Icon badge with 16px offset from top-left
-        Padding(
-          padding: const EdgeInsets.only(left: 0, top: 0), // Already has 24px from container padding
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: card.gradientColors,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+        if (card.title.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 0, top: 0), // Already has 24px from container padding
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: card.gradientColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
               ),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              card.icon,
-              size: 18,
-              color: Colors.white,
+              child: Icon(
+                card.icon,
+                size: 18,
+                color: Colors.white,
+              ),
             ),
           ),
-        ),
 
-        const SizedBox(height: 16),
+        if (card.title.isNotEmpty) const SizedBox(height: 16),
 
         // Title - Poppins Bold 24px
-        Text(
-          card.title,
-          style: const TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        if (card.title.isNotEmpty)
+          Text(
+            card.title,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  color: Colors.black,
+                  offset: Offset(0, 2),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
           ),
-        ),
 
-        const SizedBox(height: 4),
+        if (card.title.isNotEmpty) const SizedBox(height: 4),
 
         // Subtitle - Inter Regular 14px
         if (card.subtitle.isNotEmpty)
@@ -638,7 +678,14 @@ class _PlayGameScreenState extends State<PlayGameScreen>
               fontFamily: 'Inter',
               fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: Colors.white.withValues(alpha: 0.7),
+              color: Colors.white.withValues(alpha: 0.9), // Slightly brighter
+              shadows: [
+                Shadow(
+                  color: Colors.black.withValues(alpha: 0.8),
+                  offset: Offset(0, 1),
+                  blurRadius: 2,
+                ),
+              ],
             ),
           ),
 
@@ -693,6 +740,7 @@ class _CardData {
   final IconData icon;
   final List<Color> gradientColors;
   final String route;
+  final String? imagePath;
 
   _CardData({
     required this.title,
@@ -701,5 +749,6 @@ class _CardData {
     required this.icon,
     required this.gradientColors,
     required this.route,
+    this.imagePath,
   });
 }

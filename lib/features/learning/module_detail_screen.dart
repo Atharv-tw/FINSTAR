@@ -305,12 +305,19 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
           ],
         ),
         child: Center(
-          child: Image.asset(
-            module!.iconPath,
-            width: 60,
-            height: 60,
-            fit: BoxFit.contain,
-          ),
+          child: module!.iconPath.startsWith('http')
+              ? Image.network(
+                  module!.iconPath,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.contain,
+                )
+              : Image.asset(
+                  module!.iconPath,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.contain,
+                ),
         ),
       ),
     );
