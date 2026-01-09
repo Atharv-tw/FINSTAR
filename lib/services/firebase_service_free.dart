@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart';
 import 'game_logic_service.dart';
 
 /// Firebase Service - Free Tier Only
@@ -40,8 +41,10 @@ class FirebaseServiceFree {
     );
 
     // Configure RTDB for low latency
-    _rtdb.setPersistenceEnabled(true);
-    _rtdb.setPersistenceCacheSizeBytes(10000000); // 10MB cache
+    if (!kIsWeb) {
+      _rtdb.setPersistenceEnabled(true);
+      _rtdb.setPersistenceCacheSizeBytes(10000000); // 10MB cache
+    }
 
     print('Firebase initialized with offline persistence (Free tier)');
   }

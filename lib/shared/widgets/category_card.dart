@@ -71,12 +71,19 @@ class _CategoryCardState extends State<CategoryCard> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // 3D Icon at TOP - centered
-                Image.asset(
-                  widget.iconPath,
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.contain,
-                ),
+                widget.iconPath.startsWith('http')
+                    ? Image.network(
+                        widget.iconPath,
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.contain,
+                      )
+                    : Image.asset(
+                        widget.iconPath,
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.contain,
+                      ),
 
                 const SizedBox(height: 8), // Spacing between icon and text
 

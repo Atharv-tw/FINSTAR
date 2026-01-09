@@ -173,7 +173,7 @@ class _StreakTitleBarState extends State<StreakTitleBar>
             child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 30, 20, 5),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -225,8 +225,8 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                               children: [
                                 // Outer flame glow
                                 Container(
-                                  width: 56,
-                                  height: 56,
+                                  width: 40,
+                                  height: 40,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     gradient: RadialGradient(
@@ -241,8 +241,8 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                                 ),
                                 // Main circle with flame border
                                 Container(
-                                  width: 44,
-                                  height: 44,
+                                  width: 32,
+                                  height: 32,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     gradient: const LinearGradient(
@@ -256,8 +256,8 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                                     boxShadow: [
                                       BoxShadow(
                                         color: const Color(0xFFFF6B4A).withValues(alpha: 0.5),
-                                        blurRadius: 12,
-                                        spreadRadius: 2,
+                                        blurRadius: 8,
+                                        spreadRadius: 1,
                                       ),
                                     ],
                                   ),
@@ -266,33 +266,19 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                                       '${widget.streakDays}',
                                       style: const TextStyle(
                                         fontFamily: 'Poppins',
-                                        fontSize: 18,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w800,
                                         color: Colors.white,
                                         shadows: [
                                           Shadow(
                                             color: Colors.black45,
-                                            blurRadius: 4,
-                                            offset: Offset(0, 2),
+                                            blurRadius: 2,
+                                            offset: Offset(0, 1),
                                           ),
                                         ],
                                       ),
                                     ),
                                   ),
-                                ),
-                                // Rotating flame icon overlay
-                                AnimatedBuilder(
-                                  animation: _glowController,
-                                  builder: (context, child) {
-                                    return Transform.rotate(
-                                      angle: _glowController.value * 0.2 - 0.1, // Slight wobble
-                                      child: Icon(
-                                        Icons.local_fire_department_rounded,
-                                        color: Colors.white.withValues(alpha: 0.3),
-                                        size: 56,
-                                      ),
-                                    );
-                                  },
                                 ),
                               ],
                             ),
@@ -302,12 +288,12 @@ class _StreakTitleBarState extends State<StreakTitleBar>
 
                       // Title and emoji (right)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: Colors.white.withValues(alpha: 0.3),
-                            width: 1.5,
+                            width: 1.0,
                           ),
                         ),
                         child: Row(
@@ -316,25 +302,25 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                             Text(
                               streakTitle.emoji,
                               style: const TextStyle(
-                                fontSize: 24,
+                                fontSize: 18,
                                 height: 1,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Text(
                               streakTitle.title,
                               style: TextStyle(
                                 fontFamily: 'Poppins',
-                                fontSize: 18,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white.withValues(alpha: 0.8),
                                 height: 1,
-                                letterSpacing: 0.3,
+                                letterSpacing: 0.2,
                                 shadows: [
                                   Shadow(
                                     color: Colors.black.withValues(alpha: 0.4),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 1),
                                   ),
                                 ],
                               ),

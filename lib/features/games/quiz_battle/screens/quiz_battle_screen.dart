@@ -766,6 +766,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     height: 1.4,
+                    color: Colors.black87,
                   ),
             ),
 
@@ -795,7 +796,9 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                     Expanded(
                       child: Text(
                         question.explanation,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.black87,
+                            ),
                       ),
                     ),
                   ],
@@ -921,24 +924,29 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
     Color borderColor;
     Color textColor;
 
+    Color circleColor;
     if (showResult) {
       if (isCorrect) {
         backgroundColor = AppTheme.successColor.withValues(alpha: 0.1);
         borderColor = AppTheme.successColor;
         textColor = AppTheme.successColor;
+        circleColor = AppTheme.successColor;
       } else if (isSelected) {
         backgroundColor = AppTheme.errorColor.withValues(alpha: 0.1);
         borderColor = AppTheme.errorColor;
         textColor = AppTheme.errorColor;
+        circleColor = AppTheme.errorColor;
       } else {
         backgroundColor = Colors.grey[100]!;
         borderColor = Colors.grey[300]!;
-        textColor = AppTheme.textSecondary;
+        textColor = Colors.black54;
+        circleColor = Colors.grey[400]!;
       }
     } else {
       backgroundColor = Colors.white;
       borderColor = AppTheme.primaryColor.withValues(alpha: 0.3);
-      textColor = AppTheme.textPrimary;
+      textColor = Colors.black87;
+      circleColor = AppTheme.primaryColor;
     }
 
     return InkWell(
@@ -957,11 +965,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: showResult && isCorrect
-                    ? AppTheme.successColor
-                    : (showResult && isSelected
-                        ? AppTheme.errorColor
-                        : borderColor),
+                color: circleColor,
                 shape: BoxShape.circle,
               ),
               child: Center(
