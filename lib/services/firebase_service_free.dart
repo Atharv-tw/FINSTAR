@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
 import 'game_logic_service.dart';
+import '../providers/achievements_provider.dart';
 
 /// Firebase Service - Free Tier Only
 ///
@@ -144,7 +145,12 @@ class FirebaseServiceFree {
       'joinDate': FieldValue.serverTimestamp(),
       'isPremium': false,
       'notificationsEnabled': true,
+      'gamesPlayed': 0,
+      'lessonsCompleted': 0,
     });
+
+    // Initialize achievements for new user
+    await initializeAchievementsForUser(user.uid);
   }
 
   /// Sign out

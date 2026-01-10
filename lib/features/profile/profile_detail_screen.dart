@@ -6,8 +6,7 @@ import '../../core/design_tokens.dart';
 import '../../shared/widgets/xp_ring.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../models/user_profile.dart' hide UserProfile;
-import '../../data/user_data.dart';
+import '../../providers/achievements_provider.dart';
 
 /// Profile Detail Screen - Shows user stats, achievements, and progress
 class ProfileDetailScreen extends ConsumerStatefulWidget {
@@ -496,7 +495,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
   }
 
   Widget _buildAchievementsSection() {
-    final achievements = UserData.achievements;
+    final achievementsAsync = ref.watch(achievementsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,36 +510,82 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
           ),
         ),
         const SizedBox(height: 16),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.85,
-          ),
-          itemCount: achievements.length,
-          itemBuilder: (context, index) {
-            final achievement = achievements[index];
-            final delay = index * 0.08;
-
-            return AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                final staggerValue =
-                    (_animationController.value - delay).clamp(0.0, 1.0);
-                return Transform.scale(
-                  scale: staggerValue,
-                  child: Opacity(
-                    opacity: staggerValue,
-                    child: child,
+        achievementsAsync.when(
+          data: (achievements) {
+            if (achievements.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.emoji_events_outlined,
+                        size: 48,
+                        color: DesignTokens.textDarkDisabled,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No achievements yet!\nKeep playing to unlock badges.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          color: DesignTokens.textDarkSecondary,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+              );
+            }
+
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: achievements.length,
+              itemBuilder: (context, index) {
+                final achievement = achievements[index];
+                final delay = index * 0.08;
+
+                return AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    final staggerValue =
+                        (_animationController.value - delay).clamp(0.0, 1.0);
+                    return Transform.scale(
+                      scale: staggerValue,
+                      child: Opacity(
+                        opacity: staggerValue,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _buildAchievementCard(achievement),
                 );
               },
-              child: _buildAchievementCard(achievement),
             );
           },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (error, stack) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Text(
+                'Error loading achievements',
+                style: TextStyle(color: Colors.red.shade300),
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -554,17 +599,17 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: achievement.isUnlocked
+            color: achievement.unlocked
                 ? Colors.white.withValues(alpha: 0.7)
                 : Colors.white.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: achievement.isUnlocked
+              color: achievement.unlocked
                   ? achievement.color.withValues(alpha: 0.5)
                   : DesignTokens.textDarkDisabled.withValues(alpha: 0.3),
-              width: achievement.isUnlocked ? 2 : 1,
+              width: achievement.unlocked ? 2 : 1,
             ),
-            boxShadow: achievement.isUnlocked
+            boxShadow: achievement.unlocked
                 ? [
                     BoxShadow(
                       color: achievement.color.withValues(alpha: 0.2),
@@ -581,14 +626,14 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: achievement.isUnlocked
+                  color: achievement.unlocked
                       ? achievement.color.withValues(alpha: 0.2)
                       : DesignTokens.textDarkDisabled.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   achievement.icon,
-                  color: achievement.isUnlocked
+                  color: achievement.unlocked
                       ? achievement.color
                       : DesignTokens.textDarkDisabled,
                   size: 24,
@@ -601,7 +646,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                   fontFamily: 'Poppins',
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: achievement.isUnlocked
+                  color: achievement.unlocked
                       ? DesignTokens.textDarkPrimary
                       : DesignTokens.textDarkDisabled,
                 ),
