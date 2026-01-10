@@ -25,28 +25,28 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
       'title': 'Money\nBasics',
       'moduleId': 'money_basics',
       'color': const Color(0xFFB3E5FC), // Light Blue
-      'image': 'assets/images/money_basics_cover.png',
+      'image': 'assets/images/money_basics_panda.png',
       'isLeft': true,
     },
     {
       'title': 'Earning &\nCareer',
       'moduleId': 'earning_career',
       'color': const Color(0xFFA9FF68), // Green
-      'image': 'assets/images/earning_career_green.jpg',
+      'image': 'assets/images/earning_career_latest.png',
       'isLeft': false,
     },
     {
       'title': 'Investing &\nGrowth',
       'moduleId': 'investing',
       'color': const Color(0xFF00E5FF), // Teal (Updated for premium theme)
-      'image': 'assets/images/investing_growth_cover_new.png',
+      'image': 'assets/images/investing_growth_floating.png',
       'isLeft': true,
     },
     {
       'title': 'Banking &\nInstitutes',
       'moduleId': 'banking',
       'color': const Color(0xFF536DFE), // Indigo (Updated for premium theme)
-      'image': 'assets/images/banking_institutes_cover_v2.png',
+      'image': 'assets/images/bankkk.png',
       'isLeft': false,
     },
   ];
@@ -237,36 +237,16 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
               // Faint connection line to module (Thinner, more subtle)
               _buildConnectionLine(point, isLeft),
 
-              // Babu Rao Meme at the very end (Enhanced with rounded corners and shadow)
+              // Pixel Trophy at the very end
               if (index == points.length - 1)
                 Positioned(
-                  left: width / 2 - 159, 
-                  top: point.dy + 125,   
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF3E2723).withValues(alpha: 0.4),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                          spreadRadius: 2,
-                        ),
-                      ],
-                      border: Border.all(
-                        color: const Color(0xFF8D6E63).withValues(alpha: 0.3),
-                        width: 2,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: Image.asset(
-                        'assets/images/babu_rao_meme.jpg', 
-                        width: 318, 
-                        height: 181, 
-                        fit: BoxFit.fill,
-                      ),
-                    ),
+                  left: width / 2 - 100, // Adjusted centering for the new image size
+                  top: point.dy + 80,    // Adjusted top position
+                  child: Image.asset(
+                    'assets/images/trophy_pixel.png', 
+                    width: 200, 
+                    height: 200, 
+                    fit: BoxFit.contain,
                   ),
                 ),
 
@@ -1026,60 +1006,13 @@ class _ModuleSectionBanner extends StatelessWidget {
   }
 
   Widget _buildImageCard(String path, Color color, bool isCurrent, int index) {
-    // Decrease opacity for 3rd section (index 2)
-    final double bgOpacity = (index == 2) ? 0.05 : 0.15;
-    final double shadowOpacity = (index == 2) ? 0.05 : 0.15;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            // Soft Shadow & Background
-            Container(
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: bgOpacity), 
-                borderRadius: BorderRadius.circular(20),
-                border: isCurrent ? Border.all(color: Colors.orange.withValues(alpha: 0.8), width: 2) : null,
-                boxShadow: [
-                  BoxShadow(
-                    color: isCurrent ? Colors.orange.withValues(alpha: 0.3) : color.withValues(alpha: shadowOpacity), 
-                    blurRadius: isCurrent ? 25 : 20,
-                    offset: const Offset(0, 10),
-                    spreadRadius: isCurrent ? 2 : 0,
-                  ),
-                ],
-              ),
-            ),
-            // Image (No Mask)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Stack(
-                children: [
-                  Image.asset(
-                    path,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    color: (index == 3) ? const Color(0xFF0F2027).withValues(alpha: 0.10) : null,
-                    colorBlendMode: (index == 3) ? BlendMode.multiply : null,
-                  ),
-                  // Subtle Glowing Shine Line on the Right Side
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _RightEdgeShinePainter(
-                        color: color,
-                        // Decrease shine for the first photo (index 0)
-                        opacityMultiplier: (index == 0) ? 0.5 : 1.0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      }
+    // Return the raw image without any container decoration for all modules
+    // to allow the characters/icons to float freely.
+    return Image.asset(
+      path,
+      fit: BoxFit.contain,
+      width: double.infinity,
+      height: double.infinity,
     );
   }
 
