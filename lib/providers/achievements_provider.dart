@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_provider.dart';
 
@@ -31,6 +32,46 @@ class Achievement {
   });
 
   double get progressPercentage => (currentProgress / targetValue).clamp(0.0, 1.0);
+
+  /// Get icon for achievement type
+  IconData get icon {
+    switch (type) {
+      case AchievementType.firstSteps:
+        return Icons.school;
+      case AchievementType.streak:
+        return Icons.local_fire_department;
+      case AchievementType.games:
+        return Icons.videogame_asset;
+      case AchievementType.learning:
+        return Icons.menu_book;
+      case AchievementType.coins:
+        return Icons.monetization_on;
+      case AchievementType.social:
+        return Icons.people;
+      case AchievementType.other:
+        return Icons.emoji_events;
+    }
+  }
+
+  /// Get color for achievement type
+  Color get color {
+    switch (type) {
+      case AchievementType.firstSteps:
+        return const Color(0xFF4A90E2);
+      case AchievementType.streak:
+        return const Color(0xFFFF6B35);
+      case AchievementType.games:
+        return const Color(0xFF9B59B6);
+      case AchievementType.learning:
+        return const Color(0xFF6BCB77);
+      case AchievementType.coins:
+        return const Color(0xFFFFD93D);
+      case AchievementType.social:
+        return const Color(0xFFFF6B9D);
+      case AchievementType.other:
+        return const Color(0xFF4A90E2);
+    }
+  }
 
   factory Achievement.fromFirestore(String id, Map<String, dynamic> data) {
     return Achievement(

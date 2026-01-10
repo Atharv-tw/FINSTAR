@@ -63,6 +63,7 @@ class GameLogicService {
           'coins': newCoins,
           'level': newLevel,
           'lastActiveDate': DateTime.now().toIso8601String().split('T')[0],
+          'gamesPlayed': FieldValue.increment(1),
         });
 
         // Save game progress
@@ -87,6 +88,9 @@ class GameLogicService {
           transaction.update(progressRef, {'bestScore': score});
         }
       });
+
+      // Update achievement progress for first game and games milestones
+      await _updateGameAchievements();
 
       return {
         'success': true,
@@ -134,6 +138,7 @@ class GameLogicService {
           'xp': newXP,
           'coins': newCoins,
           'level': newLevel,
+          'gamesPlayed': FieldValue.increment(1),
         });
 
         // Save progress
@@ -149,6 +154,9 @@ class GameLogicService {
           SetOptions(merge: true),
         );
       });
+
+      // Update achievement progress for first game and games milestones
+      await _updateGameAchievements();
 
       return {
         'success': true,
@@ -189,6 +197,7 @@ class GameLogicService {
           'xp': newXP,
           'coins': newCoins,
           'level': newLevel,
+          'lessonsCompleted': FieldValue.increment(1),
         });
 
         // Save lesson progress
@@ -200,6 +209,9 @@ class GameLogicService {
           'completedAt': FieldValue.serverTimestamp(),
         });
       });
+
+      // Update achievement progress for learning milestones
+      await _updateLessonAchievements();
 
       return {
         'success': true,
@@ -273,6 +285,11 @@ class GameLogicService {
           'message': 'Check-in successful! $newStreak day streak!',
         };
       });
+
+      // Update streak achievements after successful check-in
+      if (result != null && result!['success'] == true) {
+        await _updateStreakAchievements(result!['streak'] as int);
+      }
 
       return result ?? {'success': false};
     } catch (e) {
@@ -391,6 +408,196 @@ class GameLogicService {
       }
     } catch (e) {
       print('checkAchievements error: $e');
+    }
+  }
+
+  // ============================================
+  // ACHIEVEMENT HELPERS
+  // ============================================
+
+  /// Update game-related achievements
+  Future<void> _updateGameAchievements() async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(_userId).get();
+      final gamesPlayed = (userDoc.data()?['gamesPlayed'] ?? 0) as int;
+      final coins = (userDoc.data()?['coins'] ?? 0) as int;
+
+      final batch = _firestore.batch();
+      final achievementsRef = _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('achievements');
+
+      // First game achievement
+      if (gamesPlayed >= 1) {
+        final firstGameDoc = await achievementsRef.doc('first_game').get();
+        if (firstGameDoc.exists && !(firstGameDoc.data()?['unlocked'] ?? false)) {
+          batch.update(achievementsRef.doc('first_game'), {
+            'unlocked': true,
+            'unlockedAt': FieldValue.serverTimestamp(),
+            'currentProgress': 1,
+          });
+          // Award rewards
+          batch.update(_firestore.collection('users').doc(_userId), {
+            'xp': FieldValue.increment(100),
+            'coins': FieldValue.increment(50),
+          });
+          print('Achievement unlocked: first_game');
+        }
+      }
+
+      // 10 games achievement
+      if (gamesPlayed >= 10) {
+        final gamesDoc = await achievementsRef.doc('games_10').get();
+        if (gamesDoc.exists && !(gamesDoc.data()?['unlocked'] ?? false)) {
+          batch.update(achievementsRef.doc('games_10'), {
+            'unlocked': true,
+            'unlockedAt': FieldValue.serverTimestamp(),
+            'currentProgress': 10,
+          });
+          batch.update(_firestore.collection('users').doc(_userId), {
+            'xp': FieldValue.increment(500),
+            'coins': FieldValue.increment(200),
+          });
+          print('Achievement unlocked: games_10');
+        }
+      }
+
+      // Update game progress for games_10 achievement
+      final gamesDoc = await achievementsRef.doc('games_10').get();
+      if (gamesDoc.exists && !(gamesDoc.data()?['unlocked'] ?? false)) {
+        batch.update(achievementsRef.doc('games_10'), {
+          'currentProgress': gamesPlayed,
+        });
+      }
+
+      // 1000 coins achievement
+      if (coins >= 1000) {
+        final coinsDoc = await achievementsRef.doc('coins_1000').get();
+        if (coinsDoc.exists && !(coinsDoc.data()?['unlocked'] ?? false)) {
+          batch.update(achievementsRef.doc('coins_1000'), {
+            'unlocked': true,
+            'unlockedAt': FieldValue.serverTimestamp(),
+            'currentProgress': coins,
+          });
+          batch.update(_firestore.collection('users').doc(_userId), {
+            'xp': FieldValue.increment(600),
+            'coins': FieldValue.increment(250),
+          });
+          print('Achievement unlocked: coins_1000');
+        }
+      }
+
+      await batch.commit();
+    } catch (e) {
+      print('_updateGameAchievements error: $e');
+    }
+  }
+
+  /// Update lesson-related achievements
+  Future<void> _updateLessonAchievements() async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(_userId).get();
+      final lessonsCompleted = (userDoc.data()?['lessonsCompleted'] ?? 0) as int;
+
+      final batch = _firestore.batch();
+      final achievementsRef = _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('achievements');
+
+      // 5 lessons achievement
+      if (lessonsCompleted >= 5) {
+        final lessonsDoc = await achievementsRef.doc('lessons_5').get();
+        if (lessonsDoc.exists && !(lessonsDoc.data()?['unlocked'] ?? false)) {
+          batch.update(achievementsRef.doc('lessons_5'), {
+            'unlocked': true,
+            'unlockedAt': FieldValue.serverTimestamp(),
+            'currentProgress': 5,
+          });
+          batch.update(_firestore.collection('users').doc(_userId), {
+            'xp': FieldValue.increment(400),
+            'coins': FieldValue.increment(150),
+          });
+          print('Achievement unlocked: lessons_5');
+        }
+      }
+
+      // Update progress for lessons_5 achievement
+      final lessonsDoc = await achievementsRef.doc('lessons_5').get();
+      if (lessonsDoc.exists && !(lessonsDoc.data()?['unlocked'] ?? false)) {
+        batch.update(achievementsRef.doc('lessons_5'), {
+          'currentProgress': lessonsCompleted,
+        });
+      }
+
+      await batch.commit();
+    } catch (e) {
+      print('_updateLessonAchievements error: $e');
+    }
+  }
+
+  /// Update streak-related achievements (called during daily check-in)
+  Future<void> _updateStreakAchievements(int streakDays) async {
+    try {
+      final batch = _firestore.batch();
+      final achievementsRef = _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('achievements');
+
+      // 3-day streak achievement
+      if (streakDays >= 3) {
+        final streak3Doc = await achievementsRef.doc('streak_3').get();
+        if (streak3Doc.exists && !(streak3Doc.data()?['unlocked'] ?? false)) {
+          batch.update(achievementsRef.doc('streak_3'), {
+            'unlocked': true,
+            'unlockedAt': FieldValue.serverTimestamp(),
+            'currentProgress': 3,
+          });
+          batch.update(_firestore.collection('users').doc(_userId), {
+            'xp': FieldValue.increment(150),
+            'coins': FieldValue.increment(75),
+          });
+          print('Achievement unlocked: streak_3');
+        }
+      }
+
+      // 7-day streak achievement
+      if (streakDays >= 7) {
+        final streak7Doc = await achievementsRef.doc('streak_7').get();
+        if (streak7Doc.exists && !(streak7Doc.data()?['unlocked'] ?? false)) {
+          batch.update(achievementsRef.doc('streak_7'), {
+            'unlocked': true,
+            'unlockedAt': FieldValue.serverTimestamp(),
+            'currentProgress': 7,
+          });
+          batch.update(_firestore.collection('users').doc(_userId), {
+            'xp': FieldValue.increment(300),
+            'coins': FieldValue.increment(150),
+          });
+          print('Achievement unlocked: streak_7');
+        }
+      }
+
+      // Update progress for streak achievements
+      final streak3Doc = await achievementsRef.doc('streak_3').get();
+      if (streak3Doc.exists && !(streak3Doc.data()?['unlocked'] ?? false)) {
+        batch.update(achievementsRef.doc('streak_3'), {
+          'currentProgress': streakDays,
+        });
+      }
+
+      final streak7Doc = await achievementsRef.doc('streak_7').get();
+      if (streak7Doc.exists && !(streak7Doc.data()?['unlocked'] ?? false)) {
+        batch.update(achievementsRef.doc('streak_7'), {
+          'currentProgress': streakDays,
+        });
+      }
+
+      await batch.commit();
+    } catch (e) {
+      print('_updateStreakAchievements error: $e');
     }
   }
 }

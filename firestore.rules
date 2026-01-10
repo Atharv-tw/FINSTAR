@@ -21,10 +21,11 @@ service cloud.firestore {
       return request.auth.token.admin == true;
     }
 
-    // Check if user is trying to modify server-managed fields
-    function hasServerFields() {
+    // Check if user is trying to modify server-only fields (admin-managed)
+    // Note: xp, coins, level ARE allowed for client-side game logic (free tier, no Cloud Functions)
+    function hasServerOnlyFields() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasAny(['level', 'xp', 'coins', 'rank', 'isPremium']);
+        .hasAny(['rank', 'isPremium']);
     }
 
     // Check if request is from Cloud Functions
@@ -43,8 +44,9 @@ service cloud.firestore {
       // Users can create their own profile on signup
       allow create: if isSignedIn() && isOwner(uid);
 
-      // Users can update their own profile BUT NOT server-managed fields
-      allow update: if isSignedIn() && isOwner(uid) && !hasServerFields();
+      // Users can update their own profile BUT NOT server-only fields (rank, isPremium)
+      // xp, coins, level updates ARE allowed for client-side game logic (free tier)
+      allow update: if isSignedIn() && isOwner(uid) && !hasServerOnlyFields();
 
       // No deletes (only via Cloud Functions for GDPR)
       allow delete: if false;
@@ -56,8 +58,8 @@ service cloud.firestore {
         // Read own progress
         allow read: if isOwner(uid);
 
-        // Only Cloud Functions can write game progress
-        allow write: if false;
+        // Owner can write game progress (client-side game logic for free tier)
+        allow write: if isSignedIn() && isOwner(uid);
       }
 
       // ========================================
@@ -67,8 +69,8 @@ service cloud.firestore {
         // Read own achievements
         allow read: if isOwner(uid);
 
-        // Only Cloud Functions can award badges
-        allow write: if false;
+        // Owner can unlock achievements (client-side logic for free tier)
+        allow write: if isSignedIn() && isOwner(uid);
       }
 
       // ========================================
@@ -78,8 +80,8 @@ service cloud.firestore {
         // Read own inventory
         allow read: if isOwner(uid);
 
-        // Only Cloud Functions can add items (after purchase)
-        allow write: if false;
+        // Owner can manage inventory (client-side purchase logic for free tier)
+        allow write: if isSignedIn() && isOwner(uid);
       }
 
       // ========================================
@@ -89,8 +91,8 @@ service cloud.firestore {
         // Read own lesson progress
         allow read: if isOwner(uid);
 
-        // Only Cloud Functions can mark lessons complete
-        allow write: if false;
+        // Owner can mark lessons complete (client-side logic for free tier)
+        allow write: if isSignedIn() && isOwner(uid);
       }
     }
 
