@@ -60,30 +60,37 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
     )..repeat();
 
     widget.scrollController?.addListener(_onScroll);
+
+    // Initialize scroll position after first frame to ensure car starts at beginning
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _onScroll();
+    });
   }
+
+  double? _initialScrollOffset;
 
   void _onScroll() {
     if (!mounted || widget.scrollController == null) return;
-    
+
     final RenderBox? box = _sectionKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
 
-    // Use global position to determine where the section is on the screen
     final position = box.localToGlobal(Offset.zero);
     final viewportHeight = MediaQuery.of(context).size.height;
-    
-    // Car starts moving when the road start (top of section + 30) is at 80% of screen
-    // Car reaches the end when the road end (bottom of section - 400) is at 20% of screen
-    final roadStartGlobalY = position.dy + 30;
-    final roadEndGlobalY = position.dy + box.size.height - 400; // Adjusted to ensure car reaches end
-    
-    final startTrigger = viewportHeight * 0.8;
-    final endTrigger = viewportHeight * 0.2;
-    
-    // The total scroll distance for the car to go from 0 to 1
-    final totalDistance = (roadEndGlobalY - roadStartGlobalY) + (startTrigger - endTrigger);
-    double progress = (startTrigger - roadStartGlobalY) / totalDistance;
-    
+    final sectionTop = position.dy;
+    final sectionHeight = box.size.height;
+
+    // Store the initial offset when first called (to handle pre-scrolled state)
+    _initialScrollOffset ??= sectionTop;
+
+    // Calculate how much we've scrolled SINCE the initial state
+    final scrolledSinceStart = _initialScrollOffset! - sectionTop;
+
+    // Total scrollable distance for car to complete the journey
+    final totalScrollDistance = sectionHeight * 0.75;
+
+    double progress = scrolledSinceStart / totalScrollDistance;
+
     setState(() {
       _scrollProgress = progress.clamp(0.0, 1.0);
     });
@@ -126,9 +133,9 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         
-        // DENSE LAYOUT: Adjusted for larger images and floating space
-        final double rowHeight = width * 0.7; 
-        final double startOffset = 90.0; // Reduced from 140.0
+        // COMPACT LAYOUT: Reduced spacing between modules
+        final double rowHeight = width * 0.6;
+        final double startOffset = 80.0;
         // Precisely calculated height to stop scrolling exactly after the trophy
         // Spacing is now equal: Distance between modules = rowHeight, Distance to trophy = rowHeight
         final double sectionHeight = (modules.length + 0.5) * rowHeight + startOffset + 180;
@@ -215,8 +222,8 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
   }
 
   Widget _buildRoadMarkers(List<Offset> points, int currentIndex, double width, double rowHeight) {
-    // Play button shifted slightly left (0.45)
-    final startPoint = Offset(width * 0.45, 30);
+    // Play button at center (matching road start)
+    final startPoint = Offset(width * 0.5, 30);
     
     return Stack(
       children: [
@@ -548,7 +555,7 @@ class _RoadPathPainter extends CustomPainter {
   final double rowHeight;
 
   _RoadPathPainter({
-    required this.points, 
+    required this.points,
     required this.animationValue,
     required this.currentIndex,
     required this.scrollProgress,
@@ -560,48 +567,62 @@ class _RoadPathPainter extends CustomPainter {
     if (points.length < 2) return;
 
     final path = Path();
-    final startX = size.width * 0.45;
-    // Start at 30 (radius of button) so button top touches the section top (0)
-    final startY = 30.0; 
+    final startX = size.width * 0.5; // Start from center
+    final startY = 30.0;
     path.moveTo(startX, startY);
 
-    // Initial branch segment with a DRAMATIC CURVE (Swings right before going left)
+    // ============================================
+    // SNAKE-LIKE ROAD WITH DRAMATIC S-CURVES
+    // ============================================
+
     final p0 = points[0];
+    final double initVDist = p0.dy - startY;
+
+    // First curve: dramatic swing from center to left side
+    // Control points create a smooth S that swings wide right before going left
     path.cubicTo(
-      startX + 140, startY + 10, // Dramatic swing to the right
-      p0.dx + 140, p0.dy - 10,   // Extreme pull from the right
+      startX + size.width * 0.35, startY + (initVDist * 0.30), // Swing far right
+      startX + size.width * 0.15, p0.dy - (initVDist * 0.25),  // Then curve left
       p0.dx, p0.dy
     );
 
+    // Module-to-module curves with dramatic snake pattern
     for (int i = 1; i < points.length; i++) {
       final prev = points[i - 1];
       final curr = points[i];
       final double vDist = curr.dy - prev.dy;
-      
-      // High horizontal swing for "more curves"
-      // Swings through the center gap with more horizontal distance
-      final double midX = (prev.dx + curr.dx) / 2;
-      final double swingX = midX + (i % 2 == 0 ? 150 : -150);
 
+      // Large horizontal swing creates snake-like weaving
+      // Swing amount proportional to screen width for responsive design
+      final double swingAmount = size.width * 0.47; // 35% of screen width swing!
+
+      // Alternate swing direction: even indices swing right, odd swing left
+      final double swingDirection = (i % 2 == 0) ? 1.0 : -1.0;
+      final double midX = (prev.dx + curr.dx) / 2;
+      final double swingX = midX + (swingAmount * swingDirection);
+
+      // Create dramatic S-curve between points
       path.cubicTo(
-        swingX, prev.dy + (vDist * 0.3), 
-        swingX, curr.dy - (vDist * 0.3), 
+        swingX, prev.dy + (vDist * 0.3), // Control point 1: swing out
+        swingX, curr.dy - (vDist * 0.3), // Control point 2: swing back
         curr.dx, curr.dy
       );
     }
 
+    // Final curve to trophy - same pattern as other modules
     final last = points.last;
     final endPoint = Offset(size.width / 2, last.dy + rowHeight);
     final vDistEnd = endPoint.dy - last.dy;
 
-    // "Curvy" final approach matching the rest of the road
-    // Swings across the center line before landing to avoid looking straight
-    final double centerSwing = last.dx > size.width / 2 ? -120 : 120;
+    // Trophy is effectively index 4 (even), so swing right like other even indices
+    final double trophySwingAmount = size.width * 0.47;
+    final double trophyMidX = (last.dx + endPoint.dx) / 2;
+    final double trophySwingX = trophyMidX + trophySwingAmount; // Even = swing right
 
     path.cubicTo(
-      last.dx, last.dy + (vDistEnd * 0.5), // Leave vertically
-      size.width / 2 + centerSwing, endPoint.dy - (vDistEnd * 0.2), // Swing past center
-      endPoint.dx, endPoint.dy 
+      trophySwingX, last.dy + (vDistEnd * 0.3),
+      trophySwingX, endPoint.dy - (vDistEnd * 0.3),
+      endPoint.dx, endPoint.dy
     );
 
     // --- ROAD STYLE ROUTE ---
@@ -734,17 +755,17 @@ class _RoadPathPainter extends CustomPainter {
     // 4. DRAW THE CAR ON THE ROAD (Perfectly synced)
     if (metrics.isNotEmpty) {
       final metric = metrics.first;
+      // Car position on path: 0 = start (play button), 1 = end (trophy)
       final tangent = metric.getTangentForOffset(metric.length * scrollProgress);
       if (tangent != null) {
         canvas.save();
         canvas.translate(tangent.position.dx, tangent.position.dy);
         // Correct rotation: Car faces FORWARD along the path
-        // Added + math.pi to flip orientation 180 degrees so headlights lead
-        canvas.rotate(tangent.angle + (math.pi / 2)); 
-        
-        // Draw the wider car
+        canvas.rotate(tangent.angle + (math.pi / 2));
+
+        // Draw the car
         _drawRealisticCar(canvas, const Size(41, 48));
-        
+
         canvas.restore();
       }
     }
@@ -833,8 +854,7 @@ class _RoadPathPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RoadPathPainter oldDelegate) => 
-    oldDelegate.scrollProgress != scrollProgress || oldDelegate.currentIndex != currentIndex;
+  bool shouldRepaint(covariant _RoadPathPainter oldDelegate) => true; // Always repaint for smooth car animation
 }
 
 class _RightEdgeShinePainter extends CustomPainter {
