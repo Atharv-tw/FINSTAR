@@ -32,26 +32,27 @@ class FeaturedHeroCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF2E5BFF).withOpacity(0.3),
-                  const Color(0xFF00D4FF).withOpacity(0.25),
+                  const Color(0xFF1A237E).withValues(alpha: 0.45),
+                  const Color(0xFF0D47A1).withValues(alpha: 0.35),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: const Color(0xFF2E5BFF).withOpacity(0.4),
+                color: const Color(0xFF5C6BC0).withValues(alpha: 0.4),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
                 BoxShadow(
-                  color: const Color(0xFF2E5BFF).withOpacity(0.2),
-                  blurRadius: 24,
+                  color: const Color(0xFF1A237E).withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  spreadRadius: 1,
                 ),
               ],
             ),

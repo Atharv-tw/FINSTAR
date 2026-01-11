@@ -119,42 +119,52 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                 return const Center(child: Text('No user data'));
               }
 
-              return SingleChildScrollView(
-                controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Streak Title Bar at top
-                    StreakTitleBar(streakDays: userData.streakDays),
+              return Stack(
+                children: [
+                  SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Spacer for fixed top bar
+                        const SizedBox(height: 215),
 
-                    const SizedBox(height: 118),
+                        // Padded Content
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Progress Section with Panda
+                              _buildProgressWithPandaSection(screenWidth, userData),
 
-                    // Padded Content
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Progress Section with Panda
-                          _buildProgressWithPandaSection(screenWidth, userData),
+                              const SizedBox(height: 12),
 
-                          const SizedBox(height: 12),
-
-                          // Featured Hero Card
-                          FeaturedHeroCard(
-                            onTap: () => context.go('/game'),
+                              // Featured Hero Card
+                              FeaturedHeroCard(
+                                onTap: () => context.go('/game'),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+
+                        // Learning Categories - Full Width
+                        FinanceTilesSection(scrollController: _scrollController),
+
+                        const SizedBox(height: 120), // Bottom spacing for nav bar
+                      ],
                     ),
-
-                    // Learning Categories - Full Width
-                    FinanceTilesSection(scrollController: _scrollController),
-
-                    const SizedBox(height: 120), // Bottom spacing for nav bar
-                  ],
-                ),
+                  ),
+                  
+                  // Fixed Streak Title Bar at top
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: StreakTitleBar(streakDays: userData.streakDays),
+                  ),
+                ],
               );
         },
         loading: () => const Center(
@@ -239,6 +249,13 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withValues(alpha: 0.5),
+                                          offset: const Offset(0, 1),
+                                          blurRadius: 2,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   Text(
@@ -268,6 +285,13 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withValues(alpha: 0.5),
+                                          offset: const Offset(0, 1),
+                                          blurRadius: 2,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   Text(
@@ -295,19 +319,42 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
 
             // Panda sitting on right top corner
             Positioned(
-              right: -70,
-              top: -169,
+              right: -26,
+              top: -186,
               child: Transform.translate(
                 offset: Offset(0, _pandaSlideAnimation.value),
                 child: FadeTransition(
                   opacity: _pandaController,
                   child: Transform.scale(
-                    scale: breathingScale,
-                    child: Image.asset(
-                      'assets/images/pandahome.png',
-                      width: screenWidth * 0.7,
-                      height: screenWidth * 0.7,
-                      fit: BoxFit.contain,
+                    scale: breathingScale * 0.88,
+                    child: Stack(
+                      children: [
+                        // Subtle drop shadow for the character
+                        Transform.translate(
+                          offset: const Offset(10, 10),
+                          child: ImageFiltered(
+                            imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: ColorFiltered(
+                              colorFilter: ColorFilter.mode(
+                                Colors.black.withValues(alpha: 0.35),
+                                BlendMode.srcIn,
+                              ),
+                              child: Image.asset(
+                                'assets/images/Screenshot_2026-01-11_at_2.43.01_PM-removebg-preview-2.png',
+                                width: screenWidth * 0.7,
+                                height: screenWidth * 0.7,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Image.asset(
+                          'assets/images/Screenshot_2026-01-11_at_2.43.01_PM-removebg-preview-2.png',
+                          width: screenWidth * 0.7,
+                          height: screenWidth * 0.7,
+                          fit: BoxFit.contain,
+                        ),
+                      ],
                     ),
                   ),
                 ),
