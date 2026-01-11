@@ -44,17 +44,19 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Black Base
+          // Background Gradient (Deep Atmospheric Teal)
           Positioned.fill(
-            child: Container(color: const Color(0xFF0B0B0D)),
-          ),
-          // Semi-transparent Background Image
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.4,
-              child: Image.asset(
-                'assets/images/21.jpg',
-                fit: BoxFit.cover,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF0F2027),
+                    Color(0xFF203A43),
+                    Color(0xFF2C5364),
+                  ],
+                ),
               ),
             ),
           ),
@@ -66,8 +68,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
 
                 // Top 3 Podium
                 _buildPodium(),
-
-                const SizedBox(height: 24),
 
                 // Leaderboard List
                 Expanded(
@@ -83,14 +83,28 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          // Row with Rank on left and Friends on right (Top)
+          // Centered Title
+          const Text(
+            'Leaderboard',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Helvetica',
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+          ),
+
+          // Left and Right Buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Rank display (Left Corner)
+              // Rank display (Left)
               Consumer(
                 builder: (context, ref, child) {
                   final userRank = ref.watch(currentUserRankProvider);
@@ -104,10 +118,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.emoji_events, color: Colors.white, size: 14),
+                          const Icon(Icons.emoji_events, color: Colors.white, size: 12),
                           const SizedBox(width: 4),
                           Text(
-                            'Rank #${rank ?? "?"}',
+                            '#${rank ?? "?"}',
                             style: const TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 12,
@@ -127,7 +141,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.emoji_events, color: Colors.white, size: 14),
+                          Icon(Icons.emoji_events, color: Colors.white, size: 12),
                           SizedBox(width: 4),
                           SizedBox(
                             width: 12,
@@ -141,12 +155,12 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                   );
                 },
               ),
-              
-              // Friends button (Right Corner)
+
+              // Friends button (Right)
               GestureDetector(
                 onTap: () => context.push('/friends'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
@@ -158,7 +172,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.people, color: Colors.white, size: 14),
+                      Icon(Icons.people, color: Colors.white, size: 12),
                       SizedBox(width: 4),
                       Text(
                         'Friends',
@@ -174,21 +188,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                 ),
               ),
             ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Centered Title (Below)
-          const Text(
-            'Leaderboard',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: 0.5,
-            ),
           ),
         ],
       ),
@@ -227,13 +226,13 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // 2nd Place
-                _buildPodiumCard(top3[1], 2, 140, value),
+                _buildPodiumCard(top3[1], 2, 110, value),
                 const SizedBox(width: 12),
                 // 1st Place
-                _buildPodiumCard(top3[0], 1, 180, value),
+                _buildPodiumCard(top3[0], 1, 150, value),
                 const SizedBox(width: 12),
                 // 3rd Place
-                _buildPodiumCard(top3[2], 3, 120, value),
+                _buildPodiumCard(top3[2], 3, 90, value),
               ],
             ),
           ),
@@ -404,35 +403,61 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
           );
         }
 
-        return ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          itemCount: remainingEntries.length,
-          itemBuilder: (context, index) {
-            final entry = remainingEntries[index];
-            final isCurrentUser = entry.userId == currentUserId;
-            final delay = index * 0.05;
+        // Animated slide-up for the card container
+        final cardSlideAnimation = Tween<Offset>(
+          begin: const Offset(0, 1),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: _animationController,
+          curve: const Interval(0.1, 1.0, curve: Curves.easeOutCubic),
+        ));
 
-        return AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            final staggerValue =
-                (_animationController.value - delay).clamp(0.0, 1.0);
-            return Transform.translate(
-              offset: Offset(0, 20 * (1 - staggerValue)),
-              child: Opacity(
-                opacity: staggerValue,
-                child: child,
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildLeaderboardCard(entry, isCurrentUser),
+        return SlideTransition(
+          position: cardSlideAnimation,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.9),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.fromLTRB(12, 20, 12, 100),
+              itemCount: remainingEntries.length,
+              itemBuilder: (context, index) {
+                final entry = remainingEntries[index];
+                final isCurrentUser = entry.userId == currentUserId;
+                final delay = index * 0.05;
+
+                return AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    final staggerValue =
+                        (_animationController.value - delay).clamp(0.0, 1.0);
+                    return Transform.translate(
+                      offset: Offset(0, 20 * (1 - staggerValue)),
+                      child: Opacity(
+                        opacity: staggerValue,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildLeaderboardCard(entry, isCurrentUser),
+                  ),
+                );
+              },
+            ),
           ),
         );
-      },
-    );
       },
       loading: () => const Center(
         child: Padding(
@@ -453,25 +478,28 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   }
 
   Widget _buildLeaderboardCard(LeaderboardEntry entry, bool isCurrentUser) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isCurrentUser
-                ? DesignTokens.primarySolid.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isCurrentUser
-                  ? DesignTokens.primarySolid.withValues(alpha: 0.5)
-                  : Colors.white.withValues(alpha: 0.08),
-              width: isCurrentUser ? 2 : 1,
-            ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isCurrentUser
+            ? DesignTokens.primarySolid.withValues(alpha: 0.3)
+            : const Color(0xFF4A90E2).withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isCurrentUser
+              ? DesignTokens.primarySolid.withValues(alpha: 0.6)
+              : Colors.white.withValues(alpha: 0.15),
+          width: isCurrentUser ? 2 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          child: Row(
+        ],
+      ),
+      child: Row(
             children: [
               // Rank
               SizedBox(
@@ -611,8 +639,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }
