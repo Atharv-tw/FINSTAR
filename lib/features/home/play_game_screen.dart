@@ -266,7 +266,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
           // 3D Mascot with parallax and breathing - positioned to sit on cards
           Positioned(
-            bottom: -178, // Position to overlap with card stack
+            bottom: -98, // Position to overlap with card stack
             left: 0,
             right: 0,
             child: Transform.translate(
@@ -302,11 +302,10 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                         );
                       },
                       child: Transform.scale(
-                        scale: 1.26, // Zoom the panda
+                        scale: 1.4,
                         child: Image.asset(
-                          'assets/images/panda1.png',
+                          'assets/images/Screenshot_2026-01-11_at_2.08.53_PM-removebg-preview.png',
                           width: 500,
-                          height: 500,
                           fit: BoxFit.contain,
                         ),
                       ),
