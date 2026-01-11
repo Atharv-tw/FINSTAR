@@ -16,91 +16,71 @@ class FixedBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-          child: Container(
-            height: 72,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFFFFFFF).withValues(alpha: 0.15),
-                  const Color(0xFFE8E8FF).withValues(alpha: 0.20),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 17),
+      height: 62,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(31),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _NavBarItem(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                isSelected: currentIndex == 0,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  onTap(0);
+                },
               ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1.5,
+              _NavBarItem(
+                icon: Icons.videogame_asset_rounded,
+                label: 'Play',
+                isSelected: currentIndex == 1,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  onTap(1);
+                },
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 30,
-                  offset: const Offset(0, -10),
-                  spreadRadius: 0,
-                ),
-                BoxShadow(
-                  color: const Color(0xFF4A9FE5).withValues(alpha: 0.2),
-                  blurRadius: 40,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              top: false,
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _NavBarItem(
-                    icon: Icons.home_rounded,
-                    label: 'Home',
-                    isSelected: currentIndex == 0,
-                    onTap: () {
-                      HapticFeedback.mediumImpact();
-                      onTap(0);
-                    },
-                  ),
-                  _NavBarItem(
-                    icon: Icons.videogame_asset_rounded,
-                    label: 'Play',
-                    isSelected: currentIndex == 1,
-                    onTap: () {
-                      HapticFeedback.mediumImpact();
-                      onTap(1);
-                    },
-                  ),
-                  _NavBarItem(
-                    icon: Icons.leaderboard_rounded,
-                    label: 'Leaderboard',
-                    isSelected: currentIndex == 2,
-                    onTap: () {
-                      HapticFeedback.mediumImpact();
-                      onTap(2);
-                    },
-                  ),
-                  _NavBarItem(
-                    icon: Icons.person_rounded,
-                    label: 'Profile',
-                    isSelected: currentIndex == 3,
-                    onTap: () {
-                      HapticFeedback.mediumImpact();
-                      onTap(3);
-                    },
-                  ),
-                ],
+              _NavBarItem(
+                icon: Icons.leaderboard_rounded,
+                label: 'Leaderboard',
+                isSelected: currentIndex == 2,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  onTap(2);
+                },
               ),
-            ),
+              _NavBarItem(
+                icon: Icons.person_rounded,
+                label: 'Profile',
+                isSelected: currentIndex == 3,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  onTap(3);
+                },
+              ),
+            ],
           ),
         ),
-      ),
       ),
     );
   }
@@ -159,7 +139,7 @@ class _NavBarItemState extends State<_NavBarItem>
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -167,7 +147,7 @@ class _NavBarItemState extends State<_NavBarItem>
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeOutCubic,
-                padding: const EdgeInsets.all(9),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   gradient: widget.isSelected
                       ? const LinearGradient(
@@ -179,12 +159,12 @@ class _NavBarItemState extends State<_NavBarItem>
                   color: widget.isSelected
                       ? null
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   boxShadow: widget.isSelected
                       ? [
                           BoxShadow(
                             color: const Color(0xFF4A9FE5).withValues(alpha: 0.4),
-                            blurRadius: 20,
+                            blurRadius: 16,
                             spreadRadius: 0,
                             offset: const Offset(0, 4),
                           ),
@@ -193,13 +173,13 @@ class _NavBarItemState extends State<_NavBarItem>
                 ),
                 child: Icon(
                   widget.icon,
-                  size: 26,
+                  size: 24,
                   color: widget.isSelected
                       ? Colors.white
                       : Colors.white.withValues(alpha: 0.6),
                 ),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 2),
               // Label with smooth color transition
               AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 300),
