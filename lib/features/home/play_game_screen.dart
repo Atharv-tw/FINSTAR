@@ -19,7 +19,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     with TickerProviderStateMixin {
   late AnimationController _loadController;
   late AnimationController _breathingController;
-  late AnimationController _hueController;
   late AnimationController _glowController;
   late ScrollController _scrollController;
 
@@ -43,12 +42,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     // Mascot breathing animation (2s loop)
     _breathingController = AnimationController(
       duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    // Background hue shift (30s loop)
-    _hueController = AnimationController(
-      duration: const Duration(seconds: 30),
       vsync: this,
     )..repeat(reverse: true);
 
@@ -81,7 +74,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   void dispose() {
     _loadController.dispose();
     _breathingController.dispose();
-    _hueController.dispose();
     _glowController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -99,28 +91,17 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Darker vibrant background gradient (same colors, darker)
-          RepaintBoundary(
-            child: AnimatedBuilder(
-              animation: _hueController,
-              builder: (context, child) {
-                final hueShift = (_hueController.value - 0.5) * 16; // ±8°
-                return Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFF8B6A50), // Darker peachy orange
-                        Color(0xFF8B5065), // Darker pink
-                        Color(0xFF6A508B), // Darker purple
-                        Color(0xFF50658B), // Darker blue
-                      ],
-                      stops: [0.0, 0.35, 0.65, 1.0],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                );
-              },
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/ 46.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Dark Overlay
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.4),
             ),
           ),
 
@@ -173,32 +154,32 @@ class _PlayGameScreenState extends State<PlayGameScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // XP Ring - 48px
+            // XP Ring - 36px
             XpRing(
               currentXp: _currentXp,
               xpForNextLevel: _xpForNextLevel,
               level: _userLevel,
-              size: 48,
-              levelTextColor: Colors.black,
+              size: 36,
+              levelTextColor: Colors.white,
             ),
 
             // Coin Pill and Shop Button
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CoinPill(coins: _coins, height: 40),
+                CoinPill(coins: _coins, height: 30),
                 const SizedBox(width: 12),
                 // Shop icon button
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 30,
+                  height: 30,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
                         color: DesignTokens.accentStart.withValues(alpha: 0.3),
@@ -210,7 +191,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                       onTap: () {
                         HapticFeedback.lightImpact();
                         // TODO: Navigate to shop screen
@@ -224,7 +205,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                       child: const Icon(
                         Icons.shopping_bag_rounded,
                         color: Colors.white,
-                        size: 20,
+                        size: 16,
                       ),
                     ),
                   ),
@@ -256,66 +237,177 @@ class _PlayGameScreenState extends State<PlayGameScreen>
             ),
           ),
 
-          // Level Progress Bar above panda
-          Positioned(
-            top: 120,
-            left: 8,
-            right: 8,
-            child: _buildLevelProgressBar(),
-          ),
+                    // Level Progress Bar above panda
 
-          // 3D Mascot with parallax and breathing - positioned to sit on cards
-          Positioned(
-            bottom: -178, // Position to overlap with card stack
-            left: 0,
-            right: 0,
-            child: Transform.translate(
-              offset: Offset(0, mascotTranslateY),
-              child: RepaintBoundary(
-                child: AnimatedBuilder(
-                  animation: _breathingController,
-                  builder: (context, child) {
-                    final breathingScale = 1.0 + (_breathingController.value * 0.02);
-                    return Transform.scale(
-                      scale: mascotScale * breathingScale,
-                      child: child,
-                    );
-                  },
-                  child: Center(
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.8, end: 1.0),
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.easeOutQuart,
-                      builder: (context, value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: Transform.rotate(
-                            angle: (1.0 - value) * -0.087, // -5° to 0°
-                            child: ImageFiltered(
-                              imageFilter: ImageFilter.blur(
-                                sigmaX: mascotBlur,
-                                sigmaY: mascotBlur,
-                              ),
-                              child: child,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Transform.scale(
-                        scale: 1.26, // Zoom the panda
-                        child: Image.asset(
-                          'assets/images/panda1.png',
-                          width: 500,
-                          height: 500,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
+                    Positioned(
+
+                      top: 90,
+
+                      left: 8,
+
+                      right: 8,
+
+                      child: _buildLevelProgressBar(),
+
                     ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+
+          
+
+                              // 3D Mascot with parallax and breathing
+
+          
+
+                              Positioned(
+
+          
+
+                                bottom: -70,
+
+          
+
+                                left: 0,
+
+          
+
+                                right: 0,
+
+          
+
+                                child: Transform.translate(
+
+                        offset: Offset(0, mascotTranslateY),
+
+                        child: RepaintBoundary(
+
+                          child: AnimatedBuilder(
+
+                            animation: _breathingController,
+
+                            builder: (context, child) {
+
+                              final breathingScale = 1.0 + (_breathingController.value * 0.02);
+
+                              return Transform.scale(
+
+                                scale: mascotScale * breathingScale,
+
+                                child: child,
+
+                              );
+
+                            },
+
+                            child: Center(
+
+                              child: TweenAnimationBuilder<double>(
+
+                                tween: Tween(begin: 0.8, end: 1.0),
+
+                                duration: const Duration(milliseconds: 600),
+
+                                curve: Curves.easeOutQuart,
+
+                                builder: (context, value, child) {
+
+                                  return Transform.scale(
+
+                                    scale: value,
+
+                                    child: Transform.rotate(
+
+                                      angle: (1.0 - value) * -0.087, // -5° to 0°
+
+                                      child: ImageFiltered(
+
+                                        imageFilter: ImageFilter.blur(
+
+                                          sigmaX: mascotBlur,
+
+                                          sigmaY: mascotBlur,
+
+                                        ),
+
+                                        child: child,
+
+                                      ),
+
+                                    ),
+
+                                  );
+
+                                },
+
+                                child: Transform.scale(
+
+                                  scale: 1.4,
+
+                                  child: Stack(
+
+                                    children: [
+
+                                      // 3D Realistic Drop Shadow
+
+                                      Transform.translate(
+
+                                        offset: const Offset(20, 20),
+
+                                        child: ImageFiltered(
+
+                                          imageFilter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+
+                                          child: ColorFiltered(
+
+                                            colorFilter: ColorFilter.mode(
+
+                                              Colors.black.withValues(alpha: 0.55),
+
+                                              BlendMode.srcIn,
+
+                                            ),
+
+                                            child: Image.asset(
+
+                                              'assets/images/Screenshot_2026-01-11_at_2.08.53_PM-removebg-preview.png',
+
+                                              width: 500,
+
+                                              fit: BoxFit.contain,
+
+                                            ),
+
+                                          ),
+
+                                        ),
+
+                                      ),
+
+                                      Image.asset(
+
+                                        'assets/images/Screenshot_2026-01-11_at_2.08.53_PM-removebg-preview.png',
+
+                                        width: 500,
+
+                                        fit: BoxFit.contain,
+
+                                      ),
+
+                                    ],
+
+                                  ),
+
+                                ),
+
+                              ),
+
+                            ),
+
+                          ),
+
+                        ),
+
+                      ),
+
+                    ),
         ],
       ),
     );
@@ -351,6 +443,11 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                         color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
+                      ),
+                      BoxShadow(
+                        color: DesignTokens.primaryStart.withValues(alpha: 0.25),
+                        blurRadius: 24,
+                        spreadRadius: 1,
                       ),
                     ],
                   ),
