@@ -42,136 +42,153 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
-        ),
-        child: Stack(
-          children: [
-            SafeArea(
-              child: Column(
-                children: [
-                  // Header
-                  _buildHeader(),
-
-                  // Top 3 Podium
-                  _buildPodium(),
-
-                  const SizedBox(height: 24),
-
-                  // Leaderboard List
-                  Expanded(
-                    child: _buildLeaderboardList(),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          // Black Base
+          Positioned.fill(
+            child: Container(color: const Color(0xFF0B0B0D)),
+          ),
+          // Semi-transparent Background Image
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.4,
+              child: Image.asset(
+                'assets/images/21.jpg',
+                fit: BoxFit.cover,
               ),
             ),
-          ],
-        ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                // Header
+                _buildHeader(),
+
+                // Top 3 Podium
+                _buildPodium(),
+
+                const SizedBox(height: 24),
+
+                // Leaderboard List
+                Expanded(
+                  child: _buildLeaderboardList(),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      child: Column(
         children: [
-          const Flexible(
-            child: Text(
-              'Leaderboard',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: DesignTokens.textDarkPrimary,
+          // Row with Rank on left and Friends on right (Top)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Rank display (Left Corner)
+              Consumer(
+                builder: (context, ref, child) {
+                  final userRank = ref.watch(currentUserRankProvider);
+                  return userRank.when(
+                    data: (rank) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        gradient: DesignTokens.primaryGradient,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.emoji_events, color: Colors.white, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Rank #${rank ?? "?"}',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    loading: () => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        gradient: DesignTokens.primaryGradient,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.emoji_events, color: Colors.white, size: 14),
+                          SizedBox(width: 4),
+                          SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                    error: (_, __) => const SizedBox(),
+                  );
+                },
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Friends button
-          GestureDetector(
-            onTap: () => context.push('/friends'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.people, color: Colors.white, size: 18),
-                  SizedBox(width: 6),
-                  Text(
-                    'Friends',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+              
+              // Friends button (Right Corner)
+              GestureDetector(
+                onTap: () => context.push('/friends'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Consumer(
-            builder: (context, ref, child) {
-              final userRank = ref.watch(currentUserRankProvider);
-              return userRank.when(
-                data: (rank) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    gradient: DesignTokens.primaryGradient,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.emoji_events, color: Colors.white, size: 16),
-                      const SizedBox(width: 6),
+                      Icon(Icons.people, color: Colors.white, size: 14),
+                      SizedBox(width: 4),
                       Text(
-                        'Rank #${rank ?? "?"}',
-                        style: const TextStyle(
+                        'Friends',
+                        style: TextStyle(
                           fontFamily: 'Poppins',
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
                     ],
                   ),
                 ),
-                loading: () => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    gradient: DesignTokens.primaryGradient,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.emoji_events, color: Colors.white, size: 16),
-                      SizedBox(width: 6),
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-                error: (_, __) => const SizedBox(),
-              );
-            },
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Centered Title (Below)
+          const Text(
+            'Leaderboard',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
           ),
         ],
       ),
@@ -444,13 +461,13 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isCurrentUser
-                ? DesignTokens.primarySolid.withValues(alpha: 0.15)
-                : Colors.white.withValues(alpha: 0.05),
+                ? DesignTokens.primarySolid.withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isCurrentUser
-                  ? DesignTokens.primarySolid.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.1),
+                  ? DesignTokens.primarySolid.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.08),
               width: isCurrentUser ? 2 : 1,
             ),
           ),
