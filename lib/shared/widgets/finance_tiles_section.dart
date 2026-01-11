@@ -127,11 +127,11 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
         final width = constraints.maxWidth;
         
         // DENSE LAYOUT: Adjusted for larger images and floating space
-        final double rowHeight = width * 0.48; 
+        final double rowHeight = width * 0.7; 
         final double startOffset = 90.0; // Reduced from 140.0
-        // Precisely calculated height to stop scrolling with a 7% gap after the photo
-        // This accounts for the image position, height, and container padding to avoid cropping.
-        final double sectionHeight = (modules.length - 0.5) * rowHeight + startOffset + 359;
+        // Precisely calculated height to stop scrolling exactly after the trophy
+        // Spacing is now equal: Distance between modules = rowHeight, Distance to trophy = rowHeight
+        final double sectionHeight = (modules.length + 0.5) * rowHeight + startOffset + 180;
 
         final List<Offset> pathPoints = [];
         for (int i = 0; i < modules.length; i++) {
@@ -176,6 +176,7 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
                   animationValue: _controller,
                   currentIndex: currentModuleIndex,
                   scrollProgress: _scrollProgress,
+                  rowHeight: rowHeight,
                 ),
               ),
 
@@ -205,7 +206,7 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
               ),
 
               // 1.5. Road Markers (Moved to top for visibility)
-              _buildRoadMarkers(pathPoints, currentModuleIndex, width),
+              _buildRoadMarkers(pathPoints, currentModuleIndex, width, rowHeight),
             ],
           ),
         );
@@ -213,7 +214,7 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
     );
   }
 
-  Widget _buildRoadMarkers(List<Offset> points, int currentIndex, double width) {
+  Widget _buildRoadMarkers(List<Offset> points, int currentIndex, double width, double rowHeight) {
     // Play button shifted slightly left (0.45)
     final startPoint = Offset(width * 0.45, 30);
     
@@ -241,7 +242,7 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
               if (index == points.length - 1)
                 Positioned(
                   left: width / 2 - 100, // Adjusted centering for the new image size
-                  top: point.dy + 80,    // Adjusted top position
+                  top: point.dy + rowHeight - 45, // Equal spacing (1.0 * rowHeight)
                   child: Image.asset(
                     'assets/images/trophy_pixel.png', 
                     width: 200, 
@@ -544,12 +545,14 @@ class _RoadPathPainter extends CustomPainter {
   final Animation<double> animationValue;
   final int currentIndex;
   final double scrollProgress;
+  final double rowHeight;
 
   _RoadPathPainter({
     required this.points, 
     required this.animationValue,
     required this.currentIndex,
     required this.scrollProgress,
+    required this.rowHeight,
   }) : super(repaint: animationValue);
 
   @override
@@ -588,7 +591,7 @@ class _RoadPathPainter extends CustomPainter {
     }
 
     final last = points.last;
-    final endPoint = Offset(size.width / 2, last.dy + 125);
+    final endPoint = Offset(size.width / 2, last.dy + rowHeight);
     final vDistEnd = endPoint.dy - last.dy;
 
     // "Curvy" final approach matching the rest of the road
