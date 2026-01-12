@@ -1,13 +1,15 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
 import '../../models/learning_module.dart';
 import '../../data/learning_modules_data.dart';
+import '../../providers/learning_progress_provider.dart';
 
 /// Module Detail Screen - Shows all lessons in a module
-class ModuleDetailScreen extends StatefulWidget {
+class ModuleDetailScreen extends ConsumerStatefulWidget {
   final String moduleId;
 
   const ModuleDetailScreen({
@@ -16,10 +18,10 @@ class ModuleDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<ModuleDetailScreen> createState() => _ModuleDetailScreenState();
+  ConsumerState<ModuleDetailScreen> createState() => _ModuleDetailScreenState();
 }
 
-class _ModuleDetailScreenState extends State<ModuleDetailScreen>
+class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
     with SingleTickerProviderStateMixin {
   LearningModule? module;
   late AnimationController _animationController;
@@ -324,6 +326,33 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
   }
 
   Widget _buildProgressCard() {
+    // Get progress from Firebase
+    final progressAsync = ref.watch(learningProgressProvider);
+
+    return progressAsync.when(
+      data: (progressMap) {
+        // Count completed lessons for this module
+        final completedCount = progressMap.values
+            .where((p) => p.moduleId == widget.moduleId && p.completed)
+            .length;
+
+        // Calculate earned XP
+        final earnedXp = progressMap.values
+            .where((p) => p.moduleId == widget.moduleId && p.completed)
+            .fold(0, (sum, p) => sum + p.xpEarned);
+
+        final progress = module!.lessons.isEmpty
+            ? 0.0
+            : completedCount / module!.lessons.length;
+
+        return _buildProgressCardContent(completedCount, earnedXp, progress);
+      },
+      loading: () => _buildProgressCardContent(0, 0, 0.0),
+      error: (_, __) => _buildProgressCardContent(0, 0, 0.0),
+    );
+  }
+
+  Widget _buildProgressCardContent(int completedCount, int earnedXp, double progress) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
@@ -361,7 +390,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                     ),
                   ),
                   Text(
-                    '${module!.completedLessons} / ${module!.lessons.length} lessons',
+                    '$completedCount / ${module!.lessons.length} lessons',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
@@ -372,7 +401,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                 ],
               ),
               const SizedBox(height: 12),
-              _buildProgressBar(),
+              _buildProgressBarWithValue(progress),
               const SizedBox(height: 16),
               // XP Counter
               Row(
@@ -388,7 +417,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                     ),
                   ),
                   Text(
-                    '${module!.earnedXp} / ${module!.totalXp} XP',
+                    '$earnedXp / ${module!.totalXp} XP',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
@@ -405,7 +434,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
     );
   }
 
-  Widget _buildProgressBar() {
+  Widget _buildProgressBarWithValue(double progress) {
     return Container(
       height: 10,
       decoration: BoxDecoration(
@@ -415,7 +444,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(5),
         child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: module!.progress),
+          tween: Tween(begin: 0.0, end: progress),
           duration: const Duration(milliseconds: 1500),
           curve: Curves.easeOutQuart,
           builder: (context, value, child) {
@@ -445,6 +474,11 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
   Widget _buildLessonCard(Lesson lesson, int index) {
     final delay = index * 0.1;
 
+    // Check if lesson is completed from Firebase
+    final isCompleted = ref.watch(isLessonCompletedProvider(
+      (moduleId: widget.moduleId, lessonId: lesson.id),
+    ));
+
     // Sequential unlocking logic:
     // First 3 lessons (index 0, 1, 2): Always unlocked
     // Lessons 4+ (index 3+): Locked unless previous lesson is completed
@@ -453,7 +487,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
       isLocked = false; // First 3 lessons always unlocked
     } else {
       final previousLesson = module!.lessons[index - 1];
-      isLocked = !previousLesson.isCompleted; // Locked if previous not completed
+      final previousCompleted = ref.watch(isLessonCompletedProvider(
+        (moduleId: widget.moduleId, lessonId: previousLesson.id),
+      ));
+      isLocked = !previousCompleted; // Locked if previous not completed
     }
 
     return AnimatedBuilder(
@@ -493,7 +530,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                       : const Color(0xFF0B0B0D).withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: lesson.isCompleted
+                    color: isCompleted
                         ? module!.gradientColors[0].withValues(alpha: 0.5)
                         : Colors.white.withValues(alpha: 0.15),
                     width: 1.5,
@@ -526,7 +563,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                       child: Icon(
                         isLocked
                             ? Icons.lock
-                            : lesson.isCompleted
+                            : isCompleted
                                 ? Icons.check_circle
                                 : Icons.play_arrow,
                         color: Colors.white,
