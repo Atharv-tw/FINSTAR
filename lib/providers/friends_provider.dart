@@ -285,6 +285,44 @@ final removeFriendProvider = Provider((ref) {
   };
 });
 
+/// Decline friend request
+final declineFriendRequestProvider = Provider((ref) {
+  return (String friendId) async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) throw Exception('User not authenticated');
+
+    final firestore = FirebaseFirestore.instance;
+
+    // Delete friend request
+    await firestore
+        .collection('users')
+        .doc(userId)
+        .collection('friendRequests')
+        .doc(friendId)
+        .delete();
+
+    print('Friend request declined: $friendId');
+  };
+});
+
+/// Get friend count
+final friendCountProvider = StreamProvider<int>((ref) {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) {
+    return Stream.value(0);
+  }
+
+  final firestore = FirebaseFirestore.instance;
+
+  return firestore
+      .collection('users')
+      .doc(userId)
+      .collection('friends')
+      .where('status', isEqualTo: 'accepted')
+      .snapshots()
+      .map((snapshot) => snapshot.docs.length);
+});
+
 /// Search users by display name
 final searchUsersProvider = FutureProvider.family<List<Friend>, String>((ref, query) async {
   if (query.isEmpty) return [];
