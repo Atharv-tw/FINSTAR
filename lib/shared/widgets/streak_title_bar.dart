@@ -6,11 +6,15 @@ import 'package:go_router/go_router.dart';
 class StreakTitleBar extends StatefulWidget {
   final int streakDays;
   final String? userPhotoUrl;
+  final int currentXp;
+  final int nextLevelXp;
 
   const StreakTitleBar({
     super.key,
     this.streakDays = 0,
     this.userPhotoUrl,
+    this.currentXp = 0,
+    this.nextLevelXp = 1000,
   });
 
   @override
@@ -105,7 +109,7 @@ class _StreakTitleBarState extends State<StreakTitleBar>
     } else {
       return StreakTitle(
         title: 'Beginner',
-        emoji: '🔰',
+        emoji: '⭐',
         color: const Color(0xFF95A5A6), // Gray
         gradient: const LinearGradient(
           colors: [Color(0xFF95A5A6), Color(0xFF7F8C8D)],
@@ -121,24 +125,14 @@ class _StreakTitleBarState extends State<StreakTitleBar>
     return Container(
       padding: const EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 12),
       decoration: const BoxDecoration(
-        color: Color(0xFFFAFAF7), // Solid background
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
+        color: Color(0xFFFAFAF7),
       ),
       child: SafeArea(
         bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const SizedBox(height: 4.0),
             const SizedBox(height: 6),
             // Top row: User Profile (Left) & Title/Emoji (Right)
             Row(
@@ -194,7 +188,7 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                       Text(
                         streakTitle.emoji,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 14,
                           height: 1,
                         ),
                       ),
