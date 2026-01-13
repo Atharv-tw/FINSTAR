@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/design_tokens.dart';
 
 /// Premium floating navigation bar with glassmorphic design
 class FixedBottomNav extends StatelessWidget {
@@ -19,15 +20,15 @@ class FixedBottomNav extends StatelessWidget {
       margin: const EdgeInsets.only(left: 20, right: 20, bottom: 17),
       height: 62,
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: const Color(0xFF393027),
         borderRadius: BorderRadius.circular(31),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.1),
+          color: Colors.white.withValues(alpha: 0.08),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
+            color: const Color(0xFF393027).withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
             spreadRadius: 0,
@@ -150,11 +151,7 @@ class _NavBarItemState extends State<_NavBarItem>
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   gradient: widget.isSelected
-                      ? const LinearGradient(
-                          colors: [Color(0xFF4A9FE5), Color(0xFF2F7FD1)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
+                      ? DesignTokens.primaryGradient
                       : null,
                   color: widget.isSelected
                       ? null
@@ -163,7 +160,7 @@ class _NavBarItemState extends State<_NavBarItem>
                   boxShadow: widget.isSelected
                       ? [
                           BoxShadow(
-                            color: const Color(0xFF4A9FE5).withValues(alpha: 0.4),
+                            color: DesignTokens.primarySolid.withValues(alpha: 0.4),
                             blurRadius: 16,
                             spreadRadius: 0,
                             offset: const Offset(0, 4),
@@ -174,9 +171,7 @@ class _NavBarItemState extends State<_NavBarItem>
                 child: Icon(
                   widget.icon,
                   size: 24,
-                  color: widget.isSelected
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.6),
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 2),
@@ -189,7 +184,7 @@ class _NavBarItemState extends State<_NavBarItem>
                   fontSize: 10,
                   fontWeight: widget.isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: widget.isSelected
-                      ? const Color(0xFF4A9FE5)
+                      ? DesignTokens.primarySolid
                       : Colors.white.withValues(alpha: 0.6),
                 ),
                 child: Text(widget.label),

@@ -7,20 +7,20 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: DesignTokens.backgroundPrimary,
 
       // Color scheme
-      colorScheme: ColorScheme.dark(
+      colorScheme: ColorScheme.light(
         primary: DesignTokens.primarySolid,
         secondary: DesignTokens.secondarySolid,
         tertiary: DesignTokens.accentSolid,
         error: DesignTokens.error,
         surface: DesignTokens.backgroundSecondary,
-        onPrimary: DesignTokens.textPrimary,
+        onPrimary: Colors.white,
         onSecondary: DesignTokens.textPrimary,
         onSurface: DesignTokens.textPrimary,
-        onError: DesignTokens.textPrimary,
+        onError: Colors.white,
       ),
 
       // Typography
@@ -89,8 +89,8 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: DesignTokens.borderRadiusLG,
           side: BorderSide(
-            color: DesignTokens.textDisabled,
-            width: 1,
+            color: DesignTokens.textDisabled.withValues(alpha: 0.2),
+            width: 1.5,
           ),
         ),
       ),
@@ -99,9 +99,9 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: DesignTokens.primarySolid,
-          foregroundColor: DesignTokens.textPrimary,
-          elevation: 4,
-          shadowColor: DesignTokens.primaryStart.withValues(alpha: 0.4),
+          foregroundColor: Colors.white,
+          elevation: 2,
+          shadowColor: DesignTokens.primarySolid.withValues(alpha: 0.3),
           padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacingLG,
             vertical: DesignTokens.spacingMD,
