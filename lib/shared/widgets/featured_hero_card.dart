@@ -30,29 +30,17 @@ class FeaturedHeroCard extends StatelessWidget {
           child: Container(
             height: 160,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF1A237E).withValues(alpha: 0.45),
-                  const Color(0xFF0D47A1).withValues(alpha: 0.35),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: DesignTokens.primaryGradient,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: const Color(0xFF5C6BC0).withValues(alpha: 0.4),
+                color: DesignTokens.textPrimary.withValues(alpha: 0.1),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: DesignTokens.primarySolid.withValues(alpha: 0.2),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
-                ),
-                BoxShadow(
-                  color: const Color(0xFF1A237E).withValues(alpha: 0.4),
-                  blurRadius: 12,
-                  spreadRadius: 1,
                 ),
               ],
             ),
@@ -98,7 +86,7 @@ class FeaturedHeroCard extends StatelessWidget {
                           fontFamily: 'Poppins',
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           height: 1.3,
                         ),
                         maxLines: 3,
@@ -112,11 +100,11 @@ class FeaturedHeroCard extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: DesignTokens.accentSolid,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
+                              color: Colors.black.withValues(alpha: 0.15),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -128,7 +116,7 @@ class FeaturedHeroCard extends StatelessWidget {
                             fontFamily: 'Poppins',
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: DesignTokens.primarySolid,
+                            color: Colors.white,
                           ),
                         ),
                       ),

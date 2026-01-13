@@ -119,61 +119,54 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                 return const Center(child: Text('No user data'));
               }
 
-              return Stack(
-                children: [
-                  SingleChildScrollView(
-                    controller: _scrollController,
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Spacer for fixed top bar
-                        const SizedBox(height: 215),
-
-                        // Padded Content
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Progress Section with Panda
-                              _buildProgressWithPandaSection(screenWidth, userData),
-
-                              const SizedBox(height: 12),
-
-                              // Featured Hero Card
-                              FeaturedHeroCard(
-                                onTap: () => context.go('/game'),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Learning Categories - Full Width
-                        FinanceTilesSection(scrollController: _scrollController),
-
-                        const SizedBox(height: 120), // Bottom spacing for nav bar
-                      ],
+              return SingleChildScrollView(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Scrollable Top Bar
+                    StreakTitleBar(
+                      streakDays: userData.streakDays,
+                      userPhotoUrl: userData.avatarUrl,
                     ),
-                  ),
-                  
-                  // Fixed Streak Title Bar at top
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: StreakTitleBar(streakDays: userData.streakDays),
-                  ),
-                ],
+
+                    const SizedBox(height: 140),
+
+                    // Padded Content
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Progress Section with Panda
+                          _buildProgressWithPandaSection(screenWidth, userData),
+
+                          const SizedBox(height: 12),
+
+                          // Featured Hero Card
+                          FeaturedHeroCard(
+                            onTap: () => context.go('/game'),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Learning Categories - Full Width
+                    FinanceTilesSection(scrollController: _scrollController),
+
+                    const SizedBox(height: 120), // Bottom spacing for nav bar
+                  ],
+                ),
               );
         },
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Colors.white),
+          child: CircularProgressIndicator(color: DesignTokens.primarySolid),
         ),
         error: (error, stack) => Center(
           child: Text(
             'Error loading profile: $error',
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: DesignTokens.error),
           ),
         ),
       ),
@@ -203,21 +196,17 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 26, 73, 128).withValues(alpha: 0.35),
+                      color: DesignTokens.surfaceCard,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFF4A90E2).withValues(alpha: 0.7),
+                        color: DesignTokens.textDisabled.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.25),
+                          color: DesignTokens.accentSolid.withValues(alpha: 0.1),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
-                        ),
-                        BoxShadow(
-                          color: const Color(0xFF4A90E2).withValues(alpha: 0.15),
-                          blurRadius: 24,
                         ),
                       ],
                     ),
@@ -248,14 +237,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                       fontFamily: 'Poppins',
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black.withValues(alpha: 0.5),
-                                          offset: const Offset(0, 1),
-                                          blurRadius: 2,
-                                        ),
-                                      ],
+                                      color: DesignTokens.textPrimary,
                                     ),
                                   ),
                                   Text(
@@ -264,7 +246,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                       fontFamily: 'Poppins',
                                       fontSize: 10,
                                       fontWeight: FontWeight.w400,
-                                      color: Colors.white,
+                                      color: DesignTokens.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -284,14 +266,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                       fontFamily: 'Poppins',
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black.withValues(alpha: 0.5),
-                                          offset: const Offset(0, 1),
-                                          blurRadius: 2,
-                                        ),
-                                      ],
+                                      color: DesignTokens.textPrimary,
                                     ),
                                   ),
                                   Text(
@@ -300,7 +275,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                                       fontFamily: 'Poppins',
                                       fontSize: 10,
                                       fontWeight: FontWeight.w400,
-                                      color: Colors.white,
+                                      color: DesignTokens.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -379,21 +354,16 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                         fontSize: 48,
                         fontWeight: FontWeight.bold,
                         height: 0.8,
-                        color: Colors.white,
+                        color: DesignTokens.textPrimary,
                         letterSpacing: 3.5, // Increased horizontally
                         shadows: [
                           Shadow(
-                            color: const Color(0xFF2E5BFF).withValues(alpha: 0.8),
+                            color: DesignTokens.primarySolid.withValues(alpha: 0.4),
                             offset: const Offset(1.5, 1.5),
                           ),
                           Shadow(
-                            color: const Color(0xFF00D4FF).withValues(alpha: 0.6),
+                            color: DesignTokens.secondarySolid.withValues(alpha: 0.3),
                             offset: const Offset(3, 3),
-                          ),
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 3,
                           ),
                         ],
                       ),
@@ -405,21 +375,16 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                         fontSize: 66,
                         fontWeight: FontWeight.bold,
                         height: 0.8,
-                        color: Colors.white,
+                        color: DesignTokens.textPrimary,
                         letterSpacing: 0.0,
                         shadows: [
                           Shadow(
-                            color: const Color(0xFF2E5BFF).withValues(alpha: 0.8),
+                            color: DesignTokens.primarySolid.withValues(alpha: 0.4),
                             offset: const Offset(1.5, 1.5),
                           ),
                           Shadow(
-                            color: const Color(0xFF00D4FF).withValues(alpha: 0.6),
+                            color: DesignTokens.secondarySolid.withValues(alpha: 0.3),
                             offset: const Offset(3, 3),
-                          ),
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 3,
                           ),
                         ],
                       ),
@@ -447,7 +412,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
             Container(
               height: 10,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: DesignTokens.accentSolid.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(5),
               ),
             ),

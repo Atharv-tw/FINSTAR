@@ -14,11 +14,11 @@ class _NatureBackgroundState extends State<NatureBackground>
   final List<NatureParticle> _particles = [];
   final Random _random = Random();
 
-  // Calm Colors (Deep Ocean / Forest Night)
+  // Warm Light Colors (Retro/Pastel)
   final List<Color> _gradientColors = [
-    const Color(0xFF0F2027), // Deep Dark Blue/Black
-    const Color(0xFF203A43), // Dark Teal
-    const Color(0xFF2C5364), // Muted Blue-Grey
+    const Color(0xFFFAFAF7), // Primary light background
+    const Color(0xFFF5F5F0), // Slightly darker warm grey
+    const Color(0xFFEBEBE5), // Muted warm grey
   ];
 
   @override
@@ -120,7 +120,7 @@ class DropletParticle extends NatureParticle {
     if (opacity <= 0) return;
     
     final paint = Paint()
-      ..color = Colors.lightBlueAccent.withValues(alpha: opacity)
+      ..color = const Color(0xFFB6CFE4).withValues(alpha: opacity)
       ..style = PaintingStyle.fill;
 
     canvas.drawCircle(Offset(x * size.width, y * size.height), this.size, paint);

@@ -24,28 +24,28 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
     {
       'title': 'Money\nBasics',
       'moduleId': 'money_basics',
-      'color': const Color(0xFFB3E5FC), // Light Blue
+      'color': const Color(0xFF9BAD50), // Matcha Green
       'image': 'assets/images/money_basics_panda.png',
       'isLeft': true,
     },
     {
       'title': 'Earning &\nCareer',
       'moduleId': 'earning_career',
-      'color': const Color(0xFFA9FF68), // Green
+      'color': const Color(0xFFB6CFE4), // Periwinkle
       'image': 'assets/images/earning_career_latest.png',
       'isLeft': false,
     },
     {
       'title': 'Investing &\nGrowth',
       'moduleId': 'investing',
-      'color': const Color(0xFF00E5FF), // Teal (Updated for premium theme)
+      'color': const Color(0xFFE8D4BA), // Warm Beige
       'image': 'assets/images/investing_growth_floating.png',
       'isLeft': true,
     },
     {
       'title': 'Banking &\nInstitutes',
       'moduleId': 'banking',
-      'color': const Color(0xFF536DFE), // Indigo (Updated for premium theme)
+      'color': const Color(0xFF393027), // Dark Cocoa
       'image': 'assets/images/bankkk.png',
       'isLeft': false,
     },
@@ -301,28 +301,25 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
     final bool isShiny = index == 0;
 
     switch (index) {
-      case 0: // Money Basics - Brown
-        colors = [
-          const Color(0xFF8D6E63).withValues(alpha: 0.8), 
-          const Color(0xFF6D4C41).withValues(alpha: 0.9)
-        ];
-        glowColor = const Color(0xFF5D4037);
+      case 0: // Money Basics
+        colors = [const Color(0xFF9BAD50), const Color(0xFF7A8D3A)];
+        glowColor = const Color(0xFF9BAD50);
         break;
-      case 1: // Earning - Simple Green
-        colors = [const Color(0xFF4CAF50), const Color(0xFF4CAF50)];
-        glowColor = const Color(0xFF4CAF50);
+      case 1: // Earning
+        colors = [const Color(0xFFB6CFE4), const Color(0xFF8BA9C7)];
+        glowColor = const Color(0xFFB6CFE4);
         break;
-      case 2: // Investing - Simple Cyan
-        colors = [const Color(0xFF00ACC1), const Color(0xFF00ACC1)];
-        glowColor = const Color(0xFF00ACC1);
+      case 2: // Investing
+        colors = [const Color(0xFFE8D4BA), const Color(0xFFD4BA9A)];
+        glowColor = const Color(0xFFE8D4BA);
         break;
-      case 3: // Banking - Simple Indigo
-        colors = [const Color(0xFF3F51B5), const Color(0xFF3F51B5)];
-        glowColor = const Color(0xFF3F51B5);
+      case 3: // Banking
+        colors = [const Color(0xFF393027), const Color(0xFF261F1A)];
+        glowColor = const Color(0xFF393027);
         break;
       default:
-        colors = [const Color(0xFF2C3E50), const Color(0xFF2C3E50)];
-        glowColor = const Color(0xFF2C3E50);
+        colors = [const Color(0xFF8B847F), const Color(0xFF5C544E)];
+        glowColor = const Color(0xFF8B847F);
     }
 
     return Container(
@@ -336,19 +333,13 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
           colors: colors,
         ) : null,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 3),
+        border: Border.all(color: const Color(0xFFFAFAF7), width: 3),
         boxShadow: [
           BoxShadow(
-            color: glowColor.withValues(alpha: isShiny ? 0.45 : 0.3), // Reduced from 0.6
-            blurRadius: isShiny ? 9 : 6, // Reduced from 12
+            color: glowColor.withValues(alpha: isShiny ? 0.3 : 0.2),
+            blurRadius: isShiny ? 9 : 6,
             spreadRadius: 1,
           ),
-          if (isShiny)
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.25), // Reduced from 0.4
-              blurRadius: 3, // Reduced from 4
-              offset: const Offset(-1.5, -1.5), // Softened offset
-            ),
         ],
       ),
       child: Center(
@@ -356,7 +347,7 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
           width: 8, 
           height: 8, 
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.85), // Slightly reduced from 0.9
+            color: const Color(0xFFFAFAF7).withValues(alpha: 0.85),
             shape: BoxShape.circle,
           ),
         ),
@@ -376,8 +367,8 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.white.withValues(alpha: 0.2),
-              Colors.white.withValues(alpha: 0.0),
+              const Color(0xFF393027).withValues(alpha: 0.1),
+              const Color(0xFF393027).withValues(alpha: 0.0),
             ],
             begin: isLeft ? Alignment.centerRight : Alignment.centerLeft,
             end: isLeft ? Alignment.centerLeft : Alignment.centerRight,
@@ -460,18 +451,18 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with 
         Positioned(
           right: width * 0.05,
           top: rowHeight * 0.2,
-          child: Icon(Icons.cloud_rounded, color: Colors.white.withValues(alpha: 0.15), size: 40),
+          child: Icon(Icons.cloud_rounded, color: const Color(0xFFB6CFE4).withValues(alpha: 0.3), size: 40),
         ),
         Positioned(
           left: width * 0.05,
           top: rowHeight * 2.2,
-          child: Icon(Icons.cloud_rounded, color: Colors.white.withValues(alpha: 0.1), size: 36),
+          child: Icon(Icons.cloud_rounded, color: const Color(0xFFB6CFE4).withValues(alpha: 0.2), size: 36),
         ),
         // Extra Cloud
         Positioned(
           right: width * 0.1,
           top: rowHeight * 3.5,
-          child: Icon(Icons.cloud_rounded, color: Colors.white.withValues(alpha: 0.12), size: 32),
+          child: Icon(Icons.cloud_rounded, color: const Color(0xFFB6CFE4).withValues(alpha: 0.25), size: 32),
         ),
 
         // Coins
@@ -606,26 +597,26 @@ class _RoadPathPainter extends CustomPainter {
 
     // --- ROAD STYLE ROUTE ---
 
-    // 1. Road Base (Asphalt)
+    // 1. Road Base (Warm Grey/Tan)
     final roadBasePaint = Paint()
-      ..color = const Color(0xFF37474F) // Lighter Slate Grey for better contrast
+      ..color = const Color(0xFFD4C9BD) 
       ..style = PaintingStyle.stroke
       ..strokeWidth = 48.0 
       ..strokeCap = StrokeCap.round;
     canvas.drawPath(path, roadBasePaint);
 
-    // 2. Road Border (Defined edge)
+    // 2. Road Border (Defined warm dark edge)
     final roadBorderPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.6) // Darker, more defined border
+      ..color = const Color(0xFF393027).withValues(alpha: 0.4) 
       ..style = PaintingStyle.stroke
       ..strokeWidth = 54.0 
       ..strokeCap = StrokeCap.round;
     
     canvas.drawPath(path, roadBorderPaint);
 
-    // 3. Dashed White Lines (Brighter & Consistent)
+    // 3. Dashed White Lines (Creamy)
     final dashPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.85) 
+      ..color = const Color(0xFFFAFAF7).withValues(alpha: 0.9) 
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.8; 
     
@@ -1059,12 +1050,12 @@ class _ModuleSectionBanner extends StatelessWidget {
           style: GoogleFonts.luckiestGuy(
             fontSize: fontSize, 
             fontWeight: FontWeight.w400, 
-            color: Colors.white,
+            color: const Color(0xFF393027),
             height: 1.1,
             letterSpacing: -0.2, // Slightly tighter to "thin out" words
             shadows: [
               Shadow(
-                color: Colors.black.withValues(alpha: 0.5),
+                color: color.withValues(alpha: 0.3),
                 offset: const Offset(0, 2),
                 blurRadius: 4,
               ),
