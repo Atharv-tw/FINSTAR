@@ -129,11 +129,13 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                     StreakTitleBar(
                       streakDays: userData.streakDays,
                       userPhotoUrl: userData.avatarUrl,
+                      currentXp: userData.xp,
+                      nextLevelXp: userData.level * 1000,
                     ),
 
-                    const SizedBox(height: 140),
+                    const SizedBox(height: 117.5),
 
-                    // Padded Content
+                    // Content
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
@@ -222,67 +224,70 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
 
                         const SizedBox(width: 12),
 
-                        // Progress bars
+                        // Progress bars - POP UP animation matching panda
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Level progress
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Level Progress',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: DesignTokens.textPrimary,
+                          child: Transform.translate(
+                            offset: Offset(0, _pandaSlideAnimation.value),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Level progress
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Level Progress',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: DesignTokens.textPrimary,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '${userData.xp} / $xpForNextLevel XP',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w400,
-                                      color: DesignTokens.textSecondary,
+                                    Text(
+                                      '${userData.xp} / $xpForNextLevel XP',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w400,
+                                        color: DesignTokens.textSecondary,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              _buildProgressBar(userData.xp / xpForNextLevel, DesignTokens.primaryGradient),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                _buildProgressBar(userData.xp / xpForNextLevel, DesignTokens.primaryGradient),
 
-                              const SizedBox(height: 10),
+                                const SizedBox(height: 10),
 
-                              // Study progress
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Study Progress',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: DesignTokens.textPrimary,
+                                // Study progress
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Study Progress',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: DesignTokens.textPrimary,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '${(studyProgress * 100).toInt()}%',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w400,
-                                      color: DesignTokens.textSecondary,
+                                    Text(
+                                      '${(studyProgress * 100).toInt()}%',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w400,
+                                        color: DesignTokens.textSecondary,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              _buildProgressBar(studyProgress, DesignTokens.secondaryGradient),
-                            ],
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                _buildProgressBar(studyProgress, DesignTokens.secondaryGradient),
+                              ],
+                            ),
                           ),
                         ),
                       ],

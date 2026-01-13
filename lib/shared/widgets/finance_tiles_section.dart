@@ -1,10 +1,12 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/learning_progress_provider.dart';
+import '../../core/design_tokens.dart';
 
 class FinanceTilesSection extends ConsumerStatefulWidget {
   final ScrollController? scrollController;
@@ -14,1055 +16,309 @@ class FinanceTilesSection extends ConsumerStatefulWidget {
   ConsumerState<FinanceTilesSection> createState() => _FinanceTilesSectionState();
 }
 
-class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> with TickerProviderStateMixin {
-  late AnimationController _controller;
-  double _scrollProgress = 0.0;
-  final GlobalKey _sectionKey = GlobalKey();
-
+class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> {
   // Define the modules data
   final List<Map<String, dynamic>> modules = [
     {
-      'title': 'Money\nBasics',
+      'title': 'Money Basics',
       'moduleId': 'money_basics',
       'color': const Color(0xFF9BAD50), // Matcha Green
       'image': 'assets/images/money_basics_panda.png',
-      'isLeft': true,
     },
     {
-      'title': 'Earning &\nCareer',
+      'title': 'Earning & Career',
       'moduleId': 'earning_career',
       'color': const Color(0xFFB6CFE4), // Periwinkle
       'image': 'assets/images/earning_career_latest.png',
-      'isLeft': false,
     },
     {
-      'title': 'Investing &\nGrowth',
+      'title': 'Investing & Growth',
       'moduleId': 'investing',
       'color': const Color(0xFFE8D4BA), // Warm Beige
       'image': 'assets/images/investing_growth_floating.png',
-      'isLeft': true,
     },
     {
-      'title': 'Banking &\nInstitutes',
+      'title': 'Banking & Institutes',
       'moduleId': 'banking',
       'color': const Color(0xFF393027), // Dark Cocoa
       'image': 'assets/images/bankkk.png',
-      'isLeft': false,
     },
   ];
 
   @override
+  Widget build(BuildContext context) {
+    // Get real progress to determine current module (not strictly used for layout but good for state)
+    // We can use this to visually highlight completed vs locked if needed later.
+    // For now, we just display the grid.
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Optional Header if needed, otherwise just the grid
+          
+          // 2x2 Grid with connector
+          Stack(
+            children: [
+              // 1. Connector Line (Behind the tiles)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _ConnectorPathPainter(
+                    itemCount: modules.length,
+                    columns: 2,
+                  ),
+                ),
+              ),
+
+              // 2. The Grid of Tiles
+              GridView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1.0, // Square tiles
+                ),
+                itemCount: modules.length,
+                itemBuilder: (context, index) {
+                  final module = modules[index];
+                  return _ModuleSquareTile(
+                    module: module,
+                    index: index,
+                    onTap: () => context.push('/module/${module['moduleId']}'),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModuleSquareTile extends StatefulWidget {
+  final Map<String, dynamic> module;
+  final int index;
+  final VoidCallback onTap;
+
+  const _ModuleSquareTile({
+    required this.module,
+    required this.index,
+    required this.onTap,
+  });
+
+  @override
+  State<_ModuleSquareTile> createState() => _ModuleSquareTileState();
+}
+
+class _ModuleSquareTileState extends State<_ModuleSquareTile> with SingleTickerProviderStateMixin {
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnimation;
+
+  @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 150),
       vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
-
-    widget.scrollController?.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    if (!mounted || widget.scrollController == null) return;
-    
-    final RenderBox? box = _sectionKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null) return;
-
-    // Use global position to determine where the section is on the screen
-    final position = box.localToGlobal(Offset.zero);
-    final viewportHeight = MediaQuery.of(context).size.height;
-    
-    // Car starts moving when the road start (top of section + 30) is at 80% of screen
-    // Car reaches the end when the road end (bottom of section - 400) is at 20% of screen
-    final roadStartGlobalY = position.dy + 30;
-    final roadEndGlobalY = position.dy + box.size.height - 400; // Adjusted to ensure car reaches end
-    
-    final startTrigger = viewportHeight * 0.8;
-    final endTrigger = viewportHeight * 0.2;
-    
-    // The total scroll distance for the car to go from 0 to 1
-    final totalDistance = (roadEndGlobalY - roadStartGlobalY) + (startTrigger - endTrigger);
-    double progress = (startTrigger - roadStartGlobalY) / totalDistance;
-    
-    setState(() {
-      _scrollProgress = progress.clamp(0.0, 1.0);
-    });
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void dispose() {
-    widget.scrollController?.removeListener(_onScroll);
-    _controller.dispose();
+    _scaleController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get real progress to determine current module
-    final progressAsync = ref.watch(learningProgressProvider);
-    int currentModuleIndex = 0;
+    final color = widget.module['color'] as Color;
+    final title = widget.module['title'] as String;
+    final imagePath = widget.module['image'] as String;
+    
+    // Determine text color based on background luminance or specific design choice
+    // For our palette: 
+    // Matcha Green (Light) -> Dark text
+    // Periwinkle (Light) -> Dark text
+    // Beige (Light) -> Dark text
+    // Cocoa (Dark) -> White text
+    final isDarkBg = color.computeLuminance() < 0.5;
+    final textColor = isDarkBg ? Colors.white : const Color(0xFF393027);
 
-    progressAsync.whenData((progressMap) {
-      for (int i = 0; i < modules.length; i++) {
-        final mid = modules[i]['moduleId'];
-        // Assume 5 lessons per module for now as per provider logic
-        bool moduleCompleted = true;
-        for (int l = 1; l <= 5; l++) {
-          if (!(progressMap['${mid}_lesson$l']?.completed ?? false)) {
-            moduleCompleted = false;
-            break;
-          }
-        }
-        if (!moduleCompleted) {
-          currentModuleIndex = i;
-          break;
-        }
-        // If all modules completed, last one stays active or none
-        if (i == modules.length - 1) currentModuleIndex = i;
-      }
-    });
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        
-        // DENSE LAYOUT: Adjusted for larger images and floating space
-        final double rowHeight = width * 0.7; 
-        final double startOffset = 90.0; // Reduced from 140.0
-        // Precisely calculated height to stop scrolling exactly after the trophy
-        // Spacing is now equal: Distance between modules = rowHeight, Distance to trophy = rowHeight
-        final double sectionHeight = (modules.length + 0.5) * rowHeight + startOffset + 180;
-
-        final List<Offset> pathPoints = [];
-        for (int i = 0; i < modules.length; i++) {
-          final isEven = i % 2 == 0;
-          
-          // Accounting for the 20px total horizontal padding in _ModuleSectionBanner
-          final contentWidth = width - 20; 
-          double x;
-          
-          if (isEven) {
-            // Image on left (flex 46) starts after 4px left padding.
-            // Right edge of image = 4 + contentWidth * 0.46.
-            final imageRightEdge = 4 + (contentWidth * 0.46);
-            x = imageRightEdge + 14; // Center x to touch edge
-          } else {
-            // Image on right. Text(44) and Spacer(10) come after 16px left padding.
-            // Left edge of image = 16 + contentWidth * 0.54.
-            final imageLeftEdge = 16 + (contentWidth * 0.54);
-            x = imageLeftEdge - 14; // Center x to touch edge
-          }
-          
-          final y = (i * rowHeight) + (rowHeight / 2) + startOffset; 
-          pathPoints.add(Offset(x, y));
-        }
-
-        return Container(
-          key: _sectionKey,
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          height: sectionHeight,
-          width: double.infinity,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // 0. Background Decorative Elements
-              _buildBackgroundDecorations(width, rowHeight),
-
-              // 1. Refined Road Route Line
-              CustomPaint(
-                size: Size(width, sectionHeight),
-                painter: _RoadPathPainter(
-                  points: pathPoints,
-                  animationValue: _controller,
-                  currentIndex: currentModuleIndex,
-                  scrollProgress: _scrollProgress,
-                  rowHeight: rowHeight,
-                ),
+    return GestureDetector(
+      onTapDown: (_) => _scaleController.forward(),
+      onTapUp: (_) {
+        _scaleController.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _scaleController.reverse(),
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Container(
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
-
-              // 2. Module Rows
-              Column(
-                children: [
-                  SizedBox(height: startOffset),
-                  ...modules.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final module = entry.value;
-                    final isEven = index % 2 == 0;
-                    final isCurrent = index == currentModuleIndex;
-                    
-                    return SizedBox(
-                      height: rowHeight,
-                      child: _ModuleSectionBanner(
-                        module: module,
-                        isImageLeft: isEven, 
-                        onTap: () => context.push('/module/${module['moduleId']}'),
-                        animationController: _controller,
-                        index: index,
-                        isCurrent: isCurrent,
-                      ),
-                    );
-                  }),
-                ],
-              ),
-
-              // 1.5. Road Markers (Moved to top for visibility)
-              _buildRoadMarkers(pathPoints, currentModuleIndex, width, rowHeight),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildRoadMarkers(List<Offset> points, int currentIndex, double width, double rowHeight) {
-    // Play button shifted slightly left (0.45)
-    final startPoint = Offset(width * 0.45, 30);
-    
-    return Stack(
-      children: [
-        // Actual Play Button at the Start of the Road
-        Positioned(
-          left: startPoint.dx - 30, // Center 60px button
-          top: startPoint.dy - 30,  // Pull up by half height (30-30=0) to align top
-          child: _buildStartPlayButton(),
-        ),
-
-        ...points.asMap().entries.map((entry) {
-          final index = entry.key;
-          final point = entry.value;
-          final isCompleted = index < currentIndex;
-          final isLeft = index % 2 != 0;
-
-          return Stack(
+          child: Stack(
             children: [
-              // Faint connection line to module (Thinner, more subtle)
-              _buildConnectionLine(point, isLeft),
-
-              // Pixel Trophy at the very end
-              if (index == points.length - 1)
-                Positioned(
-                  left: width / 2 - 100, // Adjusted centering for the new image size
-                  top: point.dy + rowHeight - 45, // Equal spacing (1.0 * rowHeight)
-                  child: Image.asset(
-                    'assets/images/trophy_pixel.png', 
-                    width: 200, 
-                    height: 200, 
-                    fit: BoxFit.contain,
+              // Decorative circle
+              Positioned(
+                top: -20,
+                right: -20,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
                   ),
                 ),
-
-              // Small Marker on the road for each module
-              Positioned(
-                left: point.dx - 14, 
-                top: point.dy - 14,
-                child: _buildSimpleRoadDot(index, isCompleted, index == currentIndex),
+              ),
+              
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Icon / Image
+                    Expanded(
+                      flex: 3,
+                      child: Center(
+                        child: Image.asset(
+                          imagePath,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Title
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        title.toUpperCase(),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.luckiestGuy(
+                          fontSize: 18, // Reduced slightly to fit square
+                          color: textColor,
+                          height: 1.1,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
-          );
-        }).toList(),
-      ],
-    );
-  }
-
-  Widget _buildStartPlayButton() {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final scale = 1.0 + (math.sin(_controller.value * 2 * math.pi) * 0.05).abs();
-        return Transform.scale(
-          scale: scale,
-          child: Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFFFF6D00), Color(0xFFFF9100)]),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFF6D00).withValues(alpha: 0.5),
-                  blurRadius: 15,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: const Center(
-              child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSimpleRoadDot(int index, bool isCompleted, bool isCurrent) {
-    List<Color> colors;
-    Color glowColor;
-    final bool isShiny = index == 0;
-
-    switch (index) {
-      case 0: // Money Basics
-        colors = [const Color(0xFF9BAD50), const Color(0xFF7A8D3A)];
-        glowColor = const Color(0xFF9BAD50);
-        break;
-      case 1: // Earning
-        colors = [const Color(0xFFB6CFE4), const Color(0xFF8BA9C7)];
-        glowColor = const Color(0xFFB6CFE4);
-        break;
-      case 2: // Investing
-        colors = [const Color(0xFFE8D4BA), const Color(0xFFD4BA9A)];
-        glowColor = const Color(0xFFE8D4BA);
-        break;
-      case 3: // Banking
-        colors = [const Color(0xFF393027), const Color(0xFF261F1A)];
-        glowColor = const Color(0xFF393027);
-        break;
-      default:
-        colors = [const Color(0xFF8B847F), const Color(0xFF5C544E)];
-        glowColor = const Color(0xFF8B847F);
-    }
-
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        color: !isShiny ? colors[0] : null,
-        gradient: isShiny ? LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ) : null,
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFFAFAF7), width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: glowColor.withValues(alpha: isShiny ? 0.3 : 0.2),
-            blurRadius: isShiny ? 9 : 6,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Container(
-          width: 8, 
-          height: 8, 
-          decoration: BoxDecoration(
-            color: const Color(0xFFFAFAF7).withValues(alpha: 0.85),
-            shape: BoxShape.circle,
           ),
         ),
-      ),
-    );
-  }
-
-
-
-  Widget _buildConnectionLine(Offset point, bool isLeft) {
-    return Positioned(
-      left: isLeft ? point.dx - 120 : point.dx + 20,
-      top: point.dy - 1,
-      child: Container(
-        width: 100,
-        height: 2,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              const Color(0xFF393027).withValues(alpha: 0.1),
-              const Color(0xFF393027).withValues(alpha: 0.0),
-            ],
-            begin: isLeft ? Alignment.centerRight : Alignment.centerLeft,
-            end: isLeft ? Alignment.centerLeft : Alignment.centerRight,
-          ),
-        ),
-      ),
-    );
-  }
-
-
-
-
-
-
-
-
-
-  Widget _buildBackgroundDecorations(double width, double rowHeight) {
-    return Stack(
-      children: [
-        // 1. Terrain & Water (New Layers)
-        Positioned(
-          left: width * 0.6,
-          top: rowHeight * 1.8,
-          child: Container(
-            width: 120,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.all(Radius.elliptical(120, 80)),
-            ),
-          ),
-        ),
-        Positioned(
-          left: width * 0.65,
-          top: rowHeight * 1.9,
-          child: Icon(Icons.waves_rounded, color: Colors.blue.withValues(alpha: 0.2), size: 30),
-        ),
-
-        // Tiny Trees
-        Positioned(
-          left: width * 0.1,
-          top: rowHeight * 0.5,
-          child: Icon(Icons.park_rounded, color: Colors.green.withValues(alpha: 0.3), size: 24),
-        ),
-        Positioned(
-          right: width * 0.15,
-          top: rowHeight * 1.5,
-          child: Icon(Icons.park_rounded, color: Colors.teal.withValues(alpha: 0.3), size: 28),
-        ),
-        Positioned(
-          left: width * 0.12,
-          top: rowHeight * 2.8,
-          child: Icon(Icons.park_rounded, color: Colors.greenAccent.withValues(alpha: 0.3), size: 22),
-        ),
-
-        // Character Shadows (Grounding)
-        Positioned(left: width * 0.1, top: rowHeight * 0.8 + 28, child: _buildShadow(20)),
-        Positioned(left: width * 0.15, top: rowHeight * 2.5 + 32, child: _buildShadow(25)),
-        Positioned(right: width * 0.2, top: rowHeight * 3.1 + 25, child: _buildShadow(18)),
-
-        // Flowers & Terrain (New)
-        Positioned(
-          left: width * 0.25,
-          top: rowHeight * 0.7,
-          child: Icon(Icons.local_florist_rounded, color: Colors.pink.withValues(alpha: 0.2), size: 14),
-        ),
-        Positioned(
-          right: width * 0.25,
-          top: rowHeight * 2.3,
-          child: Icon(Icons.local_florist_rounded, color: Colors.orange.withValues(alpha: 0.2), size: 16),
-        ),
-        Positioned(
-          left: width * 0.05,
-          top: rowHeight * 1.2,
-          child: Icon(Icons.terrain_rounded, color: Colors.brown.withValues(alpha: 0.15), size: 30),
-        ),
-
-        // Clouds
-        Positioned(
-          right: width * 0.05,
-          top: rowHeight * 0.2,
-          child: Icon(Icons.cloud_rounded, color: const Color(0xFFB6CFE4).withValues(alpha: 0.3), size: 40),
-        ),
-        Positioned(
-          left: width * 0.05,
-          top: rowHeight * 2.2,
-          child: Icon(Icons.cloud_rounded, color: const Color(0xFFB6CFE4).withValues(alpha: 0.2), size: 36),
-        ),
-        // Extra Cloud
-        Positioned(
-          right: width * 0.1,
-          top: rowHeight * 3.5,
-          child: Icon(Icons.cloud_rounded, color: const Color(0xFFB6CFE4).withValues(alpha: 0.25), size: 32),
-        ),
-
-        // Coins
-        Positioned(
-          right: width * 0.25,
-          top: rowHeight * 1.1,
-          child: Icon(Icons.monetization_on_rounded, color: Colors.amber.withValues(alpha: 0.4), size: 18),
-        ),
-        Positioned(
-          left: width * 0.3,
-          top: rowHeight * 3.2,
-          child: Icon(Icons.monetization_on_rounded, color: Colors.amber.withValues(alpha: 0.3), size: 20),
-        ),
-        // Extra Coin
-        Positioned(
-          left: width * 0.8,
-          top: rowHeight * 0.3,
-          child: Icon(Icons.monetization_on_rounded, color: Colors.amber.withValues(alpha: 0.25), size: 16),
-        ),
-
-        // Characters (Variety)
-        Positioned(
-          left: width * 0.15,
-          top: rowHeight * 2.5,
-          child: Transform.scale(
-            scaleX: -1,
-            child: Opacity(
-              opacity: 0.5,
-              child: Image.asset('assets/images/panda1.png', width: 35, height: 35),
-            ),
-          ),
-        ),
-        // Penguin (New - Placeholder Icon)
-        Positioned(
-          left: width * 0.08,
-          top: rowHeight * 3.4,
-          child: Icon(Icons.pets_rounded, color: Colors.blueGrey.withValues(alpha: 0.3), size: 22),
-        ),
-        // Tiny Rabbit (Icon)
-        Positioned(
-          left: width * 0.8,
-          top: rowHeight * 1.8,
-          child: Icon(Icons.cruelty_free_rounded, color: Colors.white.withValues(alpha: 0.2), size: 20),
-        ),
-        // Tiny Bird (Icon)
-        Positioned(
-          left: width * 0.2,
-          top: rowHeight * 0.4,
-          child: Icon(Icons.flutter_dash_rounded, color: Colors.white.withValues(alpha: 0.15), size: 18),
-        ),
-      ],
-    );
-  }
-
-
-
-  Widget _buildShadow(double width) {
-    return Container(
-      width: width,
-      height: 4,
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.1),
-        borderRadius: const BorderRadius.all(Radius.elliptical(20, 4)),
       ),
     );
   }
 }
 
-class _RoadPathPainter extends CustomPainter {
-  final List<Offset> points;
-  final Animation<double> animationValue;
-  final int currentIndex;
-  final double scrollProgress;
-  final double rowHeight;
+class _ConnectorPathPainter extends CustomPainter {
+  final int itemCount;
+  final int columns;
 
-  _RoadPathPainter({
-    required this.points, 
-    required this.animationValue,
-    required this.currentIndex,
-    required this.scrollProgress,
-    required this.rowHeight,
-  }) : super(repaint: animationValue);
+  _ConnectorPathPainter({
+    required this.itemCount,
+    required this.columns,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (points.length < 2) return;
+    if (itemCount <= 1) return;
 
-    final path = Path();
-    final startX = size.width * 0.45;
-    // Start at 30 (radius of button) so button top touches the section top (0)
-    final startY = 30.0; 
-    path.moveTo(startX, startY);
+    final paint = Paint()
+      ..color = const Color(0xFF393027).withValues(alpha: 0.15) // Subtle dark connector
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0
+      ..strokeCap = StrokeCap.round;
 
-    // Initial branch segment with a DRAMATIC CURVE (Swings right before going left)
-    final p0 = points[0];
-    path.cubicTo(
-      startX + 140, startY + 10, // Dramatic swing to the right
-      p0.dx + 140, p0.dy - 10,   // Extreme pull from the right
-      p0.dx, p0.dy
-    );
+    final dashPath = Path();
+    
+    // We assume a regular grid where we know the rough center of each item
+    // itemWidth = (totalWidth - spacing) / 2
+    // itemHeight = itemWidth (since aspect ratio is 1)
+    
+    final double spacing = 16.0;
+    final double itemWidth = (size.width - spacing) / 2;
+    final double itemHeight = itemWidth; // Square tiles
 
-    for (int i = 1; i < points.length; i++) {
-      final prev = points[i - 1];
-      final curr = points[i];
-      final double vDist = curr.dy - prev.dy;
+    // Helper to get center of item at index
+    Offset getCenter(int index) {
+      final int row = index ~/ columns;
+      final int col = index % columns;
       
-      // High horizontal swing for "more curves"
-      // Swings through the center gap with more horizontal distance
-      final double midX = (prev.dx + curr.dx) / 2;
-      final double swingX = midX + (i % 2 == 0 ? 150 : -150);
-
-      path.cubicTo(
-        swingX, prev.dy + (vDist * 0.3), 
-        swingX, curr.dy - (vDist * 0.3), 
-        curr.dx, curr.dy
-      );
+      final double x = col * (itemWidth + spacing) + itemWidth / 2;
+      final double y = row * (itemHeight + spacing) + itemHeight / 2;
+      return Offset(x, y);
     }
 
-    final last = points.last;
-    final endPoint = Offset(size.width / 2, last.dy + rowHeight);
-    final vDistEnd = endPoint.dy - last.dy;
-
-    // "Curvy" final approach matching the rest of the road
-    // Swings across the center line before landing to avoid looking straight
-    final double centerSwing = last.dx > size.width / 2 ? -120 : 120;
-
-    path.cubicTo(
-      last.dx, last.dy + (vDistEnd * 0.5), // Leave vertically
-      size.width / 2 + centerSwing, endPoint.dy - (vDistEnd * 0.2), // Swing past center
-      endPoint.dx, endPoint.dy 
-    );
-
-    // --- ROAD STYLE ROUTE ---
-
-    // 1. Road Base (Warm Grey/Tan)
-    final roadBasePaint = Paint()
-      ..color = const Color(0xFFD4C9BD) 
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 48.0 
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(path, roadBasePaint);
-
-    // 2. Road Border (Defined warm dark edge)
-    final roadBorderPaint = Paint()
-      ..color = const Color(0xFF393027).withValues(alpha: 0.4) 
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 54.0 
-      ..strokeCap = StrokeCap.round;
-    
-    canvas.drawPath(path, roadBorderPaint);
-
-    // 3. Dashed White Lines (Creamy)
-    final dashPaint = Paint()
-      ..color = const Color(0xFFFAFAF7).withValues(alpha: 0.9) 
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.8; 
-    
-    // Define exclusion zones for text to avoid overlap
-    final List<Rect> textZones = [];
-    for (int i = 0; i < points.length; i++) {
-        final point = points[i];
-        final double zoneHeight = 120.0; // Approx text height
-        final double top = point.dy - zoneHeight / 2;
-        final double bottom = point.dy + zoneHeight / 2;
+    // Draw lines connecting 0->1, 1->2, 2->3
+    for (int i = 0; i < itemCount - 1; i++) {
+      final p1 = getCenter(i);
+      final p2 = getCenter(i + 1);
+      
+      // Simple direct connection? Or curvy?
+      // 0 -> 1 is horizontal.
+      // 1 -> 2 is diagonal (down-left).
+      // 2 -> 3 is horizontal.
+      
+      if (i == 1) {
+        // Diagonal connection 1 -> 2 (Zig-zag)
+        // Let's make it a nice 'S' curve or direct diagonal
+        final path = Path();
+        path.moveTo(p1.dx, p1.dy);
         
-        if (i % 2 == 0) {
-            // Even index: Image Left, Text Right
-            // Text occupies approx right 45%
-            textZones.add(Rect.fromLTRB(size.width * 0.55, top, size.width, bottom));
-        } else {
-            // Odd index: Image Right, Text Left
-            // Text occupies approx left 45%
-            textZones.add(Rect.fromLTRB(0, top, size.width * 0.45, bottom));
-        }
+        // Control points for a smooth 'S' curve down
+        final double cp1x = p1.dx;
+        final double cp1y = (p1.dy + p2.dy) / 2;
+        final double cp2x = p2.dx;
+        final double cp2y = (p1.dy + p2.dy) / 2;
+        
+        path.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
+        dashPath.addPath(path, Offset.zero);
+      } else {
+        // Horizontal connection (0->1, 2->3)
+        dashPath.moveTo(p1.dx, p1.dy);
+        dashPath.lineTo(p2.dx, p2.dy);
+      }
     }
 
-    final metrics = path.computeMetrics().toList();
-    for (var metric in metrics) {
+    // Draw dashed line
+    // We create a dashed effect manually or use a helper
+    // Simple manual dash:
+    final PathMetrics metrics = dashPath.computeMetrics();
+    for (PathMetric metric in metrics) {
       double distance = 0.0;
+      const double dashLength = 10.0;
+      const double gapLength = 8.0;
+      
       while (distance < metric.length) {
-        const double dashLength = 20.0; 
-        const double gapLength = 24.0;  
-        final extractPath = metric.extractPath(distance, distance + dashLength);
-        
-        // Check if this dash overlaps any text zone
-        final dashBounds = extractPath.getBounds();
-        
-        // EXCEPTION: Allow a dash below the 1st section image (index 0) 
-        // but before it hits the Earning & Career text zone (index 1)
-        final p0 = points[0];
-        final p1 = points[1];
-        bool inForcedVisibilityZone = 
-            dashBounds.top > p0.dy + 30 && 
-            dashBounds.bottom < p1.dy - 30 && 
-            dashBounds.center.dx < size.width * 0.6; 
-
-        // EXCLUSION: Hide dash directly overlapping Investing photo (index 2) 
-        // or Banking text (index 3) but ALLOW one in the gap between them.
-        final p2 = points[2]; // Investing
-        final p3 = points[3]; // Banking
-        
-        // Targeted overlap check for the photo area
-        bool inInvestingPhotoOverlap = 
-            dashBounds.top > p2.dy + 15 &&
-            dashBounds.bottom < p2.dy + 55 &&
-            dashBounds.center.dx < size.width * 0.4;
-
-        if (inInvestingPhotoOverlap) {
-             distance += dashLength + gapLength;
-             continue; 
-        }
-
-        // Specific inclusion for the gap between Investing photo and Banking text
-        // Adjusted: Moved down (+110) to strictly clear the Investing photo
-        bool inSafeGapBetweenM2AndM3 = 
-            dashBounds.top > p2.dy + 110 && 
-            dashBounds.bottom < p3.dy - 50 && 
-            dashBounds.center.dx < size.width * 0.6; 
-
-        if (inSafeGapBetweenM2AndM3) {
-             canvas.drawPath(extractPath, dashPaint);
-             distance += dashLength + gapLength;
-             continue; 
-        }
-
-        if (inForcedVisibilityZone) {
-             canvas.drawPath(extractPath, dashPaint);
-             distance += dashLength + gapLength;
-             continue; // Skip the overlap check
-        }
-
-    // Final End Segment Logic
-    // Ensure smooth dash continuity by not applying exclusions to the very end of the road
-    final pLast = points.last;
-    bool isEndSegment = dashBounds.top > pLast.dy + 20;
-
-    if (isEndSegment) {
-         canvas.drawPath(extractPath, dashPaint);
-         distance += dashLength + gapLength;
-         continue; 
-    }
-
-    // Standard Exclusion Logic
-    bool overlaps = false;
-    for (final zone in textZones) {
-        if (dashBounds.overlaps(zone)) {
-            overlaps = true;
-            break;
-        }
-    }
-
-        if (!overlaps) {
-            canvas.drawPath(extractPath, dashPaint);
-        }
-        
+        canvas.drawPath(
+          metric.extractPath(distance, distance + dashLength),
+          paint,
+        );
         distance += dashLength + gapLength;
       }
     }
-
-    // 4. DRAW THE CAR ON THE ROAD (Perfectly synced)
-    if (metrics.isNotEmpty) {
-      final metric = metrics.first;
-      final tangent = metric.getTangentForOffset(metric.length * scrollProgress);
-      if (tangent != null) {
-        canvas.save();
-        canvas.translate(tangent.position.dx, tangent.position.dy);
-        // Correct rotation: Car faces FORWARD along the path
-        // Added + math.pi to flip orientation 180 degrees so headlights lead
-        canvas.rotate(tangent.angle + (math.pi / 2)); 
-        
-        // Draw the wider car
-        _drawRealisticCar(canvas, const Size(41, 48));
-        
-        canvas.restore();
-      }
-    }
-
-    _drawConnectionKnots(canvas, points);
-  }
-
-  void _drawRealisticCar(Canvas canvas, Size size) {
-    final double w = size.width;
-    final double h = size.height;
-    final centerOffset = Offset(-w/2, -h/2);
-
-    // 1. Shadow
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(centerOffset.dx + 5, centerOffset.dy + 3, w, h), const Radius.circular(8)), 
-      Paint()..color = Colors.black.withValues(alpha: 0.25)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5)
-    );
-
-    // 2. Car Body (Oriented DOWN)
-    final bodyPaint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.bottomCenter,
-        end: Alignment.topCenter,
-        colors: [Color(0xFFD32F2F), Color(0xFFB71C1C)], // Deeper Crimson
-      ).createShader(centerOffset & size);
-    
-    final bodyPath = Path()
-      ..moveTo(centerOffset.dx + w * 0.15, centerOffset.dy + h * 0.1)
-      ..lineTo(centerOffset.dx + w * 0.15, centerOffset.dy + h * 0.9)
-      ..quadraticBezierTo(centerOffset.dx + w * 0.15, centerOffset.dy + h, centerOffset.dx + w * 0.5, centerOffset.dy + h)
-      ..quadraticBezierTo(centerOffset.dx + w * 0.85, centerOffset.dy + h, centerOffset.dx + w * 0.85, centerOffset.dy + h * 0.9)
-      ..lineTo(centerOffset.dx + w * 0.85, centerOffset.dy + h * 0.1)
-      ..quadraticBezierTo(centerOffset.dx + w * 0.85, centerOffset.dy, centerOffset.dx + w * 0.5, centerOffset.dy)
-      ..quadraticBezierTo(centerOffset.dx + w * 0.15, centerOffset.dy, centerOffset.dx + w * 0.15, centerOffset.dy + h * 0.1)
-      ..close();
-    
-    canvas.drawPath(bodyPath, bodyPaint);
-
-    // 3. Roof & Windows (Glassy)
-    final windowPaint = Paint()..color = const Color(0xFF81D4FA).withValues(alpha: 0.7);
-    
-    // Main windshield (Front - Bottom)
-    final windshield = Path()
-      ..moveTo(centerOffset.dx + w * 0.25, centerOffset.dy + h * 0.8)
-      ..lineTo(centerOffset.dx + w * 0.75, centerOffset.dy + h * 0.8)
-      ..lineTo(centerOffset.dx + w * 0.8, centerOffset.dy + h * 0.6)
-      ..lineTo(centerOffset.dx + w * 0.2, centerOffset.dy + h * 0.6)
-      ..close();
-    canvas.drawPath(windshield, windowPaint);
-
-    // Rear window (Top)
-    final rearWindow = Path()
-      ..moveTo(centerOffset.dx + w * 0.3, centerOffset.dy + h * 0.25)
-      ..lineTo(centerOffset.dx + w * 0.7, centerOffset.dy + h * 0.25)
-      ..lineTo(centerOffset.dx + w * 0.65, centerOffset.dy + h * 0.35)
-      ..lineTo(centerOffset.dx + w * 0.35, centerOffset.dy + h * 0.35)
-      ..close();
-    canvas.drawPath(rearWindow, windowPaint);
-
-    // 4. Headlights (Bright Yellow)
-    final lightPaint = Paint()..color = Colors.yellowAccent;
-    canvas.drawOval(Rect.fromLTWH(centerOffset.dx + w * 0.2, centerOffset.dy + h * 0.94, w * 0.2, h * 0.04), lightPaint);
-    canvas.drawOval(Rect.fromLTWH(centerOffset.dx + w * 0.6, centerOffset.dy + h * 0.94, w * 0.2, h * 0.04), lightPaint);
-
-    // 5. Tail lights (Soft Red)
-    final tailPaint = Paint()..color = Colors.redAccent.withValues(alpha: 0.8);
-    canvas.drawRect(Rect.fromLTWH(centerOffset.dx + w * 0.2, centerOffset.dy + h * 0.02, w * 0.15, h * 0.03), tailPaint);
-    canvas.drawRect(Rect.fromLTWH(centerOffset.dx + w * 0.65, centerOffset.dy + h * 0.02, w * 0.15, h * 0.03), tailPaint);
-  }
-
-  void _drawConnectionKnots(Canvas canvas, List<Offset> points) {
-    // Draws clean connection dots for the road
-    final dotPaint = Paint()
-      ..color = const Color(0xFF263238)
-      ..style = PaintingStyle.fill;
-      
-    final dotBorder = Paint()
-      ..color = Colors.white.withValues(alpha: 0.3)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    for (final point in points) {
-        canvas.drawCircle(point, 7, dotPaint);
-        canvas.drawCircle(point, 7, dotBorder);
-    }
   }
 
   @override
-  bool shouldRepaint(covariant _RoadPathPainter oldDelegate) => 
-    oldDelegate.scrollProgress != scrollProgress || oldDelegate.currentIndex != currentIndex;
-}
-
-class _RightEdgeShinePainter extends CustomPainter {
-  final Color color;
-  final double opacityMultiplier;
-
-  _RightEdgeShinePainter({
-    required this.color,
-    this.opacityMultiplier = 1.0,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double radius = 20.0;
-    
-    // Path: Starts slightly below top-right, down edge, around corner, halfway across bottom
-    final Path path = Path();
-    path.moveTo(size.width, radius + 15); // Start slightly below top-right curve
-    path.lineTo(size.width, size.height - radius); // Right edge
-    path.arcToPoint(
-      Offset(size.width - radius, size.height),
-      radius: Radius.circular(radius),
-      clockwise: true,
-    ); // Bottom-right corner
-    path.lineTo(size.width / 2, size.height); // Halfway across bottom
-
-    final Rect bounds = path.getBounds();
-
-    // Gradient that fades at both ends of this specific path
-    final gradient = LinearGradient(
-      begin: Alignment.topRight,
-      end: Alignment.bottomLeft,
-      colors: [
-        Colors.white.withValues(alpha: 0.0), 
-        Colors.white.withValues(alpha: 0.8 * opacityMultiplier), // Scaled opacity
-        Colors.white.withValues(alpha: 0.8 * opacityMultiplier), // Scaled opacity
-        Colors.white.withValues(alpha: 0.0), 
-      ],
-      stops: const [0.0, 0.2, 0.6, 1.0],
-    ).createShader(bounds);
-
-    final glowGradient = LinearGradient(
-      begin: Alignment.topRight,
-      end: Alignment.bottomLeft,
-      colors: [
-        color.withValues(alpha: 0.0),
-        color.withValues(alpha: 0.6 * opacityMultiplier), // Scaled opacity
-        color.withValues(alpha: 0.6 * opacityMultiplier), // Scaled opacity
-        color.withValues(alpha: 0.0),
-      ],
-      stops: const [0.0, 0.2, 0.6, 1.0],
-    ).createShader(bounds);
-
-    // 1. Primary Shine (Thin line)
-    final Paint shinePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round
-      ..shader = gradient;
-
-    canvas.drawPath(path, shinePaint);
-
-    // 2. Soft Glow
-    final Paint glowPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.5
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3)
-      ..shader = glowGradient;
-
-    canvas.drawPath(path, glowPaint);
-  }
-
-  @override
-  bool shouldRepaint(_RightEdgeShinePainter oldDelegate) => oldDelegate.color != color;
-}
-
-class _ModuleSectionBanner extends StatelessWidget {
-  final Map<String, dynamic> module;
-  final bool isImageLeft;
-  final VoidCallback onTap;
-  final AnimationController animationController;
-  final int index;
-  final bool isCurrent;
-
-  const _ModuleSectionBanner({
-    required this.module,
-    required this.isImageLeft,
-    required this.onTap,
-    required this.animationController,
-    required this.index,
-    this.isCurrent = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = module['color'] as Color;
-    final title = module['title'] as String;
-    final imagePath = module['image'] as String;
-
-    return AnimatedBuilder(
-      animation: animationController,
-      builder: (context, child) {
-        // Floating Offset Calculation for Text ONLY (Lower intensity for subtle speed)
-        final intensity = isCurrent ? 4.0 : 2.0;
-        final double floatingOffset = math.sin((animationController.value * 2 * math.pi) + (index * 1.0)) * intensity;
-        
-        // Shift Banking text up slightly as requested
-        final double manualShift = index == 3 ? -12.0 : 0.0;
-
-        return GestureDetector(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onTap();
-          },
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              left: isImageLeft ? 4 : 16, 
-              right: isImageLeft ? 16 : 4, 
-              top: 8, 
-              bottom: 8
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: isImageLeft 
-                  ? [
-                      // Image Side (Left) - STATIC
-                      Expanded(
-                        flex: 46, 
-                        child: _buildImageCard(imagePath, color, isCurrent, index),
-                      ),
-                      // CENTER SPACER FOR ROAD
-                      const Spacer(flex: 10), 
-                      // Text Side (Right) - FLOATING
-                      Expanded(
-                        flex: 44,
-                        child: Transform.translate(
-                          offset: Offset(0, floatingOffset + manualShift),
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 0), 
-                            child: _buildTextArea(title, color, index),
-                          ),
-                        ),
-                      ),
-                    ]
-                  : [
-                      // Text Side (Left) - FLOATING
-                      Expanded(
-                        flex: 44,
-                        child: Transform.translate(
-                          offset: Offset(0, floatingOffset + manualShift),
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 0), 
-                            child: _buildTextArea(title, color, index),
-                          ),
-                        ),
-                      ),
-                      // CENTER SPACER FOR ROAD
-                      const Spacer(flex: 10),
-                      // Image Side (Right) - STATIC
-                      Expanded(
-                        flex: 46,
-                        child: _buildImageCard(imagePath, color, isCurrent, index),
-                      ),
-                    ],
-              ),
-            ),
-        );
-      },
-    );
-  }
-
-  Widget _buildImageCard(String path, Color color, bool isCurrent, int index) {
-    // Return the raw image without any container decoration for all modules
-    // to allow the characters/icons to float freely.
-    return Image.asset(
-      path,
-      fit: BoxFit.contain,
-      width: double.infinity,
-      height: double.infinity,
-    );
-  }
-
-  Widget _buildTextArea(String title, Color color, int index) {
-    // Refined sizes to prevent overflow for long titles
-    double fontSize;
-    switch (index) {
-      case 0: fontSize = 34; break; // Money Basics
-      case 1: fontSize = 30; break; // Earning & Career
-      case 2: fontSize = 27; break; // Investing & Growth
-      case 3: fontSize = 28; break; // Banking & Institutes (Increased from 24)
-      default: fontSize = 27;
-    }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            'MODULE ${index + 1}',
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: color,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          title.toUpperCase(),
-          textAlign: TextAlign.center,
-          maxLines: 3, // Allow 3 lines
-          softWrap: true,
-          style: GoogleFonts.luckiestGuy(
-            fontSize: fontSize, 
-            fontWeight: FontWeight.w400, 
-            color: const Color(0xFF393027),
-            height: 1.1,
-            letterSpacing: -0.2, // Slightly tighter to "thin out" words
-            shadows: [
-              Shadow(
-                color: color.withValues(alpha: 0.3),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
