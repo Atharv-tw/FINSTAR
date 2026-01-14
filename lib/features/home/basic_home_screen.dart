@@ -133,7 +133,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                       nextLevelXp: userData.level * 1000,
                     ),
 
-                    const SizedBox(height: 117.5),
+                    const SizedBox(height: 176.5),
 
                     // Content
                     Padding(
@@ -144,7 +144,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                           // Progress Section with Panda
                           _buildProgressWithPandaSection(screenWidth, userData),
 
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 33),
 
                           // Featured Hero Card
                           FeaturedHeroCard(
@@ -153,6 +153,48 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                         ],
                       ),
                     ),
+
+                    const SizedBox(height: 35),
+
+                    // Section Header: LEARNING MODULES
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 26,
+                                decoration: BoxDecoration(
+                                  color: DesignTokens.primarySolid,
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'LEARNING MODULES',
+                                style: GoogleFonts.inter(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: DesignTokens.textPrimary,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Divider(
+                            color: DesignTokens.textPrimary.withValues(alpha: 0.08),
+                            thickness: 1,
+                            height: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
 
                     // Learning Categories - Full Width
                     FinanceTilesSection(scrollController: _scrollController),
@@ -188,6 +230,32 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
         return Stack(
           clipBehavior: Clip.none,
           children: [
+            // Transparent Box Wrapper with Heavy Shadow
+            Positioned(
+              top: -165,
+              bottom: -10,
+              left: -10,
+              right: -10,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.01), // Transparent but hittable
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 12,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             // Progress card
             Transform.scale(
               scale: _progressScaleAnimation.value,
@@ -204,13 +272,6 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                         color: DesignTokens.textDisabled.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: DesignTokens.accentSolid.withValues(alpha: 0.1),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
                     ),
                     child: Row(
                       children: [
@@ -307,34 +368,11 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                   opacity: _pandaController,
                   child: Transform.scale(
                     scale: breathingScale * 0.88,
-                    child: Stack(
-                      children: [
-                        // Subtle drop shadow for the character
-                        Transform.translate(
-                          offset: const Offset(10, 10),
-                          child: ImageFiltered(
-                            imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                            child: ColorFiltered(
-                              colorFilter: ColorFilter.mode(
-                                Colors.black.withValues(alpha: 0.35),
-                                BlendMode.srcIn,
-                              ),
-                              child: Image.asset(
-                                'assets/images/Screenshot_2026-01-11_at_2.43.01_PM-removebg-preview-2.png',
-                                width: screenWidth * 0.7,
-                                height: screenWidth * 0.7,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Image.asset(
-                          'assets/images/Screenshot_2026-01-11_at_2.43.01_PM-removebg-preview-2.png',
-                          width: screenWidth * 0.7,
-                          height: screenWidth * 0.7,
-                          fit: BoxFit.contain,
-                        ),
-                      ],
+                    child: Image.asset(
+                      'assets/images/Screenshot_2026-01-11_at_2.43.01_PM-removebg-preview-2.png',
+                      width: screenWidth * 0.7,
+                      height: screenWidth * 0.7,
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),
@@ -344,7 +382,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
             // Centered "Hello STAR!" - Fitted perfectly in the gap
             Positioned(
               left: 8,
-              top: -115, // Lowered to stay within the upper boundary
+              top: -125, // Moved down by 40 pixels
               width: screenWidth * 0.6,
               height: 115, // Matched to the gap size
               child: FadeTransition(
@@ -361,16 +399,6 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                         height: 0.8,
                         color: DesignTokens.textPrimary,
                         letterSpacing: 3.5, // Increased horizontally
-                        shadows: [
-                          Shadow(
-                            color: DesignTokens.primarySolid.withValues(alpha: 0.4),
-                            offset: const Offset(1.5, 1.5),
-                          ),
-                          Shadow(
-                            color: DesignTokens.secondarySolid.withValues(alpha: 0.3),
-                            offset: const Offset(3, 3),
-                          ),
-                        ],
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -382,16 +410,6 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                         height: 0.8,
                         color: DesignTokens.textPrimary,
                         letterSpacing: 0.0,
-                        shadows: [
-                          Shadow(
-                            color: DesignTokens.primarySolid.withValues(alpha: 0.4),
-                            offset: const Offset(1.5, 1.5),
-                          ),
-                          Shadow(
-                            color: DesignTokens.secondarySolid.withValues(alpha: 0.3),
-                            offset: const Offset(3, 3),
-                          ),
-                        ],
                       ),
                     ),
                   ],
@@ -427,13 +445,6 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
               width: double.infinity,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5),
-                boxShadow: [
-                  BoxShadow(
-                    color: gradient.colors[0].withValues(alpha: 0.4),
-                    blurRadius: 12,
-                    spreadRadius: 0,
-                  ),
-                ],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(5),
