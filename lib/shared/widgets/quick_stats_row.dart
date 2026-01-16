@@ -30,10 +30,9 @@ class QuickStatsRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           _StatPill(
-            icon: Icons.menu_book_rounded,
-            value: lessonsCompleted,
-            label: 'Lessons',
-            gradientColors: const [Color(0xFFA9FF68), Color(0xFF4AE56B)],
+            subtitle: 'Points',
+            gradientColors: const [Color(0xFF5F8724), Color(0xFF4A6A1C)],
+            icon: Icons.flash_on_rounded,
           ),
           const SizedBox(width: 12),
           _StatPill(

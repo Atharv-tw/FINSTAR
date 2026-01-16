@@ -22,26 +22,26 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> {
     {
       'title': 'Money Basics',
       'moduleId': 'money_basics',
-      'color': const Color(0xFF9BAD50), // Matcha Green
-      'image': 'assets/images/money_basics_panda.png',
+      'color': const Color(0xFF5F8724), // Brand Green
+      'icon': Icons.savings_rounded,
     },
     {
       'title': 'Earning & Career',
       'moduleId': 'earning_career',
       'color': const Color(0xFFB6CFE4), // Periwinkle
-      'image': 'assets/images/earning_career_latest.png',
+      'icon': Icons.work_rounded,
     },
     {
       'title': 'Investing & Growth',
       'moduleId': 'investing',
       'color': const Color(0xFFE8D4BA), // Warm Beige
-      'image': 'assets/images/investing_growth_floating.png',
+      'icon': Icons.trending_up_rounded,
     },
     {
       'title': 'Banking & Institutes',
       'moduleId': 'banking',
       'color': const Color(0xFF393027), // Dark Cocoa
-      'image': 'assets/images/bankkk.png',
+      'icon': Icons.account_balance_rounded,
     },
   ];
 
@@ -141,7 +141,7 @@ class _ModuleSquareTileState extends State<_ModuleSquareTile> with SingleTickerP
   Widget build(BuildContext context) {
     final color = widget.module['color'] as Color;
     final title = widget.module['title'] as String;
-    final imagePath = widget.module['image'] as String;
+    final iconData = widget.module['icon'] as IconData;
     
     // Determine text color based on background luminance or specific design choice
     // For our palette: 
@@ -198,9 +198,10 @@ class _ModuleSquareTileState extends State<_ModuleSquareTile> with SingleTickerP
                     Expanded(
                       flex: 3,
                       child: Center(
-                        child: Image.asset(
-                          imagePath,
-                          fit: BoxFit.contain,
+                        child: Icon(
+                          iconData,
+                          size: 48,
+                          color: textColor,
                         ),
                       ),
                     ),
