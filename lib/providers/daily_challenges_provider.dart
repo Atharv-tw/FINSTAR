@@ -105,7 +105,7 @@ final challengeTemplates = [
   },
   {
     'type': ChallengeType.completeLesson,
-    'title': 'Knowledge Quest',
+    'title': 'Knowledge Challenge',
     'description': 'Complete 2 lessons today',
     'iconPath': 'assets/icons/challenge_lessons.png',
     'targetValue': 2,

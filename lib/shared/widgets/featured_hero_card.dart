@@ -12,7 +12,7 @@ class FeaturedHeroCard extends StatelessWidget {
 
   const FeaturedHeroCard({
     super.key,
-    this.title = 'Fun Quest',
+    this.title = 'Quick Challenge',
     this.subtitle = 'Complete today\'s quiz to earn bonus XP!',
     this.onTap,
   });
