@@ -209,7 +209,7 @@ class UserData {
       title: 'Top 10 Player',
       description: 'Reach the top 10 on leaderboard',
       icon: Icons.stars,
-      color: const Color(0xFF6BCB77),
+      color: const Color(0xFF5F8724),
       isUnlocked: false,
     ),
     Achievement(

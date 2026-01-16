@@ -144,7 +144,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                           // Progress Section with Panda
                           _buildProgressWithPandaSection(screenWidth, userData),
 
-                          const SizedBox(height: 33),
+                          const SizedBox(height: 31),
 
                           // Featured Hero Card
                           FeaturedHeroCard(
@@ -392,24 +392,23 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hello',
-                      style: GoogleFonts.pixelifySans(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        height: 0.8,
+                      'HELLO,',
+                      style: GoogleFonts.openSans(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
                         color: DesignTokens.textPrimary,
-                        letterSpacing: 3.5, // Increased horizontally
+                        letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
                       'STAR!',
-                      style: GoogleFonts.pixelifySans(
-                        fontSize: 66,
-                        fontWeight: FontWeight.bold,
-                        height: 0.8,
+                      style: GoogleFonts.openSans(
+                        fontSize: 60,
+                        fontWeight: FontWeight.w800,
+                        height: 1.0,
                         color: DesignTokens.textPrimary,
-                        letterSpacing: 0.0,
+                        letterSpacing: -1.0,
                       ),
                     ),
                   ],

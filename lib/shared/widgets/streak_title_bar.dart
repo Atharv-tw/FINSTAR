@@ -83,9 +83,9 @@ class _StreakTitleBarState extends State<StreakTitleBar>
       return StreakTitle(
         title: 'Savings Star',
         emoji: '⭐',
-        color: const Color(0xFF2ECC71), // Green
+        color: const Color(0xFF5F8724), // Brand Green
         gradient: const LinearGradient(
-          colors: [Color(0xFF2ECC71), Color(0xFF27AE60)],
+          colors: [Color(0xFF5F8724), Color(0xFF4A6A1C)],
         ),
       );
     } else if (widget.streakDays >= 7) {
@@ -109,7 +109,7 @@ class _StreakTitleBarState extends State<StreakTitleBar>
     } else {
       return StreakTitle(
         title: 'Beginner',
-        emoji: '⭐',
+        emoji: '',
         color: const Color(0xFF95A5A6), // Gray
         gradient: const LinearGradient(
           colors: [Color(0xFF95A5A6), Color(0xFF7F8C8D)],
@@ -142,23 +142,31 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                 // User Profile Button (Replaces "0" streak counter)
                 GestureDetector(
                   onTap: () => context.push('/profile'),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF9BAD50), // Matcha Green border
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF9BAD50).withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                  child: AnimatedBuilder(
+                    animation: _glowController,
+                    builder: (context, child) {
+                      return Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF5F8724), // Brand Green border
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF5F8724).withValues(
+                                alpha: 0.1,
+                              ),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                        child: child,
+                      );
+                    },
                     child: CircleAvatar(
                       backgroundColor: const Color(0xFFF3F3ED),
                       backgroundImage: widget.userPhotoUrl != null
@@ -185,14 +193,16 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        streakTitle.emoji,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          height: 1,
+                      if (streakTitle.emoji.isNotEmpty) ...[
+                        Text(
+                          streakTitle.emoji,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
+                        const SizedBox(width: 8),
+                      ],
                       Text(
                         streakTitle.title,
                         style: const TextStyle(

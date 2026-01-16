@@ -287,12 +287,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             fontSize: 13,
                           ),
                         ),
-                        GestureDetector(
+                          GestureDetector(
                           onTap: () => context.go('/signup'),
                           child: Text(
                             'Create Account',
                             style: TextStyle(
-                              color: const Color(0xFF4AE56B), // Fresh green accent
+                              color: const Color(0xFF5F8724), // Brand green
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
                             ),
