@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/design_tokens.dart';
 
 /// Streak-based title bar that displays user achievement level
 class StreakTitleBar extends StatefulWidget {
@@ -8,6 +9,7 @@ class StreakTitleBar extends StatefulWidget {
   final String? userPhotoUrl;
   final int currentXp;
   final int nextLevelXp;
+  final String displayName;
 
   const StreakTitleBar({
     super.key,
@@ -15,6 +17,7 @@ class StreakTitleBar extends StatefulWidget {
     this.userPhotoUrl,
     this.currentXp = 0,
     this.nextLevelXp = 1000,
+    required this.displayName,
   });
 
   @override
@@ -58,7 +61,7 @@ class _StreakTitleBarState extends State<StreakTitleBar>
         emoji: '👑',
         color: const Color(0xFFFFD700), // Gold
         gradient: const LinearGradient(
-          colors: [Color(0xFFFFD700), Color(0xFFFFAA00)],
+          colors: [Color(0xFFFFD700), Color(0xFFFFCC00)],
         ),
       );
     } else if (widget.streakDays >= 60) {
@@ -110,9 +113,9 @@ class _StreakTitleBarState extends State<StreakTitleBar>
       return StreakTitle(
         title: 'Beginner',
         emoji: '',
-        color: const Color(0xFF95A5A6), // Gray
-        gradient: const LinearGradient(
-          colors: [Color(0xFF95A5A6), Color(0xFF7F8C8D)],
+        color: const Color(0xFFB7D35E), // Light Green Tint
+        gradient: LinearGradient(
+          colors: [const Color(0xFFB7D35E), DesignTokens.primaryStart],
         ),
       );
     }
@@ -133,50 +136,73 @@ class _StreakTitleBarState extends State<StreakTitleBar>
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 4.0),
-            const SizedBox(height: 6),
-            // Top row: User Profile (Left) & Title/Emoji (Right)
+            const SizedBox(height: 6),            // Top row: User Profile (Left) & Title/Emoji (Right)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // User Profile Button (Replaces "0" streak counter)
-                GestureDetector(
-                  onTap: () => context.push('/profile'),
-                  child: AnimatedBuilder(
-                    animation: _glowController,
-                    builder: (context, child) {
-                      return Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF5F8724), // Brand Green border
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF5F8724).withValues(
-                                alpha: 0.1,
+                Row(
+                  children: [
+                    // User Profile Button
+                    GestureDetector(
+                      onTap: () => context.push('/profile'),
+                      child: AnimatedBuilder(
+                        animation: _glowController,
+                        builder: (context, child) {
+                          return Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: const Color(0xFF5F8724), // Brand Green border
+                                width: 1.5,
                               ),
-                              blurRadius: 8,
-                              spreadRadius: 2,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF5F8724).withOpacity(
+                                    0.1,
+                                  ),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
+                                ),
+                              ],
                             ),
-                          ],
+                            child: child,
+                          );
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: const Color(0xFFF3F3ED),
+                          backgroundImage: widget.userPhotoUrl != null
+                              ? NetworkImage(widget.userPhotoUrl!)
+                              : null,
+                          child: widget.userPhotoUrl == null
+                              ? const Icon(Icons.person, color: Color(0xFF393027))
+                              : null,
                         ),
-                        child: child,
-                      );
-                    },
-                    child: CircleAvatar(
-                      backgroundColor: const Color(0xFFF3F3ED),
-                      backgroundImage: widget.userPhotoUrl != null
-                          ? NetworkImage(widget.userPhotoUrl!)
-                          : null,
-                      child: widget.userPhotoUrl == null
-                          ? const Icon(Icons.person, color: Color(0xFF393027))
-                          : null,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Hello,',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: DesignTokens.textSecondary,
+                          ),
+                        ),
+                        Text(
+                          widget.displayName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
 
                 // Title and emoji (right)
@@ -184,9 +210,10 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: const Color(0xFF393027).withValues(alpha: 0.04),
+                    color: streakTitle.color.withOpacity(0.9), // Use streak title color
+                    boxShadow: DesignTokens.elevation1(), // Add shadow
                     border: Border.all(
-                      color: const Color(0xFF393027).withValues(alpha: 0.08),
+                      color: streakTitle.color.withOpacity(0.5),
                       width: 1.0,
                     ),
                   ),

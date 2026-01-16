@@ -7,9 +7,9 @@ class DesignTokens {
   // ===== COLORS =====
 
   // Primary
-  static const Color primaryStart = Color(0xFF5F8724);
-  static const Color primaryEnd = Color(0xFF4A6A1C);
-  static const Color primarySolid = Color(0xFF5F8724);
+  static const Color primaryStart = Color(0xFF9BAD50);
+  static const Color primaryEnd = Color(0xFF829440);
+  static const Color primarySolid = Color(0xFF9BAD50);
 
   // Secondary
   static const Color secondaryStart = Color(0xFFB6CFE4);
