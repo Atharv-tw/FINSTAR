@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_provider.dart';
+import '../data/learning_modules_data.dart';
 
 /// Learning progress model
 class LessonProgress {
@@ -116,12 +117,36 @@ final moduleProgressProvider = Provider.family<double, String>((ref, moduleId) {
           .where((p) => p.moduleId == moduleId && p.completed)
           .length;
 
-      // TODO: Get total lessons from module data
-      // For now, assume 5 lessons per module
-      const totalLessons = 5;
+      // Get total lessons from module data
+      final totalLessons = ref.read(moduleLessonCountProvider(moduleId));
+      if (totalLessons == 0) return 0.0;
       return completedCount / totalLessons;
     },
     loading: () => 0.0,
     error: (_, __) => 0.0,
+  );
+});
+
+/// Provider for getting lesson count of a module
+final moduleLessonCountProvider = Provider.family<int, String>((ref, moduleId) {
+  try {
+    final module = LearningModulesData.getModuleById(moduleId);
+    return module.lessons.length;
+  } catch (e) {
+    return 0;
+  }
+});
+
+/// Provider for checking if a specific lesson is completed
+final isLessonCompletedProvider = Provider.family<bool, ({String moduleId, String lessonId})>((ref, params) {
+  final progress = ref.watch(learningProgressProvider);
+
+  return progress.when(
+    data: (progressMap) {
+      final key = '${params.moduleId}_${params.lessonId}';
+      return progressMap.containsKey(key) && progressMap[key]!.completed;
+    },
+    loading: () => false,
+    error: (_, __) => false,
   );
 });

@@ -1,12 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
 import '../../models/learning_module.dart';
 import '../../data/learning_modules_data.dart';
+import '../../providers/learning_progress_provider.dart';
 
 /// Lesson Screen - Displays lesson content
-class LessonScreen extends StatefulWidget {
+class LessonScreen extends ConsumerStatefulWidget {
   final String moduleId;
   final String lessonId;
 
@@ -17,10 +19,10 @@ class LessonScreen extends StatefulWidget {
   });
 
   @override
-  State<LessonScreen> createState() => _LessonScreenState();
+  ConsumerState<LessonScreen> createState() => _LessonScreenState();
 }
 
-class _LessonScreenState extends State<LessonScreen> {
+class _LessonScreenState extends ConsumerState<LessonScreen> {
   late LearningModule module;
   late Lesson lesson;
   int currentContentIndex = 0;
@@ -31,6 +33,20 @@ class _LessonScreenState extends State<LessonScreen> {
     super.initState();
     module = LearningModulesData.getModuleById(widget.moduleId);
     lesson = module.lessons.firstWhere((l) => l.id == widget.lessonId);
+
+    // Check if lesson is already completed from Firebase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final progressAsync = ref.read(learningProgressProvider);
+      progressAsync.whenData((progressMap) {
+        final key = '${widget.moduleId}_${widget.lessonId}';
+        if (progressMap.containsKey(key) && progressMap[key]!.completed) {
+          setState(() {
+            isCompleted = true;
+            lesson.isCompleted = true;
+          });
+        }
+      });
+    });
   }
 
   void _nextContent() {
@@ -51,18 +67,32 @@ class _LessonScreenState extends State<LessonScreen> {
     }
   }
 
-  void _completeLesson() {
+  void _completeLesson() async {
     setState(() {
       lesson.isCompleted = true;
       isCompleted = true;
     });
 
+    // Save completion to Firebase and award XP
+    try {
+      final completeLesson = ref.read(completeLessonProvider);
+      await completeLesson(
+        moduleId: widget.moduleId,
+        lessonId: widget.lessonId,
+        xpReward: lesson.xpReward,
+      );
+    } catch (e) {
+      print('Error saving lesson completion: $e');
+    }
+
     // Show completion dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => _buildCompletionDialog(),
-    );
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildCompletionDialog(),
+      );
+    }
   }
 
   @override
