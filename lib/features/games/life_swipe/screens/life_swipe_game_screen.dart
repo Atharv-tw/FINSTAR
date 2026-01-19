@@ -1006,7 +1006,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                           gradient: LinearGradient(
                             colors: dragDistance > 0
                                 ? [const Color(0xFFFF6B6B), const Color(0xFFE74C3C)]
-                                : [const Color(0xFF63E6BE), const Color(0xFF2ECC71)],
+                                : [const Color(0xFF63E6BE), const Color(0xFF5F8724)],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
@@ -1049,7 +1049,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
           _buildActionButton(
             icon: Icons.close,
             gradient: const LinearGradient(
-              colors: [Color(0xFF63E6BE), Color(0xFF2ECC71)],
+              colors: [Color(0xFF63E6BE), Color(0xFF5F8724)],
             ),
             onPressed: () => _handleSwipe(false),
           ),
@@ -1110,7 +1110,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       case ScenarioCategory.social:
         return const Color(0xFF3498DB);
       case ScenarioCategory.education:
-        return const Color(0xFF2ECC71);
+        return const Color(0xFF5F8724);
       case ScenarioCategory.fashion:
         return const Color(0xFFE91E63);
       case ScenarioCategory.tech:

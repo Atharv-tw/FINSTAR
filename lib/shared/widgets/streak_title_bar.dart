@@ -5,10 +5,16 @@ import 'package:go_router/go_router.dart';
 /// Streak-based title bar that displays user achievement level
 class StreakTitleBar extends StatefulWidget {
   final int streakDays;
+  final String? userPhotoUrl;
+  final int currentXp;
+  final int nextLevelXp;
 
   const StreakTitleBar({
     super.key,
     this.streakDays = 0,
+    this.userPhotoUrl,
+    this.currentXp = 0,
+    this.nextLevelXp = 1000,
   });
 
   @override
@@ -77,9 +83,9 @@ class _StreakTitleBarState extends State<StreakTitleBar>
       return StreakTitle(
         title: 'Savings Star',
         emoji: '⭐',
-        color: const Color(0xFF2ECC71), // Green
+        color: const Color(0xFF5F8724), // Brand Green
         gradient: const LinearGradient(
-          colors: [Color(0xFF2ECC71), Color(0xFF27AE60)],
+          colors: [Color(0xFF5F8724), Color(0xFF4A6A1C)],
         ),
       );
     } else if (widget.streakDays >= 7) {
@@ -103,7 +109,7 @@ class _StreakTitleBarState extends State<StreakTitleBar>
     } else {
       return StreakTitle(
         title: 'Beginner',
-        emoji: '🔰',
+        emoji: '',
         color: const Color(0xFF95A5A6), // Gray
         gradient: const LinearGradient(
           colors: [Color(0xFF95A5A6), Color(0xFF7F8C8D)],
@@ -112,232 +118,110 @@ class _StreakTitleBarState extends State<StreakTitleBar>
     }
   }
 
-  /// Get next milestone info
-  Map<String, dynamic> _getNextMilestone() {
-    if (widget.streakDays >= 90) {
-      return {'days': 90, 'next': 90, 'title': 'Max Level!'};
-    } else if (widget.streakDays >= 60) {
-      return {'days': 90 - widget.streakDays, 'next': 90, 'title': 'Finance Pro'};
-    } else if (widget.streakDays >= 30) {
-      return {'days': 60 - widget.streakDays, 'next': 60, 'title': 'Money Master'};
-    } else if (widget.streakDays >= 14) {
-      return {'days': 30 - widget.streakDays, 'next': 30, 'title': 'Budget Boss'};
-    } else if (widget.streakDays >= 7) {
-      return {'days': 14 - widget.streakDays, 'next': 14, 'title': 'Savings Star'};
-    } else if (widget.streakDays >= 3) {
-      return {'days': 7 - widget.streakDays, 'next': 7, 'title': 'Smart Spender'};
-    } else {
-      return {'days': 3 - widget.streakDays, 'next': 3, 'title': 'Rookie Earner'};
-    }
-  }
-
-  double _getProgressToNextLevel() {
-    final milestones = [0, 3, 7, 14, 30, 60, 90];
-    int currentLevel = 0;
-
-    for (int i = 0; i < milestones.length - 1; i++) {
-      if (widget.streakDays >= milestones[i] && widget.streakDays < milestones[i + 1]) {
-        currentLevel = i;
-        break;
-      }
-      if (widget.streakDays >= milestones[milestones.length - 1]) {
-        return 1.0; // Max level
-      }
-    }
-
-    final currentMilestone = milestones[currentLevel];
-    final nextMilestone = milestones[currentLevel + 1];
-    final progress = (widget.streakDays - currentMilestone) / (nextMilestone - currentMilestone);
-
-    return progress.clamp(0.0, 1.0);
-  }
-
   @override
   Widget build(BuildContext context) {
     final streakTitle = _getStreakTitle();
-    final nextMilestone = _getNextMilestone();
-    final progress = _getProgressToNextLevel();
 
-    return AnimatedBuilder(
-      animation: _glowController,
-      builder: (context, child) {
-        final glowOpacity = 0.3 + (_glowController.value * 0.2);
-
-        return GestureDetector(
-          onTap: () => context.push('/streak-detail', extra: widget.streakDays),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(24),
-              bottomRight: Radius.circular(24),
-            ),
-            child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    streakTitle.color.withValues(alpha: 0.35),
-                    streakTitle.color.withValues(alpha: 0.25),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-                border: Border.all(
-                  color: streakTitle.color.withValues(alpha: 0.4),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                  BoxShadow(
-                    color: streakTitle.color.withValues(alpha: glowOpacity),
-                    blurRadius: 24,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Top row: Flaming streak counter on left, Title and emoji on right
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Streak counter - Flaming circle animation (left)
-                      TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0.0, end: 1.0),
-                        duration: const Duration(milliseconds: 1000),
-                        curve: Curves.elasticOut,
-                        builder: (context, value, child) {
-                          return Transform.scale(
-                            scale: value,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Outer flame glow
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: RadialGradient(
-                                      colors: [
-                                        const Color(0xFFFF6B4A).withValues(alpha: 0.3),
-                                        const Color(0xFFFF6B4A).withValues(alpha: 0.1),
-                                        Colors.transparent,
-                                      ],
-                                      stops: const [0.0, 0.5, 1.0],
-                                    ),
-                                  ),
-                                ),
-                                // Main circle with flame border
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFFFF6B4A),
-                                        Color(0xFFFF8C00),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFFFF6B4A).withValues(alpha: 0.5),
-                                        blurRadius: 8,
-                                        spreadRadius: 1,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '${widget.streakDays}',
-                                      style: const TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black45,
-                                            blurRadius: 2,
-                                            offset: Offset(0, 1),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-
-                      // Title and emoji (right)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    return Container(
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFFFAFAF7),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 4.0),
+            const SizedBox(height: 6),
+            // Top row: User Profile (Left) & Title/Emoji (Right)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // User Profile Button (Replaces "0" streak counter)
+                GestureDetector(
+                  onTap: () => context.push('/profile'),
+                  child: AnimatedBuilder(
+                    animation: _glowController,
+                    builder: (context, child) {
+                      return Container(
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
+                          shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            width: 1.0,
+                            color: const Color(0xFF5F8724), // Brand Green border
+                            width: 1.5,
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              streakTitle.emoji,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                height: 1,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF5F8724).withValues(
+                                alpha: 0.1,
                               ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              streakTitle.title,
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white.withValues(alpha: 0.8),
-                                height: 1,
-                                letterSpacing: 0.2,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ],
-                              ),
+                              blurRadius: 8,
+                              spreadRadius: 2,
                             ),
                           ],
+                        ),
+                        child: child,
+                      );
+                    },
+                    child: CircleAvatar(
+                      backgroundColor: const Color(0xFFF3F3ED),
+                      backgroundImage: widget.userPhotoUrl != null
+                          ? NetworkImage(widget.userPhotoUrl!)
+                          : null,
+                      child: widget.userPhotoUrl == null
+                          ? const Icon(Icons.person, color: Color(0xFF393027))
+                          : null,
+                    ),
+                  ),
+                ),
+
+                // Title and emoji (right)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFF393027).withValues(alpha: 0.04),
+                    border: Border.all(
+                      color: const Color(0xFF393027).withValues(alpha: 0.08),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (streakTitle.emoji.isNotEmpty) ...[
+                        Text(
+                          streakTitle.emoji,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        streakTitle.title,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF393027),
+                          height: 1,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ],
                   ),
-
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }

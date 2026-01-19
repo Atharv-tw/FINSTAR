@@ -42,136 +42,152 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
-        ),
-        child: Stack(
-          children: [
-            SafeArea(
-              child: Column(
-                children: [
-                  // Header
-                  _buildHeader(),
-
-                  // Top 3 Podium
-                  _buildPodium(),
-
-                  const SizedBox(height: 24),
-
-                  // Leaderboard List
-                  Expanded(
-                    child: _buildLeaderboardList(),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          // Background Gradient (Deep Atmospheric Teal)
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF0F2027),
+                    Color(0xFF203A43),
+                    Color(0xFF2C5364),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                // Header
+                _buildHeader(),
+
+                // Top 3 Podium
+                _buildPodium(),
+
+                // Leaderboard List
+                Expanded(
+                  child: _buildLeaderboardList(),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          const Flexible(
-            child: Text(
-              'Leaderboard',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: DesignTokens.textDarkPrimary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          // Centered Title
+          const Text(
+            'Leaderboard',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Helvetica',
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(width: 12),
-          // Friends button
-          GestureDetector(
-            onTap: () => context.push('/friends'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
-                ),
+
+          // Left and Right Buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Rank display (Left)
+              Consumer(
+                builder: (context, ref, child) {
+                  final userRank = ref.watch(currentUserRankProvider);
+                  return userRank.when(
+                    data: (rank) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        gradient: DesignTokens.primaryGradient,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.emoji_events, color: Colors.white, size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            '#${rank ?? "?"}',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    loading: () => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        gradient: DesignTokens.primaryGradient,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.emoji_events, color: Colors.white, size: 12),
+                          SizedBox(width: 4),
+                          SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                    error: (_, __) => const SizedBox(),
+                  );
+                },
               ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.people, color: Colors.white, size: 18),
-                  SizedBox(width: 6),
-                  Text(
-                    'Friends',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+
+              // Friends button (Right)
+              GestureDetector(
+                onTap: () => context.push('/friends'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Consumer(
-            builder: (context, ref, child) {
-              final userRank = ref.watch(currentUserRankProvider);
-              return userRank.when(
-                data: (rank) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    gradient: DesignTokens.primaryGradient,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.emoji_events, color: Colors.white, size: 16),
-                      const SizedBox(width: 6),
+                      Icon(Icons.people, color: Colors.white, size: 12),
+                      SizedBox(width: 4),
                       Text(
-                        'Rank #${rank ?? "?"}',
-                        style: const TextStyle(
+                        'Friends',
+                        style: TextStyle(
                           fontFamily: 'Poppins',
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
                     ],
                   ),
                 ),
-                loading: () => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    gradient: DesignTokens.primaryGradient,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.emoji_events, color: Colors.white, size: 16),
-                      SizedBox(width: 6),
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-                error: (_, __) => const SizedBox(),
-              );
-            },
+              ),
+            ],
           ),
         ],
       ),
@@ -210,13 +226,13 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // 2nd Place
-                _buildPodiumCard(top3[1], 2, 140, value),
+                _buildPodiumCard(top3[1], 2, 110, value),
                 const SizedBox(width: 12),
                 // 1st Place
-                _buildPodiumCard(top3[0], 1, 180, value),
+                _buildPodiumCard(top3[0], 1, 150, value),
                 const SizedBox(width: 12),
                 // 3rd Place
-                _buildPodiumCard(top3[2], 3, 120, value),
+                _buildPodiumCard(top3[2], 3, 90, value),
               ],
             ),
           ),
@@ -387,35 +403,61 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
           );
         }
 
-        return ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          itemCount: remainingEntries.length,
-          itemBuilder: (context, index) {
-            final entry = remainingEntries[index];
-            final isCurrentUser = entry.userId == currentUserId;
-            final delay = index * 0.05;
+        // Animated slide-up for the card container
+        final cardSlideAnimation = Tween<Offset>(
+          begin: const Offset(0, 1),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: _animationController,
+          curve: const Interval(0.1, 1.0, curve: Curves.easeOutCubic),
+        ));
 
-        return AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            final staggerValue =
-                (_animationController.value - delay).clamp(0.0, 1.0);
-            return Transform.translate(
-              offset: Offset(0, 20 * (1 - staggerValue)),
-              child: Opacity(
-                opacity: staggerValue,
-                child: child,
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildLeaderboardCard(entry, isCurrentUser),
+        return SlideTransition(
+          position: cardSlideAnimation,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.9),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.fromLTRB(12, 20, 12, 100),
+              itemCount: remainingEntries.length,
+              itemBuilder: (context, index) {
+                final entry = remainingEntries[index];
+                final isCurrentUser = entry.userId == currentUserId;
+                final delay = index * 0.05;
+
+                return AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    final staggerValue =
+                        (_animationController.value - delay).clamp(0.0, 1.0);
+                    return Transform.translate(
+                      offset: Offset(0, 20 * (1 - staggerValue)),
+                      child: Opacity(
+                        opacity: staggerValue,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildLeaderboardCard(entry, isCurrentUser),
+                  ),
+                );
+              },
+            ),
           ),
         );
-      },
-    );
       },
       loading: () => const Center(
         child: Padding(
@@ -436,25 +478,28 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   }
 
   Widget _buildLeaderboardCard(LeaderboardEntry entry, bool isCurrentUser) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isCurrentUser
-                ? DesignTokens.primarySolid.withValues(alpha: 0.15)
-                : Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isCurrentUser
-                  ? DesignTokens.primarySolid.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.1),
-              width: isCurrentUser ? 2 : 1,
-            ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isCurrentUser
+            ? DesignTokens.primarySolid.withValues(alpha: 0.3)
+            : const Color(0xFF4A90E2).withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isCurrentUser
+              ? DesignTokens.primarySolid.withValues(alpha: 0.6)
+              : Colors.white.withValues(alpha: 0.15),
+          width: isCurrentUser ? 2 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          child: Row(
+        ],
+      ),
+      child: Row(
             children: [
               // Rank
               SizedBox(
@@ -594,8 +639,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }

@@ -125,12 +125,17 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Streak Title Bar at top
-                    StreakTitleBar(streakDays: userData.streakDays),
+                    // Scrollable Top Bar
+                    StreakTitleBar(
+                      streakDays: userData.streakDays,
+                      userPhotoUrl: userData.avatarUrl,
+                      currentXp: userData.xp,
+                      nextLevelXp: userData.level * 1000,
+                    ),
 
-                    const SizedBox(height: 118),
+                    const SizedBox(height: 176.5),
 
-                    // Padded Content
+                    // Content
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
@@ -139,7 +144,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                           // Progress Section with Panda
                           _buildProgressWithPandaSection(screenWidth, userData),
 
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 31),
 
                           // Featured Hero Card
                           FeaturedHeroCard(
@@ -148,6 +153,48 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                         ],
                       ),
                     ),
+
+                    const SizedBox(height: 35),
+
+                    // Section Header: LEARNING MODULES
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 26,
+                                decoration: BoxDecoration(
+                                  color: DesignTokens.primarySolid,
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'LEARNING MODULES',
+                                style: GoogleFonts.inter(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: DesignTokens.textPrimary,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Divider(
+                            color: DesignTokens.textPrimary.withValues(alpha: 0.08),
+                            thickness: 1,
+                            height: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
 
                     // Learning Categories - Full Width
                     FinanceTilesSection(scrollController: _scrollController),
@@ -158,12 +205,12 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
               );
         },
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Colors.white),
+          child: CircularProgressIndicator(color: DesignTokens.primarySolid),
         ),
         error: (error, stack) => Center(
           child: Text(
             'Error loading profile: $error',
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: DesignTokens.error),
           ),
         ),
       ),
@@ -183,6 +230,32 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
         return Stack(
           clipBehavior: Clip.none,
           children: [
+            // Transparent Box Wrapper with Heavy Shadow
+            Positioned(
+              top: -165,
+              bottom: -10,
+              left: -10,
+              right: -10,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.01), // Transparent but hittable
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 12,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             // Progress card
             Transform.scale(
               scale: _progressScaleAnimation.value,
@@ -193,23 +266,12 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 26, 73, 128).withValues(alpha: 0.35),
+                      color: DesignTokens.surfaceCard,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFF4A90E2).withValues(alpha: 0.7),
+                        color: DesignTokens.textDisabled.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.25),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                        BoxShadow(
-                          color: const Color(0xFF4A90E2).withValues(alpha: 0.15),
-                          blurRadius: 24,
-                        ),
-                      ],
                     ),
                     child: Row(
                       children: [
@@ -223,67 +285,70 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
 
                         const SizedBox(width: 12),
 
-                        // Progress bars
+                        // Progress bars - POP UP animation matching panda
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Level progress
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Level Progress',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
+                          child: Transform.translate(
+                            offset: Offset(0, _pandaSlideAnimation.value),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Level progress
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Level Progress',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: DesignTokens.textPrimary,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '${userData.xp} / $xpForNextLevel XP',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.white,
+                                    Text(
+                                      '${userData.xp} / $xpForNextLevel XP',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w400,
+                                        color: DesignTokens.textSecondary,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              _buildProgressBar(userData.xp / xpForNextLevel, DesignTokens.primaryGradient),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                _buildProgressBar(userData.xp / xpForNextLevel, DesignTokens.primaryGradient),
 
-                              const SizedBox(height: 10),
+                                const SizedBox(height: 10),
 
-                              // Study progress
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Study Progress',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
+                                // Study progress
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Study Progress',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: DesignTokens.textPrimary,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '${(studyProgress * 100).toInt()}%',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.white,
+                                    Text(
+                                      '${(studyProgress * 100).toInt()}%',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w400,
+                                        color: DesignTokens.textSecondary,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              _buildProgressBar(studyProgress, DesignTokens.secondaryGradient),
-                            ],
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                _buildProgressBar(studyProgress, DesignTokens.secondaryGradient),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -295,16 +360,16 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
 
             // Panda sitting on right top corner
             Positioned(
-              right: -70,
-              top: -169,
+              right: -26,
+              top: -186,
               child: Transform.translate(
                 offset: Offset(0, _pandaSlideAnimation.value),
                 child: FadeTransition(
                   opacity: _pandaController,
                   child: Transform.scale(
-                    scale: breathingScale,
+                    scale: breathingScale * 0.88,
                     child: Image.asset(
-                      'assets/images/pandahome.png',
+                      'assets/images/Screenshot_2026-01-11_at_2.43.01_PM-removebg-preview-2.png',
                       width: screenWidth * 0.7,
                       height: screenWidth * 0.7,
                       fit: BoxFit.contain,
@@ -317,7 +382,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
             // Centered "Hello STAR!" - Fitted perfectly in the gap
             Positioned(
               left: 8,
-              top: -115, // Lowered to stay within the upper boundary
+              top: -125, // Moved down by 40 pixels
               width: screenWidth * 0.6,
               height: 115, // Matched to the gap size
               child: FadeTransition(
@@ -327,54 +392,23 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hello',
-                      style: GoogleFonts.pixelifySans(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        height: 0.8,
-                        color: Colors.white,
-                        letterSpacing: 3.5, // Increased horizontally
-                        shadows: [
-                          Shadow(
-                            color: const Color(0xFF2E5BFF).withValues(alpha: 0.8),
-                            offset: const Offset(1.5, 1.5),
-                          ),
-                          Shadow(
-                            color: const Color(0xFF00D4FF).withValues(alpha: 0.6),
-                            offset: const Offset(3, 3),
-                          ),
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 3,
-                          ),
-                        ],
+                      'HELLO,',
+                      style: GoogleFonts.openSans(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
+                        color: DesignTokens.textPrimary,
+                        letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
                       'STAR!',
-                      style: GoogleFonts.pixelifySans(
-                        fontSize: 66,
-                        fontWeight: FontWeight.bold,
-                        height: 0.8,
-                        color: Colors.white,
-                        letterSpacing: 0.0,
-                        shadows: [
-                          Shadow(
-                            color: const Color(0xFF2E5BFF).withValues(alpha: 0.8),
-                            offset: const Offset(1.5, 1.5),
-                          ),
-                          Shadow(
-                            color: const Color(0xFF00D4FF).withValues(alpha: 0.6),
-                            offset: const Offset(3, 3),
-                          ),
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            offset: const Offset(4, 4),
-                            blurRadius: 3,
-                          ),
-                        ],
+                      style: GoogleFonts.openSans(
+                        fontSize: 60,
+                        fontWeight: FontWeight.w800,
+                        height: 1.0,
+                        color: DesignTokens.textPrimary,
+                        letterSpacing: -1.0,
                       ),
                     ),
                   ],
@@ -400,7 +434,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
             Container(
               height: 10,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: DesignTokens.accentSolid.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(5),
               ),
             ),
@@ -410,13 +444,6 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
               width: double.infinity,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5),
-                boxShadow: [
-                  BoxShadow(
-                    color: gradient.colors[0].withValues(alpha: 0.4),
-                    blurRadius: 12,
-                    spreadRadius: 0,
-                  ),
-                ],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(5),

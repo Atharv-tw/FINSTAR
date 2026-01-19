@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
 
 /// Featured hero card for daily challenge or recommended content
@@ -11,7 +12,7 @@ class FeaturedHeroCard extends StatelessWidget {
 
   const FeaturedHeroCard({
     super.key,
-    this.title = 'Daily Challenge',
+    this.title = 'Quick Challenge',
     this.subtitle = 'Complete today\'s quiz to earn bonus XP!',
     this.onTap,
   });
@@ -28,68 +29,68 @@ class FeaturedHeroCard extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
-            height: 160,
+            height: 140, // Slightly reduced height
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF2E5BFF).withOpacity(0.3),
-                  const Color(0xFF00D4FF).withOpacity(0.25),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: DesignTokens.primaryGradient,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: const Color(0xFF2E5BFF).withOpacity(0.4),
+                color: DesignTokens.textPrimary.withValues(alpha: 0.1),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-                BoxShadow(
-                  color: const Color(0xFF2E5BFF).withOpacity(0.2),
-                  blurRadius: 24,
+                  color: DesignTokens.primarySolid.withValues(alpha: 0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: Stack(
               children: [
-                // Hero image on right side
+                // Large Star Overlay (Floating effect)
                 Positioned(
-                  right: -20,
-                  bottom: -10,
-                  top: -10,
+                  right: -80,
+                  top: -60,
+                  child: Transform.rotate(
+                    angle: -0.2, // Tilted
+                    child: Icon(
+                      Icons.star_rounded,
+                      size: 300, // Bigger
+                      color: Colors.white.withValues(alpha: 0.15), // Increased opacity for better contrast
+                    ),
+                  ),
+                ),
+
+                // Hero image on right side - SCALED DOWN
+                Positioned(
+                  right: 10,
+                  bottom: -3, // Moved down by 3 pixels
                   child: Image.asset(
                     'assets/images/dailychallengepanda.png',
-                    height: 180,
+                    height: 100,
                     fit: BoxFit.contain,
                   ),
                 ),
                 // Text content on left
                 Positioned(
                   left: 20,
-                  top: 20,
-                  bottom: 20,
+                  top: 12,
                   right: 120,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Title
                       Text(
                         title,
                         style: const TextStyle(
-                          fontFamily: 'Poppins',
+                          fontFamily: 'Helvetica',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: Color(0xFF393027), // Dark Cocoa color
                           height: 1.1,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4), // Reduced from 8
                       // Subtitle
                       Text(
                         subtitle,
@@ -97,37 +98,37 @@ class FeaturedHeroCard extends StatelessWidget {
                           fontFamily: 'Poppins',
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           height: 1.3,
                         ),
-                        maxLines: 3,
+                        maxLines: 2, // Reduced from 3 to save space
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8), // Reduced from 12
                       // CTA button
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                          horizontal: 20,
+                          vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xFF393027), // Dark Cocoa background
+                          borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: const Text(
-                          'Start Now',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
+                        child: Text(
+                          'START NOW',
+                          style: GoogleFonts.inter(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: DesignTokens.primarySolid,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white, // White text
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ),

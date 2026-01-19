@@ -229,7 +229,7 @@ class StreakDetailScreen extends StatelessWidget {
             'Longest Streak',
             '$streakDays',
             Icons.trending_up,
-            const Color(0xFF2ECC71),
+            const Color(0xFF5F8724),
           ),
         ),
         const SizedBox(width: 16),
@@ -455,8 +455,8 @@ class StreakDetailScreen extends StatelessWidget {
       return StreakTitleData(
         title: 'Savings Star',
         emoji: '⭐',
-        color: const Color(0xFF2ECC71),
-        gradientColors: const [Color(0xFF2ECC71), Color(0xFF27AE60)],
+        color: const Color(0xFF5F8724),
+        gradientColors: const [Color(0xFF5F8724), Color(0xFF4A6A1C)],
         daysRequired: 14,
       );
     } else if (streakDays >= 7) {
@@ -512,8 +512,8 @@ class StreakDetailScreen extends StatelessWidget {
       StreakTitleData(
         title: 'Savings Star',
         emoji: '⭐',
-        color: const Color(0xFF2ECC71),
-        gradientColors: const [Color(0xFF2ECC71), Color(0xFF27AE60)],
+        color: const Color(0xFF5F8724),
+        gradientColors: const [Color(0xFF5F8724), Color(0xFF4A6A1C)],
         daysRequired: 14,
       ),
       StreakTitleData(

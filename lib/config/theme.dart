@@ -28,7 +28,7 @@ class AppTheme {
   // Game-specific Colors
   static const Color gamesColor = Color(0xFF00D4FF);
   static const Color quizColor = Color(0xFF9B59B6);
-  static const Color learnColor = Color(0xFF4AE56B);
+  static const Color learnColor = Color(0xFF5F8724);
 
   // Text Colors
   static const Color textPrimary = DesignTokens.textPrimary;

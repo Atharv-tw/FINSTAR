@@ -63,7 +63,7 @@ class Achievement {
       case AchievementType.games:
         return const Color(0xFF9B59B6);
       case AchievementType.learning:
-        return const Color(0xFF6BCB77);
+        return const Color(0xFF5F8724);
       case AchievementType.coins:
         return const Color(0xFFFFD93D);
       case AchievementType.social:

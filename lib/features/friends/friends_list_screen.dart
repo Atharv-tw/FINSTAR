@@ -298,7 +298,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
                         width: 14,
                         height: 14,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6BCB77),
+                          color: const Color(0xFF5F8724),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: Colors.black,
@@ -361,7 +361,7 @@ class _FriendsListScreenState extends State<FriendsListScreen>
                               : Icons.access_time,
                           size: 12,
                           color: isOnline
-                              ? const Color(0xFF6BCB77)
+                              ? const Color(0xFF5F8724)
                               : Colors.white.withValues(alpha: 0.5),
                         ),
                         const SizedBox(width: 6),

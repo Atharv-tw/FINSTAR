@@ -1003,7 +1003,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
       case QuizCategory.budgeting:
         return const Color(0xFF3498DB);
       case QuizCategory.saving:
-        return const Color(0xFF2ECC71);
+        return const Color(0xFF5F8724);
       case QuizCategory.investing:
         return const Color(0xFF9B59B6);
       case QuizCategory.banking:

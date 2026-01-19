@@ -7,42 +7,42 @@ class DesignTokens {
   // ===== COLORS =====
 
   // Primary
-  static const Color primaryStart = Color(0xFF2E5BFF);
-  static const Color primaryEnd = Color(0xFF00D4FF);
-  static const Color primarySolid = Color(0xFF2E5BFF);
+  static const Color primaryStart = Color(0xFF5F8724);
+  static const Color primaryEnd = Color(0xFF4A6A1C);
+  static const Color primarySolid = Color(0xFF5F8724);
 
   // Secondary
-  static const Color secondaryStart = Color(0xFFA9FF68);
-  static const Color secondaryEnd = Color(0xFF4AE56B);
-  static const Color secondarySolid = Color(0xFFA9FF68);
+  static const Color secondaryStart = Color(0xFFB6CFE4);
+  static const Color secondaryEnd = Color(0xFF8BA9C7);
+  static const Color secondarySolid = Color(0xFFB6CFE4);
 
   // Accent
-  static const Color accentStart = Color(0xFFFFD45D);
-  static const Color accentEnd = Color(0xFFFF914D);
-  static const Color accentSolid = Color(0xFFFFD45D);
+  static const Color accentStart = Color(0xFF393027);
+  static const Color accentEnd = Color(0xFF261F1A);
+  static const Color accentSolid = Color(0xFF393027);
 
   // Background
-  static const Color backgroundPrimary = Color(0xFF0B0B0D);
-  static const Color backgroundSecondary = Color(0xFF15151A);
+  static const Color backgroundPrimary = Color(0xFFFAFAF7);
+  static const Color backgroundSecondary = Color(0xFFF3F3ED);
 
   // Beige Background
   static const Color beigeLight = Color(0xFFF5E6D3);
   static const Color beigeDark = Color(0xFFE8D4BA);
 
   // Surface
-  static const Color surfaceCard = Color(0x0B0B0B0D); // rgba(11, 11, 13, 0.7)
-  static const Color surfaceCardLight = Color(0x1AFFFFFF); // rgba(255, 255, 255, 0.1)
-  static const Color surfaceOverlay = Color(0x80000000); // rgba(0, 0, 0, 0.5)
+  static const Color surfaceCard = Color(0xFFFFFFFF);
+  static const Color surfaceCardLight = Color(0xFFFDFCF5);
+  static const Color surfaceOverlay = Color(0x33393027); // rgba(57, 48, 39, 0.2)
 
-  // Text (for dark backgrounds)
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xB3FFFFFF); // rgba(255, 255, 255, 0.7)
-  static const Color textTertiary = Color(0x80FFFFFF); // rgba(255, 255, 255, 0.5)
-  static const Color textDisabled = Color(0x4DFFFFFF); // rgba(255, 255, 255, 0.3)
+  // Text (for light backgrounds)
+  static const Color textPrimary = Color(0xFF393027);
+  static const Color textSecondary = Color(0xFF5C544E);
+  static const Color textTertiary = Color(0xFF8B847F);
+  static const Color textDisabled = Color(0xFFBDB9B6);
 
-  // Text (for light/beige backgrounds)
+  // Text (legacy placeholders if needed)
   static const Color textDarkPrimary = Color(0xFF1A1A1A);
-  static const Color textDarkSecondary = Color(0xFF4A4A4A); // rgba(74, 74, 74, 1)
+  static const Color textDarkSecondary = Color(0xFF4A4A4A);
   static const Color textDarkTertiary = Color(0xFF6B6B6B); // rgba(107, 107, 107, 1)
   static const Color textDarkDisabled = Color(0xFF9E9E9E); // rgba(158, 158, 158, 1)
 
