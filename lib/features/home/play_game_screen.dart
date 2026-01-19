@@ -1,4 +1,5 @@
 import 'dart:ui';
+import '../../shared/widgets/nature_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -91,19 +92,8 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/ 46.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Dark Overlay
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.4),
-            ),
-          ),
+          // Calm Nature Background
+          const NatureBackground(),
 
           // Main scrollable content
           CustomScrollView(
@@ -160,7 +150,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
               xpForNextLevel: _xpForNextLevel,
               level: _userLevel,
               size: 36,
-              levelTextColor: Colors.white,
+              levelTextColor: const Color(0xFF393027),
             ),
 
             // Coin Pill and Shop Button
@@ -204,7 +194,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                       },
                       child: const Icon(
                         Icons.shopping_bag_rounded,
-                        color: Colors.white,
+                        color: const Color(0xFF9BAD50),
                         size: 16,
                       ),
                     ),
@@ -241,11 +231,11 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
                     Positioned(
 
-                      top: 90,
+                      top: 97,
 
-                      left: 8,
+                                            left: 24,
 
-                      right: 8,
+                                            right: 24,
 
                       child: _buildLevelProgressBar(),
 
@@ -261,7 +251,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
           
 
-                                bottom: -70,
+                                bottom: -50,
 
           
 
@@ -369,7 +359,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
                                               'assets/images/Screenshot_2026-01-11_at_2.08.53_PM-removebg-preview.png',
 
-                                              width: 500,
+                                              width: 250,
 
                                               fit: BoxFit.contain,
 
@@ -385,7 +375,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
                                         'assets/images/Screenshot_2026-01-11_at_2.08.53_PM-removebg-preview.png',
 
-                                        width: 500,
+                                        width: 250,
 
                                         fit: BoxFit.contain,
 
@@ -416,125 +406,160 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   Widget _buildLevelProgressBar() {
     final levelProgress = _currentXp / _xpForNextLevel;
 
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 800),
-      curve: Curves.easeOutQuart,
-      builder: (context, animValue, child) {
-        return Opacity(
-          opacity: animValue,
-          child: Transform.translate(
-            offset: Offset(0, (1 - animValue) * -20),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0B0B0D).withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                      BoxShadow(
-                        color: DesignTokens.primaryStart.withValues(alpha: 0.25),
-                        blurRadius: 24,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Level progress label and XP
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Level Progress',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(alpha: 0.9),
-                            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final barWidth = constraints.maxWidth;
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeOutQuart,
+          builder: (context, animValue, child) {
+            return Opacity(
+              opacity: animValue,
+              child: Transform.translate(
+                offset: Offset(0, (1 - animValue) * -20),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      padding: const EdgeInsets.all(12), // Reduced padding
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0B0B0D).withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
-                          Text(
-                            '$_currentXp / $_xpForNextLevel XP',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.white.withValues(alpha: 0.7),
+                          BoxShadow(
+                            color: DesignTokens.primaryStart.withValues(alpha: 0.25),
+                            blurRadius: 24,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Level progress label and XP
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Level Progress',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                              ),
+                              Text(
+                                '$_currentXp / $_xpForNextLevel XP',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16), // Increased spacing
+                          // Progress bar with star
+                          SizedBox(
+                            height: 24, // Increased height for the star
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: levelProgress),
+                              duration: const Duration(milliseconds: 1200),
+                              curve: Curves.easeOutQuart,
+                              builder: (context, value, child) {
+                                return Stack(
+                                  clipBehavior: Clip.none, // Allow star to overflow
+                                  alignment: Alignment.centerLeft,
+                                  children: [
+                                    // Background bar
+                                    Container(
+                                      height: 12, // Bar height
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                    ),
+                                    // Progress bar with glow
+                                    Container(
+                                      height: 12, // Bar height
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(6),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: DesignTokens.primaryStart
+                                                .withValues(alpha: 0.4),
+                                            blurRadius: 8,
+                                            spreadRadius: 0,
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: FractionallySizedBox(
+                                          alignment: Alignment.centerLeft,
+                                          widthFactor: value,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  DesignTokens.primaryStart,
+                                                  DesignTokens.primaryEnd
+                                                ],
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Star slider
+                                    Positioned(
+                                      left: (barWidth * value) - 24, // Position star at the end of progress
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.white.withValues(alpha: 0.5),
+                                              blurRadius: 8,
+                                              spreadRadius: 2,
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Icon(
+                                          Icons.star,
+                                          color: Colors.white,
+                                          size: 24, // Increased size to make it more prominent
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      // Progress bar
-                      TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0.0, end: levelProgress),
-                        duration: const Duration(milliseconds: 1200),
-                        curve: Curves.easeOutQuart,
-                        builder: (context, value, child) {
-                          return Stack(
-                            children: [
-                              // Background bar
-                              Container(
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                              // Progress bar with glow
-                              Container(
-                                height: 10,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: DesignTokens.primaryStart.withValues(alpha: 0.4),
-                                      blurRadius: 8,
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(5),
-                                  child: FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: value,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
-                                        ),
-                                        borderRadius: BorderRadius.circular(5),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -596,7 +621,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     final stackHeight = collapsedHeight + (unfoldProgress * (unfoldedHeight - collapsedHeight));
 
     return Container(
-      padding: const EdgeInsets.only(top: 80, bottom: 24),
+      padding: const EdgeInsets.only(top: 45, bottom: 24),
       child: SizedBox(
         height: stackHeight,
         child: Stack(
