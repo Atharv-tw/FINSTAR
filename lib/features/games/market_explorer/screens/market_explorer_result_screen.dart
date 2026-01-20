@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../core/design_tokens.dart';
 import '../models/market_explorer_models.dart';
-import '../../../../models/game_progress_model.dart';
-import '../../../../services/local_storage_service.dart';
+import '../../../../services/game_logic_service.dart';
+import '../../../../services/supabase_functions_service.dart';
 
 class MarketExplorerResultScreen extends StatefulWidget {
   final SimulationResult result;
@@ -25,6 +25,12 @@ class _MarketExplorerResultScreenState
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+
+  final GameLogicService _gameLogic = GameLogicService();
+  final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
+
+  int _xpEarned = 0;
+  int _coinsEarned = 0;
 
   @override
   void initState() {
@@ -63,39 +69,45 @@ class _MarketExplorerResultScreenState
 
   Future<void> _claimRewards() async {
     try {
-      final storage = LocalStorageService.getInstance();
+      final portfolio = widget.result.portfolio;
 
-      // Add coins and XP rewards
-      await storage.addReward(
-        coins: widget.result.coinsEarned,
-        xp: widget.result.xpEarned,
-      );
+      // Build portfolio data for submission
+      final portfolioData = <String, double>{};
+      for (var holding in portfolio.holdings) {
+        portfolioData[holding.asset.symbol] = holding.currentValue;
+      }
+      portfolioData['cash'] = portfolio.cashBalance;
 
-      // Update game progress
-      final existingProgress = await storage.getGameProgress('market_explorer') as GameProgressModel?;
-      final updatedProgress = existingProgress != null
-          ? GameProgressModel(
-              gameId: existingProgress.gameId,
-              gameName: existingProgress.gameName,
-              highScore: widget.result.score > existingProgress.highScore
-                  ? widget.result.score
-                  : existingProgress.highScore,
-              timesPlayed: existingProgress.timesPlayed + 1,
-              lastPlayed: DateTime.now(),
-              isCompleted: existingProgress.isCompleted,
-              gameData: existingProgress.gameData,
-            )
-          : GameProgressModel(
-              gameId: 'market_explorer',
-              gameName: 'Market Explorer',
-              highScore: widget.result.score,
-              timesPlayed: 1,
-              lastPlayed: DateTime.now(),
-              isCompleted: false,
-              gameData: {},
-            );
+      Map<String, dynamic> result;
 
-      await storage.updateGameProgress(updatedProgress);
+      // Try Supabase Edge Functions first (server-side validation)
+      try {
+        result = await _supabaseService.submitGameWithAchievements(
+          gameType: 'market_explorer',
+          gameData: {
+            'portfolioValue': portfolio.totalValue,
+            'initialValue': portfolio.totalCapital,
+            'portfolio': portfolioData,
+            'decisionsCount': portfolio.eventsOccurred.length,
+          },
+        );
+      } catch (e) {
+        debugPrint('Supabase submission failed, falling back to client-side: $e');
+        // Fallback to client-side logic if Supabase fails
+        result = await _gameLogic.submitMarketExplorer(
+          portfolioValue: portfolio.totalValue,
+          initialValue: portfolio.totalCapital,
+          portfolio: portfolioData,
+          decisionsCount: portfolio.eventsOccurred.length,
+        );
+      }
+
+      if (result['success'] == true && mounted) {
+        setState(() {
+          _xpEarned = result['xpEarned'] ?? widget.result.xpEarned;
+          _coinsEarned = result['coinsEarned'] ?? widget.result.coinsEarned;
+        });
+      }
     } catch (e) {
       debugPrint('Error claiming rewards: $e');
     }
@@ -407,6 +419,10 @@ class _MarketExplorerResultScreenState
   }
 
   Widget _buildRewardsCard() {
+    // Use server-returned values if available, otherwise use calculated fallback
+    final coinsToShow = _coinsEarned > 0 ? _coinsEarned : widget.result.coinsEarned;
+    final xpToShow = _xpEarned > 0 ? _xpEarned : widget.result.xpEarned;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -431,7 +447,7 @@ class _MarketExplorerResultScreenState
             children: [
               _buildRewardItem(
                 Icons.monetization_on,
-                '+${widget.result.coinsEarned}',
+                '+$coinsToShow',
                 'Coins',
               ),
               Container(
@@ -441,7 +457,7 @@ class _MarketExplorerResultScreenState
               ),
               _buildRewardItem(
                 Icons.stars,
-                '+${widget.result.xpEarned}',
+                '+$xpToShow',
                 'XP',
               ),
             ],

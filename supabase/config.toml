@@ -1,0 +1,62 @@
+# Supabase Edge Functions Configuration
+# https://supabase.com/docs/guides/functions
+
+[project]
+id = "your-supabase-project-id"
+
+[api]
+# Port for local development
+port = 54321
+
+[functions]
+# Default function configuration
+[functions.default]
+verify_jwt = false  # We use Firebase Auth, not Supabase Auth
+
+# Individual function configurations
+[functions.submit-life-swipe]
+verify_jwt = false
+
+[functions.submit-budget-blitz]
+verify_jwt = false
+
+[functions.submit-quiz-battle]
+verify_jwt = false
+
+[functions.submit-market-explorer]
+verify_jwt = false
+
+[functions.check-achievements]
+verify_jwt = false
+
+[functions.update-leaderboard]
+verify_jwt = false
+
+[functions.generate-daily-challenges]
+verify_jwt = false
+
+[functions.reset-streaks]
+verify_jwt = false
+
+[functions.daily-checkin]
+verify_jwt = false
+
+[functions.complete-lesson]
+verify_jwt = false
+
+# P2 Functions
+[functions.search-users]
+verify_jwt = false
+
+[functions.send-notification]
+verify_jwt = false
+
+[functions.quiz-matchmaking]
+verify_jwt = false
+
+# Environment variables (set in Supabase Dashboard)
+# Required:
+# - FIREBASE_PROJECT_ID
+# - FIREBASE_CLIENT_EMAIL
+# - FIREBASE_PRIVATE_KEY (base64 encoded)
+# - CRON_SECRET (for scheduled functions)

@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/design_tokens.dart';
 import '../../../../services/game_logic_service.dart';
+import '../../../../services/supabase_functions_service.dart';
 import '../models/expense.dart';
 
 class BudgetBlitzGameScreen extends StatefulWidget {
@@ -36,6 +37,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
   List<Expense> _shuffledExpenses = [];
   int _expenseIndex = 0;
   final GameLogicService _gameLogic = GameLogicService();
+  final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   // Score thresholds for popups
   final Map<int, String> _scoreMessages = {
@@ -91,13 +93,29 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
         _highScore = _score;
       }
 
-      // Submit to Firebase and get rewards
-      final result = await _gameLogic.submitBudgetBlitz(
-        score: _score,
-        level: _level,
-        correctDecisions: _correctDecisions,
-        totalDecisions: _totalDecisions,
-      );
+      Map<String, dynamic> result;
+
+      // Try Supabase Edge Functions first (server-side validation)
+      try {
+        result = await _supabaseService.submitGameWithAchievements(
+          gameType: 'budget_blitz',
+          gameData: {
+            'score': _score,
+            'level': _level,
+            'correctDecisions': _correctDecisions,
+            'totalDecisions': _totalDecisions,
+          },
+        );
+      } catch (e) {
+        print('Supabase submission failed, falling back to client-side: $e');
+        // Fallback to client-side logic if Supabase fails
+        result = await _gameLogic.submitBudgetBlitz(
+          score: _score,
+          level: _level,
+          correctDecisions: _correctDecisions,
+          totalDecisions: _totalDecisions,
+        );
+      }
 
       if (result['success'] == true && mounted) {
         setState(() {
