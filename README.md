@@ -28,6 +28,7 @@ Finstar combines education with entertainment through interactive games, challen
 
 ## Tech Stack
 
+### Frontend
 - **Framework**: Flutter 3.9.2+
 - **Language**: Dart
 - **State Management**: Riverpod
@@ -37,6 +38,14 @@ Finstar combines education with entertainment through interactive games, challen
 - **Animations**: Lottie, Rive
 - **Charts**: FL Chart
 - **Additional Libraries**: Shimmer, Cached Network Image
+
+### Backend
+- **Database**: Firebase Firestore
+- **Realtime Data**: Firebase Realtime Database (multiplayer)
+- **Authentication**: Firebase Auth (Google, Email)
+- **Image Storage**: Cloudinary (free tier)
+- **Serverless Functions**: Supabase Edge Functions / Cloudflare Workers
+- **Push Notifications**: Firebase FCM / OneSignal
 
 ## Getting Started
 
@@ -107,13 +116,70 @@ lib/
 │   ├── learning_module.dart
 │   └── user_profile.dart
 ├── services/              # Business logic services
-│   ├── local_storage_service.dart
-│   └── mascot_service.dart
+│   ├── firebase_service_free.dart   # Firebase integration
+│   ├── game_logic_service.dart      # Game submission logic
+│   ├── cloudinary_service.dart      # Image uploads
+│   ├── notification_service.dart    # Push notifications
+│   ├── local_storage_service.dart   # Offline caching
+│   └── mascot_service.dart          # Mascot interactions
 ├── shared/                # Shared components
 │   ├── layouts/
 │   └── widgets/
 └── main.dart             # App entry point
 ```
+
+## Backend Architecture
+
+### Overview
+FINSTAR uses a serverless architecture to keep costs minimal while maintaining security and scalability.
+
+```
+┌─────────────────┐     ┌─────────────────────────┐     ┌─────────────────┐
+│  Flutter App    │────▶│  Serverless Functions   │────▶│    Firestore    │
+│  (Frontend)     │     │  (Supabase/Cloudflare)  │     │   (Database)    │
+└─────────────────┘     └─────────────────────────┘     └─────────────────┘
+        │                                                        │
+        │                                                        ▼
+        │                                               ┌─────────────────┐
+        └──────────────────────────────────────────────▶│  Realtime DB    │
+                                                        │  (Multiplayer)  │
+                                                        └─────────────────┘
+```
+
+### Server-Side (Serverless Functions)
+Game submissions and score validation run on serverless functions for security:
+
+| Function | Description |
+|----------|-------------|
+| `submitLifeSwipe` | Validate & save Life Swipe scores |
+| `submitBudgetBlitz` | Validate & save Budget Blitz scores |
+| `submitQuizBattle` | Validate & save Quiz Battle scores |
+| `submitMarketExplorer` | Validate & save Market Explorer scores |
+| `calculateRewards` | XP, coins, level-up logic |
+| `checkAchievements` | Unlock achievements server-side |
+
+### Client-Side (Flutter)
+- Authentication flow
+- UI rendering
+- Local caching (offline support)
+- Realtime listeners (leaderboard, multiplayer)
+
+### Scheduled Tasks (GitHub Actions / Cron)
+| Task | Schedule |
+|------|----------|
+| Daily challenges generation | Daily at 00:00 IST |
+| Leaderboard refresh | Hourly |
+| Streak reset check | Daily at 00:00 IST |
+| Inactive user cleanup | Weekly |
+
+### Platform Options for Serverless
+
+| Platform | Free Tier | Use Case |
+|----------|-----------|----------|
+| **Supabase Edge Functions** | 500K/month | Primary choice |
+| **Cloudflare Workers** | 100K/day | Alternative (low latency) |
+| **Vercel Functions** | 100GB-hrs | REST APIs |
+| **GitHub Actions** | 2000 mins/month | Scheduled tasks |
 
 ## Key Features Detail
 
@@ -151,12 +217,30 @@ Contributions are welcome! Please follow these steps:
 
 ## Development Roadmap
 
-- [ ] User authentication and profiles
-- [ ] Cloud data synchronization
-- [ ] More game modes
-- [ ] Parental controls
-- [ ] Achievement sharing
-- [ ] Real-world reward partnerships
+### Completed
+- [x] User authentication (Google, Email)
+- [x] All 4 games with scoring (Life Swipe, Budget Blitz, Quiz Battle, Market Explorer)
+- [x] Learning modules with lessons
+- [x] XP, Coins, Levels system
+- [x] Daily streaks and check-in
+- [x] Achievements system
+- [x] Store and purchases
+- [x] Leaderboard display
+- [x] Friends system
+- [x] Avatar upload via Cloudinary
+
+### In Progress
+- [ ] **Backend Migration**: Move game submissions to serverless functions
+- [ ] **Daily Challenges**: Server-generated daily tasks
+- [ ] **Push Notifications**: FCM integration for reminders
+
+### Planned
+- [ ] Multiplayer quiz matchmaking
+- [ ] User search for adding friends
+- [ ] Offline support with sync queue
+- [ ] Hindi language support
+- [ ] Premium features (ad-free, exclusive cosmetics)
+- [ ] Admin panel for content management
 - [ ] AI-powered financial advisor
 
 ## License
