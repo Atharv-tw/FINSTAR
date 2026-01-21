@@ -11,15 +11,17 @@ import { initializeApp, cert, getApps, App } from "npm:firebase-admin/app";
 import { getFirestore, Firestore, FieldValue } from "npm:firebase-admin/firestore";
 import { getDatabase, Database } from "npm:firebase-admin/database";
 import { getAuth, Auth } from "npm:firebase-admin/auth";
+import { getMessaging, Messaging } from "npm:firebase-admin/messaging";
 
 let app: App | null = null;
 let db: Firestore | null = null;
 let rtdb: Database | null = null;
 let auth: Auth | null = null;
+let messaging: Messaging | null = null;
 
-export function initializeFirebase(): { db: Firestore; rtdb: Database; auth: Auth } {
-  if (app && db && rtdb && auth) {
-    return { db, rtdb, auth };
+export function initializeFirebase(): { db: Firestore; rtdb: Database; auth: Auth; messaging: Messaging } {
+  if (app && db && rtdb && auth && messaging) {
+    return { db, rtdb, auth, messaging };
   }
 
   const projectId = Deno.env.get("FIREBASE_PROJECT_ID");
@@ -49,9 +51,10 @@ export function initializeFirebase(): { db: Firestore; rtdb: Database; auth: Aut
   db = getFirestore(app);
   rtdb = getDatabase(app);
   auth = getAuth(app);
+  messaging = getMessaging(app);
 
-  return { db, rtdb, auth };
+  return { db, rtdb, auth, messaging };
 }
 
 export { FieldValue };
-export type { Firestore, Database, Auth };
+export type { Firestore, Database, Auth, Messaging };

@@ -4,6 +4,10 @@ on:
   schedule:
     # Reset streaks at 00:00 IST (18:30 UTC previous day)
     - cron: '30 18 * * *'
+    # Streak reminder at 8 PM IST (14:30 UTC)
+    - cron: '30 14 * * *'
+    # Challenge reminder at 6 PM IST (12:30 UTC)
+    - cron: '30 12 * * *'
   workflow_dispatch:
     inputs:
       task:
@@ -15,6 +19,8 @@ on:
           - all
           - reset-streaks
           - update-leaderboard
+          - streak-reminder
+          - challenge-reminder
 
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -24,7 +30,7 @@ jobs:
   reset-streaks:
     name: Reset Broken Streaks
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event.inputs.task == 'all' || github.event.inputs.task == 'reset-streaks'
+    if: github.event.schedule == '30 18 * * *' || github.event.inputs.task == 'all' || github.event.inputs.task == 'reset-streaks'
     steps:
       - name: Reset Streaks
         run: |
@@ -47,7 +53,7 @@ jobs:
   update-leaderboard:
     name: Update Leaderboard Rankings
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event.inputs.task == 'all' || github.event.inputs.task == 'update-leaderboard'
+    if: github.event.schedule == '30 18 * * *' || github.event.inputs.task == 'all' || github.event.inputs.task == 'update-leaderboard'
     steps:
       - name: Update Leaderboard
         run: |
@@ -55,6 +61,52 @@ jobs:
           response=$(curl -s -w "\n%{http_code}" -X POST "$SUPABASE_URL/functions/v1/update-leaderboard" \
             -H "Content-Type: application/json" \
             -d "{\"mode\": \"full\", \"secret\": \"$CRON_SECRET\"}")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+
+          if [ "$http_code" != "200" ]; then
+            echo "Error: Function returned status $http_code"
+            exit 1
+          fi
+
+  streak-reminder:
+    name: Send Streak Reminders
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '30 14 * * *' || github.event.inputs.task == 'streak-reminder'
+    steps:
+      - name: Send Streak Reminders
+        run: |
+          echo "Sending streak reminder notifications..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "$SUPABASE_URL/functions/v1/send-notification" \
+            -H "Content-Type: application/json" \
+            -d "{\"mode\": \"streak_reminder\", \"secret\": \"$CRON_SECRET\", \"title\": \"\", \"body\": \"\"}")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+
+          if [ "$http_code" != "200" ]; then
+            echo "Error: Function returned status $http_code"
+            exit 1
+          fi
+
+  challenge-reminder:
+    name: Send Challenge Reminders
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '30 12 * * *' || github.event.inputs.task == 'challenge-reminder'
+    steps:
+      - name: Send Challenge Reminders
+        run: |
+          echo "Sending challenge reminder notifications..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "$SUPABASE_URL/functions/v1/send-notification" \
+            -H "Content-Type: application/json" \
+            -d "{\"mode\": \"challenge_reminder\", \"secret\": \"$CRON_SECRET\", \"title\": \"\", \"body\": \"\"}")
 
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
