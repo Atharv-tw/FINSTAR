@@ -5,7 +5,7 @@
 class SupabaseConfig {
   /// Supabase project URL
   /// Replace with your actual Supabase project URL from the dashboard
-  static const String projectUrl = 'https://your-project-id.supabase.co';
+  static const String projectUrl = 'https://bajbfzwecuzywcdebvgh.supabase.co';
 
   /// Supabase Edge Functions base URL
   static const String functionsUrl = '$projectUrl/functions/v1';

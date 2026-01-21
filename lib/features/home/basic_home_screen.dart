@@ -9,6 +9,7 @@ import '../../shared/widgets/finance_tiles_section.dart';
 import '../../shared/widgets/featured_hero_card.dart';
 import '../../shared/widgets/streak_title_bar.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/app_startup_provider.dart';
 import '../../shared/widgets/nature_background.dart';
 
 /// FINSTAR Home Screen - Redesigned for maximum impact
@@ -36,6 +37,11 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+
+    // Trigger app startup tasks (daily challenges, check-in)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(appStartupProvider);
+    });
 
     // Greeting animation
     _greetingController = AnimationController(
@@ -150,6 +156,11 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                           FeaturedHeroCard(
                             onTap: () => context.go('/game'),
                           ),
+
+                          const SizedBox(height: 20),
+
+                          // Daily Challenges Card
+                          _buildDailyChallengesCard(context),
                         ],
                       ),
                     ),
@@ -419,6 +430,114 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
           ],
         );
       },
+    );
+  }
+
+  Widget _buildDailyChallengesCard(BuildContext context) {
+    final startupAsync = ref.watch(appStartupProvider);
+
+    return GestureDetector(
+      onTap: () => context.go('/challenges'),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF6366F1).withValues(alpha: 0.2),
+                  const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                // Icon
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Center(
+                    child: Text('🎯', style: TextStyle(fontSize: 24)),
+                  ),
+                ),
+
+                const SizedBox(width: 14),
+
+                // Text
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Daily Challenges',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      startupAsync.when(
+                        data: (result) {
+                          final challenges = result.challenges ?? [];
+                          final completed = challenges.where((c) => c['completed'] == true).length;
+                          return Text(
+                            '$completed / ${challenges.length} completed',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 13,
+                              color: Colors.white.withValues(alpha: 0.7),
+                            ),
+                          );
+                        },
+                        loading: () => Text(
+                          'Loading...',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ),
+                        error: (_, __) => Text(
+                          'Tap to view',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Arrow
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 

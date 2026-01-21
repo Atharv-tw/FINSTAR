@@ -1,17 +1,12 @@
 # Supabase Edge Functions Configuration
 # https://supabase.com/docs/guides/functions
 
-[project]
-id = "your-supabase-project-id"
-
 [api]
 # Port for local development
 port = 54321
 
 [functions]
-# Default function configuration
-[functions.default]
-verify_jwt = false  # We use Firebase Auth, not Supabase Auth
+# All functions use Firebase Auth instead of Supabase Auth
 
 # Individual function configurations
 [functions.submit-life-swipe]

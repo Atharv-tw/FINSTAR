@@ -7,7 +7,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { initializeFirebase, FieldValue } from "../_shared/firebase.ts";
 import { handleCors, jsonResponse, errorResponse, verifyAuthToken } from "../_shared/cors.ts";
-import { calculateLevel, getTodayIST } from "../_shared/utils.ts";
+import { calculateLevel, getTodayIST, updateChallengeProgress } from "../_shared/utils.ts";
 
 interface CompleteLessonRequest {
   lessonId: string;
@@ -158,6 +158,16 @@ serve(async (req: Request) => {
     });
 
     console.log(`Lesson ${lessonId} completed by ${uid}: ${xpReward} XP, ${coinReward} coins`);
+
+    // Update daily challenge progress (non-blocking)
+    // Only count first completion for lesson challenges
+    if (result.isFirstCompletion) {
+      updateChallengeProgress(db, uid, {
+        lessonsCompleted: 1,
+        xpEarned: xpReward,
+        coinsEarned: coinReward,
+      }).catch((e) => console.error("Challenge progress update failed:", e));
+    }
 
     return jsonResponse(result);
   } catch (error) {

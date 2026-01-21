@@ -12,6 +12,7 @@ import {
   calculateMarketExplorerRewards,
   calculateLevel,
   getTodayIST,
+  updateChallengeProgress,
 } from "../_shared/utils.ts";
 
 interface MarketExplorerSubmission {
@@ -155,6 +156,13 @@ serve(async (req: Request) => {
     });
 
     console.log(`Market Explorer completed by ${uid}: ${xpEarned} XP, ${coinsEarned} coins, ${Math.round(portfolioReturn * 100)}% return`);
+
+    // Update daily challenge progress (non-blocking)
+    updateChallengeProgress(db, uid, {
+      gamesPlayed: 1,
+      xpEarned,
+      coinsEarned,
+    }).catch((e) => console.error("Challenge progress update failed:", e));
 
     return jsonResponse(result);
   } catch (error) {

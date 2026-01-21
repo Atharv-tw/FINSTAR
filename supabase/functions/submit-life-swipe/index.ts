@@ -13,6 +13,7 @@ import {
   calculateLevel,
   validateScore,
   getTodayIST,
+  updateChallengeProgress,
 } from "../_shared/utils.ts";
 
 interface LifeSwipeSubmission {
@@ -136,6 +137,13 @@ serve(async (req: Request) => {
     });
 
     console.log(`Life Swipe completed by ${uid}: ${xpEarned} XP, ${coinsEarned} coins`);
+
+    // Update daily challenge progress (non-blocking)
+    updateChallengeProgress(db, uid, {
+      gamesPlayed: 1,
+      xpEarned,
+      coinsEarned,
+    }).catch((e) => console.error("Challenge progress update failed:", e));
 
     return jsonResponse(result);
   } catch (error) {

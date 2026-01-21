@@ -12,6 +12,7 @@ import {
   calculateQuizBattleRewards,
   calculateLevel,
   getTodayIST,
+  updateChallengeProgress,
 } from "../_shared/utils.ts";
 
 interface QuizBattleSubmission {
@@ -164,6 +165,15 @@ serve(async (req: Request) => {
     });
 
     console.log(`Quiz Battle completed by ${uid}: ${xpEarned} XP, ${coinsEarned} coins, ${correctAnswers}/${totalQuestions} correct`);
+
+    // Update daily challenge progress (non-blocking)
+    updateChallengeProgress(db, uid, {
+      gamesPlayed: 1,
+      xpEarned,
+      coinsEarned,
+      perfectScore: isPerfect,
+      quizWon: isWinner || false,
+    }).catch((e) => console.error("Challenge progress update failed:", e));
 
     return jsonResponse(result);
   } catch (error) {

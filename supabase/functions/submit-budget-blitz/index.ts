@@ -13,6 +13,7 @@ import {
   calculateLevel,
   validateScore,
   getTodayIST,
+  updateChallengeProgress,
 } from "../_shared/utils.ts";
 
 interface BudgetBlitzSubmission {
@@ -139,6 +140,13 @@ serve(async (req: Request) => {
     });
 
     console.log(`Budget Blitz completed by ${uid}: ${xpEarned} XP, ${coinsEarned} coins, level ${level}`);
+
+    // Update daily challenge progress (non-blocking)
+    updateChallengeProgress(db, uid, {
+      gamesPlayed: 1,
+      xpEarned,
+      coinsEarned,
+    }).catch((e) => console.error("Challenge progress update failed:", e));
 
     return jsonResponse(result);
   } catch (error) {

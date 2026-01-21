@@ -276,3 +276,111 @@ export function generateDailyChallenges(): Array<{
 export function validateScore(score: number, minScore: number, maxScore: number): boolean {
   return score >= minScore && score <= maxScore && Number.isInteger(score);
 }
+
+/**
+ * Update daily challenge progress
+ * Called after game completion, lesson completion, etc.
+ */
+export async function updateChallengeProgress(
+  db: FirebaseFirestore.Firestore,
+  userId: string,
+  updates: {
+    gamesPlayed?: number;
+    xpEarned?: number;
+    coinsEarned?: number;
+    lessonsCompleted?: number;
+    perfectScore?: boolean;
+    quizWon?: boolean;
+  }
+): Promise<void> {
+  const today = getTodayIST();
+  const challengesRef = db
+    .collection("users")
+    .doc(userId)
+    .collection("dailyChallenges")
+    .doc(today);
+
+  const challengesDoc = await challengesRef.get();
+
+  if (!challengesDoc.exists) {
+    console.log("No daily challenges found for today");
+    return;
+  }
+
+  const data = challengesDoc.data()!;
+  const challenges = data.challenges as Array<{
+    id: string;
+    type: string;
+    target: number;
+    progress: number;
+    completed: boolean;
+    claimed: boolean;
+    xpReward: number;
+    coinReward: number;
+  }>;
+
+  let updated = false;
+  let totalXpReward = 0;
+  let totalCoinReward = 0;
+
+  for (const challenge of challenges) {
+    if (challenge.completed) continue;
+
+    let progressIncrement = 0;
+
+    switch (challenge.type) {
+      case "playGames":
+        progressIncrement = updates.gamesPlayed || 0;
+        break;
+      case "earnXp":
+        progressIncrement = updates.xpEarned || 0;
+        break;
+      case "earnCoins":
+        progressIncrement = updates.coinsEarned || 0;
+        break;
+      case "completeLesson":
+        progressIncrement = updates.lessonsCompleted || 0;
+        break;
+      case "perfectScore":
+        progressIncrement = updates.perfectScore ? 1 : 0;
+        break;
+      case "winQuiz":
+        progressIncrement = updates.quizWon ? 1 : 0;
+        break;
+    }
+
+    if (progressIncrement > 0) {
+      challenge.progress += progressIncrement;
+      updated = true;
+
+      // Check if challenge is now complete
+      if (challenge.progress >= challenge.target && !challenge.completed) {
+        challenge.completed = true;
+        totalXpReward += challenge.xpReward;
+        totalCoinReward += challenge.coinReward;
+        console.log(`Challenge ${challenge.id} completed!`);
+      }
+    }
+  }
+
+  if (updated) {
+    // Update challenges in Firestore
+    await challengesRef.update({ challenges });
+
+    // Award rewards for completed challenges
+    if (totalXpReward > 0 || totalCoinReward > 0) {
+      const userRef = db.collection("users").doc(userId);
+      const updates: Record<string, FirebaseFirestore.FieldValue> = {};
+
+      if (totalXpReward > 0) {
+        updates["xp"] = FirebaseFirestore.FieldValue.increment(totalXpReward);
+      }
+      if (totalCoinReward > 0) {
+        updates["coins"] = FirebaseFirestore.FieldValue.increment(totalCoinReward);
+      }
+
+      await userRef.update(updates);
+      console.log(`Challenge rewards: +${totalXpReward} XP, +${totalCoinReward} coins`);
+    }
+  }
+}
