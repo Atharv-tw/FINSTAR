@@ -22,7 +22,7 @@ class _FinanceTilesSectionState extends ConsumerState<FinanceTilesSection> {
     {
       'title': 'Money Basics',
       'moduleId': 'money_basics',
-      'color': const Color(0xFF5F8724), // Brand Green
+      'color': const Color(0xFF93A840), // Brand Green
       'icon': Icons.savings_rounded,
     },
     {

@@ -129,6 +129,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                     StreakTitleBar(
                       streakDays: userData.streakDays,
                       userPhotoUrl: userData.avatarUrl,
+                      userName: userData.displayName, // Pass username
                       currentXp: userData.xp,
                       nextLevelXp: userData.level * 1000,
                     ),
@@ -379,12 +380,12 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
               ),
             ),
 
-            // Centered "Hello STAR!" - Fitted perfectly in the gap
+            // Centered "DAILY PROGRESS"
             Positioned(
               left: 8,
-              top: -125, // Moved down by 40 pixels
+              top: -125, // This might need adjustment after text change
               width: screenWidth * 0.6,
-              height: 115, // Matched to the gap size
+              height: 115, // This might need adjustment after text change
               child: FadeTransition(
                 opacity: _pandaController,
                 child: Column(
@@ -392,9 +393,9 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'HELLO,',
+                      'DAILY',
                       style: GoogleFonts.openSans(
-                        fontSize: 40,
+                        fontSize: 45,
                         fontWeight: FontWeight.w800,
                         height: 1.1,
                         color: DesignTokens.textPrimary,
@@ -402,9 +403,9 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                       ),
                     ),
                     Text(
-                      'STAR!',
+                      'GROWTH',
                       style: GoogleFonts.openSans(
-                        fontSize: 60,
+                        fontSize: 40,
                         fontWeight: FontWeight.w800,
                         height: 1.0,
                         color: DesignTokens.textPrimary,
