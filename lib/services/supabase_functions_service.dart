@@ -382,12 +382,19 @@ class SupabaseFunctionsService {
     }
   }
 
-  /// Generate daily challenges
+  /// Generate daily challenges (with deduplication)
   Future<Map<String, dynamic>> generateDailyChallenges({
     bool forceRegenerate = false,
   }) async {
-    return await _callFunction('generate-daily-challenges', {
-      'forceRegenerate': forceRegenerate,
+    // Skip deduplication if force regenerating
+    if (forceRegenerate) {
+      return await _callFunction('generate-daily-challenges', {
+        'forceRegenerate': true,
+      });
+    }
+    // Use deduplication for normal calls
+    return await _callFunctionWithDedup('generate-daily-challenges', {
+      'forceRegenerate': false,
     });
   }
 
