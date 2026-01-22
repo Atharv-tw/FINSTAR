@@ -163,64 +163,49 @@ class _PlayGameScreenState extends State<PlayGameScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // XP Ring - 36px
-            XpRing(
-              currentXp: _currentXp,
-              xpForNextLevel: _xpForNextLevel,
-              level: _userLevel,
-              size: 36,
-              levelTextColor: const Color(0xFF393027),
-            ),
-
-            // Coin Pill and Shop Button
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CoinPill(coins: _coins, height: 30),
-                const SizedBox(width: 12),
-                // Shop icon button
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: DesignTokens.accentStart.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        // TODO: Navigate to shop screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Shop coming soon!'),
-                            duration: Duration(seconds: 1),
+                        CoinPill(coins: _coins, height: 30), // Coin Pill on the left
+                        const Spacer(), // Pushes the next widget to the right
+                        // Shop icon button
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: DesignTokens.accentStart.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                      child: const Icon(
-                        Icons.shopping_bag_rounded,
-                        color: const Color(0xFF9BAD50),
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                // TODO: Navigate to shop screen
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Shop coming soon!'),
+                                    duration: Duration(seconds: 1),
+                                  ),
+                                );
+                              },
+                              child: const Icon(
+                                Icons.shopping_bag_rounded,
+                                color: const Color(0xFF9BAD50),
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ),
           ],
         ),
       ),
@@ -588,12 +573,14 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     double animatedFontSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
     double animatedIconSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
     double iconSpacing = 8.0; // Default spacing
+    Offset contentOffset = Offset.zero; // Default offset
 
     if (card.title == 'LIFE SWIPE') {
       iconSpacing = 12.0;
     } else if (card.title == 'MARKET EXPLORER') {
-      animatedFontSize = 24 - (unfoldProgress * 2); // Animate from 24 to 22
-      animatedIconSize = 24 - (unfoldProgress * 2); // Animate from 24 to 22
+      animatedFontSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
+      animatedIconSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
+      contentOffset = const Offset(-8.0, 0); // Shift left for Market Explorer
     }
 
     final Alignment animatedAlignment =
@@ -601,28 +588,31 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
     return Align(
       alignment: animatedAlignment,
-      child: Row(
-        mainAxisSize: MainAxisSize.min, // To keep the Row compact
-        children: [
-          Icon(
-            card.icon,
-            size: animatedIconSize,
-            color: DesignTokens.textPrimary,
-          ),
-          SizedBox(width: iconSpacing),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              card.title,
-              style: GoogleFonts.luckiestGuy(
-                fontSize: animatedFontSize,
-                color: DesignTokens.textPrimary,
-                height: 1.1,
-                letterSpacing: 0.5,
+      child: Transform.translate(
+        offset: contentOffset,
+        child: Row(
+          mainAxisSize: MainAxisSize.min, // To keep the Row compact
+          children: [
+            Icon(
+              card.icon,
+              size: animatedIconSize,
+              color: DesignTokens.textPrimary,
+            ),
+            SizedBox(width: iconSpacing),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                card.title,
+                style: GoogleFonts.luckiestGuy(
+                  fontSize: animatedFontSize,
+                  color: DesignTokens.textPrimary,
+                  height: 1.1,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
