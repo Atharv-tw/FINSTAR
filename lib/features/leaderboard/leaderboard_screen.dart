@@ -7,6 +7,8 @@ import '../../providers/leaderboard_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../shared/widgets/nature_background.dart'; // Add this import
 
+const Color brownVanDyke = Color(0xFF393027);
+
 /// Leaderboard Screen - Shows top players rankings with REAL Firebase data
 class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
@@ -95,7 +97,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               fontFamily: 'Helvetica',
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: Colors.white,
+              color: brownVanDyke,
               letterSpacing: 0.5,
             ),
           ),
@@ -118,7 +120,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.emoji_events, color: Colors.white, size: 12),
+                          const Icon(Icons.emoji_events, color: brownVanDyke, size: 12),
                           const SizedBox(width: 4),
                           Text(
                             '#${rank ?? "?"}',
@@ -126,7 +128,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                               fontFamily: 'Poppins',
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: brownVanDyke,
                             ),
                           ),
                         ],
@@ -141,12 +143,12 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.emoji_events, color: Colors.white, size: 12),
+                          Icon(Icons.emoji_events, color: brownVanDyke, size: 12),
                           SizedBox(width: 4),
                           SizedBox(
                             width: 12,
                             height: 12,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(strokeWidth: 2, color: brownVanDyke),
                           ),
                         ],
                       ),
@@ -172,7 +174,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.people, color: Colors.white, size: 12),
+                      Icon(Icons.people, color: brownVanDyke, size: 12),
                       SizedBox(width: 4),
                       Text(
                         'Friends',
@@ -180,7 +182,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                           fontFamily: 'Poppins',
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: brownVanDyke,
                         ),
                       ),
                     ],
@@ -243,7 +245,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
       loading: () => const Center(
         child: Padding(
           padding: EdgeInsets.all(60),
-          child: CircularProgressIndicator(color: Colors.white),
+          child: CircularProgressIndicator(color: brownVanDyke),
         ),
       ),
       error: (error, stack) => Center(
@@ -298,7 +300,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       fontFamily: 'Poppins',
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: brownVanDyke,
                     ),
                   ),
                 ),
@@ -320,8 +322,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: brownVanDyke,
                       ),
                     ),
                   ),
@@ -339,7 +340,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               fontFamily: 'Poppins',
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: brownVanDyke,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -363,7 +364,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.stars, color: Colors.white, size: 20),
+                  const Icon(Icons.stars, color: brownVanDyke, size: 20),
                   const SizedBox(height: 4),
                   Text(
                     '${entry.xp} XP',
@@ -371,7 +372,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       fontFamily: 'Poppins',
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: brownVanDyke,
                     ),
                   ),
                 ],
@@ -464,7 +465,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
       loading: () => const Center(
         child: Padding(
           padding: EdgeInsets.all(60),
-          child: CircularProgressIndicator(color: Colors.white),
+          child: CircularProgressIndicator(color: brownVanDyke),
         ),
       ),
       error: (error, stack) => Center(
@@ -514,7 +515,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                     fontWeight: FontWeight.bold,
                     color: isCurrentUser
                         ? DesignTokens.primarySolid
-                        : Colors.white.withValues(alpha: 0.5),
+                        : brownVanDyke.withOpacity(0.5),
                   ),
                 ),
               ),
@@ -539,7 +540,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       fontFamily: 'Poppins',
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: brownVanDyke,
                     ),
                   ),
                 ),
@@ -561,7 +562,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                               fontFamily: 'Poppins',
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: brownVanDyke,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -582,7 +583,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                                 fontFamily: 'Poppins',
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: brownVanDyke,
                               ),
                             ),
                           ),
@@ -597,7 +598,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.5),
+                            color: brownVanDyke.withOpacity(0.5),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -626,7 +627,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       fontFamily: 'Poppins',
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: brownVanDyke,
                     ),
                   ),
                   Text(
@@ -634,7 +635,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: brownVanDyke.withOpacity(0.5),
                     ),
                   ),
                 ],
