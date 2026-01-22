@@ -94,6 +94,39 @@ service cloud.firestore {
         // Owner can mark lessons complete (client-side logic for free tier)
         allow write: if isSignedIn() && isOwner(uid);
       }
+
+      // ========================================
+      // SUBCOLLECTION: fcmTokens/{tokenId}
+      // ========================================
+      match /fcmTokens/{tokenId} {
+        // Read own FCM tokens
+        allow read: if isOwner(uid);
+
+        // Owner can manage their FCM tokens (register/unregister devices)
+        allow write: if isSignedIn() && isOwner(uid);
+      }
+
+      // ========================================
+      // SUBCOLLECTION: dailyChallenges/{date}
+      // ========================================
+      match /dailyChallenges/{date} {
+        // Read own daily challenges
+        allow read: if isOwner(uid);
+
+        // Owner can update daily challenges (mark complete, etc.)
+        allow write: if isSignedIn() && isOwner(uid);
+      }
+
+      // ========================================
+      // SUBCOLLECTION: friendRequests/{requestId}
+      // ========================================
+      match /friendRequests/{requestId} {
+        // Read own friend requests
+        allow read: if isOwner(uid);
+
+        // Owner can manage friend requests
+        allow write: if isSignedIn() && isOwner(uid);
+      }
     }
 
     // ============================================

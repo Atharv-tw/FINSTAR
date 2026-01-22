@@ -8,8 +8,8 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { initializeFirebase, FieldValue } from "../_shared/firebase.ts";
-import { handleCors, jsonResponse, errorResponse, verifyAuthToken } from "../_shared/cors.ts";
+import { initializeFirebase, warmupFirebase } from "../_shared/firebase-rest.ts";
+import { handleCors, jsonResponse, errorResponse, verifyAuthTokenLight } from "../_shared/cors.ts";
 import { getTodayIST, generateDailyChallenges } from "../_shared/utils.ts";
 
 interface GenerateChallengesRequest {
@@ -19,13 +19,17 @@ interface GenerateChallengesRequest {
 }
 
 serve(async (req: Request) => {
+  const startTime = Date.now();
+  const log = (msg: string) => console.log(`[${Date.now() - startTime}ms] ${msg}`);
+
   // Handle CORS preflight
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
   try {
-    // Initialize Firebase
-    const { db, auth } = initializeFirebase();
+    // Start warming up Firebase token in background (don't await yet)
+    const warmupPromise = warmupFirebase();
+    log("Started Firebase warmup");
 
     // Parse request body
     let body: GenerateChallengesRequest = { mode: "user" };
@@ -53,15 +57,25 @@ serve(async (req: Request) => {
       });
     }
 
-    // For user mode, verify authentication
-    const user = await verifyAuthToken(req, auth);
+    // For user mode, verify authentication in parallel with warmup
+    log("Verifying auth...");
+    const [user] = await Promise.all([
+      verifyAuthTokenLight(req),
+      warmupPromise, // Wait for warmup to complete
+    ]);
+    log("Auth verified, Firebase warmed up");
+
     if (!user) {
       return errorResponse("Unauthorized: Invalid or missing authentication token", 401);
     }
 
     const uid = user.uid;
 
+    // Initialize Firebase for database operations (token should be cached now)
+    const { db } = initializeFirebase();
+
     // Check if challenges already exist for today
+    log("Checking existing challenges...");
     const challengesRef = db
       .collection("users")
       .doc(uid)
@@ -69,9 +83,11 @@ serve(async (req: Request) => {
       .doc(today);
 
     const existingChallenges = await challengesRef.get();
+    log("Firestore read complete");
 
     if (existingChallenges.exists && !body.forceRegenerate) {
       const data = existingChallenges.data()!;
+      log("Returning existing challenges");
       return jsonResponse({
         success: true,
         alreadyGenerated: true,
@@ -81,9 +97,11 @@ serve(async (req: Request) => {
     }
 
     // Generate new challenges
+    log("Generating new challenges...");
     const challenges = generateDailyChallenges();
 
     // Save to Firestore
+    log("Saving to Firestore...");
     await challengesRef.set({
       date: today,
       challenges: challenges.map((c) => ({
@@ -96,6 +114,7 @@ serve(async (req: Request) => {
       allCompleted: false,
       allClaimed: false,
     });
+    log("Firestore write complete");
 
     console.log(`Daily challenges generated for ${uid}: ${challenges.length} challenges`);
 

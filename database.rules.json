@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "leaderboards": {
+      "live": {
+        ".read": true,
+        ".write": "auth != null"
+      }
+    },
+    "quizMatches": {
+      "$matchId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "rooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}

@@ -2,9 +2,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
-import '../../providers/daily_challenges_provider.dart';
 import '../../services/supabase_functions_service.dart';
+import '../../shared/widgets/nature_background.dart';
 
 /// Daily Challenges Screen - Shows today's 3 challenges with progress
 class DailyChallengesScreen extends ConsumerStatefulWidget {
@@ -18,6 +19,7 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
   final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
   List<Map<String, dynamic>> _challenges = [];
   bool _isLoading = true;
+  bool _isRequestInProgress = false;
   String? _error;
 
   @override
@@ -27,13 +29,23 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
   }
 
   Future<void> _loadChallenges() async {
+    if (_isRequestInProgress) {
+      debugPrint('Request already in progress, skipping...');
+      return;
+    }
+
+    _isRequestInProgress = true;
+
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
+      debugPrint('Loading daily challenges...');
       final result = await _supabaseService.generateDailyChallenges();
+
+      if (!mounted) return;
 
       if (result['success'] == true) {
         setState(() {
@@ -47,38 +59,43 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
+    } finally {
+      _isRequestInProgress = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: _isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: DesignTokens.primarySolid,
-                        ),
-                      )
-                    : _error != null
-                        ? _buildErrorState()
-                        : _buildChallengesList(),
-              ),
-            ],
+      body: Stack(
+        children: [
+          // Nature Background matching home screen
+          const NatureBackground(),
+
+          SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context),
+                Expanded(
+                  child: _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: DesignTokens.primarySolid,
+                          ),
+                        )
+                      : _error != null
+                          ? _buildErrorState()
+                          : _buildChallengesList(),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -86,36 +103,27 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
   Widget _buildHeader(BuildContext context) {
     return Container(
       height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0B0B0D).withValues(alpha: 0.85),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back_ios_rounded, color: DesignTokens.textPrimary),
             onPressed: () => context.pop(),
           ),
-          const Spacer(),
-          const Text(
-            'Daily Challenges',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+          const Expanded(
+            child: Text(
+              'Daily Challenges',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: DesignTokens.textPrimary,
+              ),
             ),
           ),
-          const Spacer(),
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh_rounded, color: DesignTokens.textPrimary),
             onPressed: _loadChallenges,
           ),
         ],
@@ -131,9 +139,9 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.error_outline,
+              Icons.error_outline_rounded,
               size: 64,
-              color: Colors.white.withValues(alpha: 0.5),
+              color: DesignTokens.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
@@ -142,7 +150,7 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                 fontFamily: 'Poppins',
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.8),
+                color: DesignTokens.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -152,18 +160,21 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.5),
+                color: DesignTokens.textTertiary,
               ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _loadChallenges,
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: DesignTokens.primarySolid,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
           ],
@@ -187,14 +198,26 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
           const SizedBox(height: 24),
 
           // Section Header
-          const Text(
-            "Today's Challenges",
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: DesignTokens.primarySolid,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                "Today's Challenges",
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: DesignTokens.textPrimary,
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 16),
@@ -210,6 +233,8 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
 
           // Tips Section
           _buildTipsSection(),
+
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -218,6 +243,7 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
   Widget _buildProgressOverviewCard(int completedCount) {
     final totalChallenges = _challenges.length;
     final progress = totalChallenges > 0 ? completedCount / totalChallenges : 0.0;
+    final allCompleted = completedCount == totalChallenges && totalChallenges > 0;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -227,17 +253,24 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                const Color(0xFF6366F1).withValues(alpha: 0.3),
-                const Color(0xFF8B5CF6).withValues(alpha: 0.2),
-              ],
+              colors: allCompleted
+                  ? [
+                      DesignTokens.success.withValues(alpha: 0.15),
+                      DesignTokens.success.withValues(alpha: 0.08),
+                    ]
+                  : [
+                      DesignTokens.primarySolid.withValues(alpha: 0.12),
+                      DesignTokens.primarySolid.withValues(alpha: 0.06),
+                    ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.5),
-              width: 2,
+              color: allCompleted
+                  ? DesignTokens.success.withValues(alpha: 0.3)
+                  : DesignTokens.primarySolid.withValues(alpha: 0.25),
+              width: 1.5,
             ),
           ),
           child: Column(
@@ -254,48 +287,46 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                           fontFamily: 'Poppins',
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.7),
+                          color: DesignTokens.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$completedCount / $totalChallenges',
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
+                        style: GoogleFonts.inter(
                           fontSize: 36,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: DesignTokens.textPrimary,
                         ),
                       ),
                     ],
                   ),
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: 72,
+                    height: 72,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: completedCount == totalChallenges
-                            ? [const Color(0xFF22C55E), const Color(0xFF16A34A)]
-                            : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
-                      ),
+                      gradient: allCompleted
+                          ? const LinearGradient(
+                              colors: [DesignTokens.success, Color(0xFF16A34A)],
+                            )
+                          : DesignTokens.primaryGradient,
                       boxShadow: [
                         BoxShadow(
-                          color: (completedCount == totalChallenges
-                                  ? const Color(0xFF22C55E)
-                                  : const Color(0xFF6366F1))
-                              .withValues(alpha: 0.4),
+                          color: (allCompleted
+                                  ? DesignTokens.success
+                                  : DesignTokens.primarySolid)
+                              .withValues(alpha: 0.3),
                           blurRadius: 16,
-                          spreadRadius: 2,
+                          spreadRadius: 0,
                         ),
                       ],
                     ),
                     child: Center(
                       child: Text(
-                        completedCount == totalChallenges ? '✓' : '${(progress * 100).toInt()}%',
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 24,
+                        allCompleted ? '✓' : '${(progress * 100).toInt()}%',
+                        style: GoogleFonts.inter(
+                          fontSize: allCompleted ? 28 : 20,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
@@ -309,46 +340,46 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
               Stack(
                 children: [
                   Container(
-                    height: 12,
+                    height: 10,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(6),
+                      color: DesignTokens.textDisabled.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(5),
                     ),
                   ),
                   FractionallySizedBox(
                     widthFactor: progress,
                     child: Container(
-                      height: 12,
+                      height: 10,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: completedCount == totalChallenges
-                              ? [const Color(0xFF22C55E), const Color(0xFF16A34A)]
-                              : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
-                        ),
-                        borderRadius: BorderRadius.circular(6),
+                        gradient: allCompleted
+                            ? const LinearGradient(
+                                colors: [DesignTokens.success, Color(0xFF16A34A)],
+                              )
+                            : DesignTokens.primaryGradient,
+                        borderRadius: BorderRadius.circular(5),
                       ),
                     ),
                   ),
                 ],
               ),
-              if (completedCount == totalChallenges) ...[
+              if (allCompleted) ...[
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF22C55E).withValues(alpha: 0.2),
+                    color: DesignTokens.success.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: const Color(0xFF22C55E).withValues(alpha: 0.5),
+                      color: DesignTokens.success.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'All challenges completed! Great job!',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF22C55E),
+                      color: DesignTokens.success,
                     ),
                   ),
                 ),
@@ -381,14 +412,23 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF0B0B0D).withValues(alpha: isCompleted ? 0.4 : 0.6),
+              color: isCompleted
+                  ? DesignTokens.success.withValues(alpha: 0.08)
+                  : DesignTokens.surfaceCard.withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isCompleted
-                    ? const Color(0xFF22C55E).withValues(alpha: 0.5)
-                    : challengeData.color.withValues(alpha: 0.3),
-                width: 2,
+                    ? DesignTokens.success.withValues(alpha: 0.3)
+                    : DesignTokens.textDisabled.withValues(alpha: 0.25),
+                width: 1.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,37 +437,37 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                   children: [
                     // Icon
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
                         gradient: isCompleted
                             ? const LinearGradient(
-                                colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+                                colors: [DesignTokens.success, Color(0xFF16A34A)],
                               )
                             : LinearGradient(colors: challengeData.gradientColors),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
                             color: (isCompleted
-                                    ? const Color(0xFF22C55E)
+                                    ? DesignTokens.success
                                     : challengeData.color)
-                                .withValues(alpha: 0.3),
-                            blurRadius: 12,
+                                .withValues(alpha: 0.25),
+                            blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Center(
                         child: isCompleted
-                            ? const Icon(Icons.check, color: Colors.white, size: 32)
+                            ? const Icon(Icons.check_rounded, color: Colors.white, size: 28)
                             : Text(
                                 challengeData.emoji,
-                                style: const TextStyle(fontSize: 28),
+                                style: const TextStyle(fontSize: 24),
                               ),
                       ),
                     ),
 
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
 
                     // Title and Description
                     Expanded(
@@ -441,19 +481,18 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: isCompleted
-                                  ? Colors.white.withValues(alpha: 0.6)
-                                  : Colors.white,
-                              decoration:
-                                  isCompleted ? TextDecoration.lineThrough : null,
+                                  ? DesignTokens.textTertiary
+                                  : DesignTokens.textPrimary,
+                              decoration: isCompleted ? TextDecoration.lineThrough : null,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             description,
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 13,
-                              color: Colors.white.withValues(alpha: 0.6),
+                              color: DesignTokens.textTertiary,
                             ),
                           ),
                         ],
@@ -463,10 +502,10 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                     // Status Badge
                     if (isCompleted)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+                            colors: [DesignTokens.success, Color(0xFF16A34A)],
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -494,7 +533,7 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                           Container(
                             height: 8,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: DesignTokens.textDisabled.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
@@ -505,7 +544,7 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                               decoration: BoxDecoration(
                                 gradient: isCompleted
                                     ? const LinearGradient(
-                                        colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+                                        colors: [DesignTokens.success, Color(0xFF16A34A)],
                                       )
                                     : LinearGradient(colors: challengeData.gradientColors),
                                 borderRadius: BorderRadius.circular(4),
@@ -522,7 +561,7 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                         fontFamily: 'Poppins',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: DesignTokens.textSecondary,
                       ),
                     ),
                   ],
@@ -533,9 +572,9 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                 // Rewards
                 Row(
                   children: [
-                    _buildRewardChip('+$xpReward XP', const Color(0xFF3B82F6)),
+                    _buildRewardChip('+$xpReward XP', DesignTokens.primarySolid),
                     const SizedBox(width: 8),
-                    _buildRewardChip('+$coinReward', const Color(0xFFFFD700), isCoins: true),
+                    _buildRewardChip('+$coinReward', const Color(0xFFD4A017), isCoins: true),
                   ],
                 ),
               ],
@@ -548,21 +587,21 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
 
   Widget _buildRewardChip(String text, Color color, {bool isCoins = false}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: color.withValues(alpha: 0.3),
+          color: color.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (isCoins)
-            const Padding(
-              padding: EdgeInsets.only(right: 4),
-              child: Icon(Icons.monetization_on, color: Color(0xFFFFD700), size: 14),
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Icon(Icons.monetization_on_rounded, color: color, size: 14),
             ),
           Text(
             text,
@@ -586,10 +625,10 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF0B0B0D).withValues(alpha: 0.4),
+            color: DesignTokens.warning.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: DesignTokens.warning.withValues(alpha: 0.25),
             ),
           ),
           child: Row(
@@ -598,7 +637,7 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                  color: DesignTokens.warning.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Center(
@@ -610,13 +649,13 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Pro Tip',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFFF59E0B),
+                        color: DesignTokens.accentSolid,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -625,7 +664,7 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: DesignTokens.textSecondary,
                       ),
                     ),
                   ],
@@ -644,50 +683,50 @@ class _DailyChallengesScreenState extends ConsumerState<DailyChallengesScreen> {
         return _ChallengeVisualData(
           title: 'Game Time',
           emoji: '🎮',
-          color: const Color(0xFF8B5CF6),
+          color: const Color(0xFF7C3AED),
           gradientColors: const [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
         );
       case 'earnXp':
         return _ChallengeVisualData(
           title: 'XP Hunter',
           emoji: '⚡',
-          color: const Color(0xFF3B82F6),
-          gradientColors: const [Color(0xFF3B82F6), Color(0xFF2563EB)],
+          color: DesignTokens.primarySolid,
+          gradientColors: const [DesignTokens.primaryStart, DesignTokens.primaryEnd],
         );
       case 'earnCoins':
         return _ChallengeVisualData(
           title: 'Coin Collector',
           emoji: '💰',
-          color: const Color(0xFFF59E0B),
-          gradientColors: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+          color: const Color(0xFFD4A017),
+          gradientColors: const [Color(0xFFE6B422), Color(0xFFD4A017)],
         );
       case 'completeLesson':
         return _ChallengeVisualData(
           title: 'Knowledge Seeker',
           emoji: '📚',
-          color: const Color(0xFF10B981),
+          color: const Color(0xFF059669),
           gradientColors: const [Color(0xFF10B981), Color(0xFF059669)],
         );
       case 'perfectScore':
         return _ChallengeVisualData(
           title: 'Perfectionist',
           emoji: '🎯',
-          color: const Color(0xFFEF4444),
+          color: const Color(0xFFDC2626),
           gradientColors: const [Color(0xFFEF4444), Color(0xFFDC2626)],
         );
       case 'winQuiz':
         return _ChallengeVisualData(
           title: 'Quiz Champion',
           emoji: '🏆',
-          color: const Color(0xFFFFD700),
-          gradientColors: const [Color(0xFFFFD700), Color(0xFFFFC107)],
+          color: const Color(0xFFD4A017),
+          gradientColors: const [Color(0xFFE6B422), Color(0xFFD4A017)],
         );
       default:
         return _ChallengeVisualData(
           title: 'Challenge',
           emoji: '🎯',
-          color: const Color(0xFF6366F1),
-          gradientColors: const [Color(0xFF6366F1), Color(0xFF4F46E5)],
+          color: DesignTokens.primarySolid,
+          gradientColors: const [DesignTokens.primaryStart, DesignTokens.primaryEnd],
         );
     }
   }

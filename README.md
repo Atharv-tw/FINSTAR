@@ -229,18 +229,37 @@ Contributions are welcome! Please follow these steps:
 - [x] Friends system
 - [x] Avatar upload via Cloudinary
 
-### In Progress
-- [ ] **Backend Migration**: Move game submissions to serverless functions
-- [ ] **Daily Challenges**: Server-generated daily tasks
-- [ ] **Push Notifications**: FCM integration for reminders
+### Backend Tasks (Priority Order)
 
-### Planned
-- [ ] Multiplayer quiz matchmaking
+#### P0 - Critical (Do First)
+- [ ] Set up Supabase/Cloudflare project
+- [ ] `submitLifeSwipe` - serverless function
+- [ ] `submitBudgetBlitz` - serverless function
+- [ ] `submitQuizBattle` - serverless function
+- [ ] `submitMarketExplorer` - serverless function
+- [ ] XP/Coins/Level calculation (server-side)
+- [ ] Score validation & anti-cheat logic
+
+#### P1 - High Priority
+- [ ] Achievement unlock logic (server-side)
+- [ ] Leaderboard update on game completion
+- [ ] Daily challenges generation (scheduled task)
+- [ ] Streak reset check (scheduled task)
+- [ ] Connect Flutter app to serverless endpoints
+
+#### P2 - Medium Priority
+- [ ] Push notifications (FCM/OneSignal)
+- [ ] Streak reminder notifications
+- [ ] Daily challenge reminder notifications
 - [ ] User search for adding friends
+- [ ] Multiplayer quiz matchmaking
+
+#### P3 - Low Priority (Future)
 - [ ] Offline support with sync queue
 - [ ] Hindi language support
 - [ ] Premium features (ad-free, exclusive cosmetics)
 - [ ] Admin panel for content management
+- [ ] Analytics dashboard
 - [ ] AI-powered financial advisor
 
 ## License

@@ -170,6 +170,153 @@ class GameLogicService {
   }
 
   // ============================================
+  // QUIZ BATTLE GAME
+  // ============================================
+
+  /// Submit Quiz Battle result
+  Future<Map<String, dynamic>> submitQuizBattle({
+    required int correctAnswers,
+    required int totalQuestions,
+    required int timeBonus,
+  }) async {
+    try {
+      // Calculate score
+      final score = (correctAnswers * 10) + timeBonus;
+      final int xpReward = score ~/ 2;
+      final int coinsReward = score ~/ 5;
+
+      // Bonus for perfect score
+      final isPerfect = correctAnswers == totalQuestions;
+      final bonusXp = isPerfect ? 50 : 0;
+      final bonusCoins = isPerfect ? 25 : 0;
+
+      await _firestore.runTransaction((transaction) async {
+        final userRef = _firestore.collection('users').doc(_userId);
+        final userDoc = await transaction.get(userRef);
+
+        final currentXP = (userDoc.data()?['xp'] ?? 0) as int;
+        final currentCoins = (userDoc.data()?['coins'] ?? 0) as int;
+        final currentLevel = (userDoc.data()?['level'] ?? 1) as int;
+
+        final newXP = currentXP + xpReward + bonusXp;
+        final newCoins = currentCoins + coinsReward + bonusCoins;
+        final newLevel = (newXP / 1000).floor() + 1;
+
+        transaction.update(userRef, {
+          'xp': newXP,
+          'coins': newCoins,
+          'level': newLevel,
+          'gamesPlayed': FieldValue.increment(1),
+        });
+
+        // Save progress
+        final progressRef = userRef.collection('progress').doc('quiz_battle');
+        transaction.set(
+          progressRef,
+          {
+            'lastScore': score,
+            'totalPlays': FieldValue.increment(1),
+            'lastPlayedAt': FieldValue.serverTimestamp(),
+            'correctAnswers': correctAnswers,
+            'totalQuestions': totalQuestions,
+          },
+          SetOptions(merge: true),
+        );
+      });
+
+      await _updateGameAchievements();
+
+      return {
+        'success': true,
+        'xpEarned': xpReward + bonusXp,
+        'coinsEarned': coinsReward + bonusCoins,
+      };
+    } catch (e) {
+      print('submitQuizBattle error: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // ============================================
+  // MARKET EXPLORER GAME
+  // ============================================
+
+  /// Submit Market Explorer result
+  Future<Map<String, dynamic>> submitMarketExplorer({
+    required double portfolioValue,
+    required double initialValue,
+    required Map<String, double> portfolio,
+    required int decisionsCount,
+  }) async {
+    try {
+      // Calculate return percentage
+      final returnPct = ((portfolioValue - initialValue) / initialValue) * 100;
+
+      // Calculate rewards based on performance
+      int xpReward = 30;
+      int coinsReward = 15;
+
+      if (returnPct > 50) {
+        xpReward += 70;
+        coinsReward += 35;
+      } else if (returnPct > 25) {
+        xpReward += 50;
+        coinsReward += 25;
+      } else if (returnPct > 10) {
+        xpReward += 30;
+        coinsReward += 15;
+      } else if (returnPct > 0) {
+        xpReward += 15;
+        coinsReward += 8;
+      }
+
+      await _firestore.runTransaction((transaction) async {
+        final userRef = _firestore.collection('users').doc(_userId);
+        final userDoc = await transaction.get(userRef);
+
+        final currentXP = (userDoc.data()?['xp'] ?? 0) as int;
+        final currentCoins = (userDoc.data()?['coins'] ?? 0) as int;
+        final currentLevel = (userDoc.data()?['level'] ?? 1) as int;
+
+        final newXP = currentXP + xpReward;
+        final newCoins = currentCoins + coinsReward;
+        final newLevel = (newXP / 1000).floor() + 1;
+
+        transaction.update(userRef, {
+          'xp': newXP,
+          'coins': newCoins,
+          'level': newLevel,
+          'gamesPlayed': FieldValue.increment(1),
+        });
+
+        // Save progress
+        final progressRef = userRef.collection('progress').doc('market_explorer');
+        transaction.set(
+          progressRef,
+          {
+            'lastPortfolioValue': portfolioValue,
+            'lastReturnPct': returnPct,
+            'totalPlays': FieldValue.increment(1),
+            'lastPlayedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+      });
+
+      await _updateGameAchievements();
+
+      return {
+        'success': true,
+        'xpEarned': xpReward,
+        'coinsEarned': coinsReward,
+      };
+    } catch (e) {
+      print('submitMarketExplorer error: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // ============================================
   // LESSONS
   // ============================================
 

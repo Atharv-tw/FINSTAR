@@ -5,8 +5,8 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { initializeFirebase, FieldValue } from "../_shared/firebase.ts";
-import { handleCors, jsonResponse, errorResponse, verifyAuthToken } from "../_shared/cors.ts";
+import { initializeFirebase, warmupFirebase, FieldValue } from "../_shared/firebase-rest.ts";
+import { handleCors, jsonResponse, errorResponse, verifyAuthTokenLight } from "../_shared/cors.ts";
 import {
   GAME_IDS,
   calculateBudgetBlitzRewards,
@@ -30,14 +30,21 @@ serve(async (req: Request) => {
   if (corsResponse) return corsResponse;
 
   try {
-    // Initialize Firebase
-    const { db, auth } = initializeFirebase();
+    // Start Firebase warmup in parallel with auth verification
+    const warmupPromise = warmupFirebase();
 
-    // Verify authentication
-    const user = await verifyAuthToken(req, auth);
+    // Verify authentication (in parallel with warmup)
+    const [user] = await Promise.all([
+      verifyAuthTokenLight(req),
+      warmupPromise,
+    ]);
+
     if (!user) {
       return errorResponse("Unauthorized: Invalid or missing authentication token", 401);
     }
+
+    // Initialize Firebase (token should be cached)
+    const { db } = initializeFirebase();
 
     const uid = user.uid;
 

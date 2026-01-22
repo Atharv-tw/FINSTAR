@@ -1,0 +1,14 @@
+{
+  "name": "finstar-scripts",
+  "version": "1.0.0",
+  "description": "Server-side scripts for Finstar app (GitHub Actions)",
+  "type": "module",
+  "scripts": {
+    "daily-challenges": "node generate-daily-challenges.js",
+    "streak-reset": "node check-streak-reset.js",
+    "leaderboard": "node update-leaderboard.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

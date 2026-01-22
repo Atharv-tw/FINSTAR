@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import '../config/supabase_config.dart';
 
 /// Service for calling Supabase Edge Functions
@@ -16,8 +19,16 @@ class SupabaseFunctionsService {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // Request deduplication - prevent duplicate calls within a short window
+  final Map<String, DateTime> _lastCallTimes = {};
+  final Map<String, Future<Map<String, dynamic>>> _pendingCalls = {};
+  static const Duration _deduplicationWindow = Duration(seconds: 5);
+
   // Supabase project configuration from config file
   static String get _supabaseUrl => SupabaseConfig.functionsUrl;
+
+  // Use basic http client instead of IOClient (for debugging)
+  static bool useBasicHttpClient = true;
 
   /// Get Firebase ID token for authentication
   Future<String?> _getAuthToken() async {
@@ -26,39 +37,212 @@ class SupabaseFunctionsService {
     return await user.getIdToken();
   }
 
+  /// Create HTTP client with proper TLS settings
+  http.Client _createHttpClient() {
+    final httpClient = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 30)
+      ..badCertificateCallback = (cert, host, port) => false; // Don't allow bad certs
+    return IOClient(httpClient);
+  }
+
+  /// Simple connectivity test - call this to debug connection issues
+  Future<Map<String, dynamic>> testConnectivity() async {
+    print('=== SUPABASE CONNECTIVITY TEST ===');
+    final results = <String, dynamic>{};
+
+    // Test 1: Simple GET to base URL (should work without auth)
+    print('Test 1: Simple HTTP GET to Supabase base URL...');
+    try {
+      final response = await http.get(
+        Uri.parse('${SupabaseConfig.projectUrl}/rest/v1/'),
+        headers: {'apikey': 'test'}, // Dummy key just to test connectivity
+      ).timeout(const Duration(seconds: 10));
+      results['simpleGet'] = 'Status: ${response.statusCode}';
+      print('Test 1 result: ${response.statusCode}');
+    } catch (e) {
+      results['simpleGet'] = 'Error: $e';
+      print('Test 1 error: $e');
+    }
+
+    // Test 2: GET to functions URL (should return error but proves connectivity)
+    print('Test 2: HTTP GET to functions endpoint...');
+    try {
+      final response = await http.get(
+        Uri.parse('${SupabaseConfig.functionsUrl}/generate-daily-challenges'),
+      ).timeout(const Duration(seconds: 10));
+      results['functionsGet'] = 'Status: ${response.statusCode}, Body: ${response.body.substring(0, response.body.length.clamp(0, 200))}';
+      print('Test 2 result: ${response.statusCode}');
+    } catch (e) {
+      results['functionsGet'] = 'Error: $e';
+      print('Test 2 error: $e');
+    }
+
+    // Test 3: POST to functions URL without auth (should return 401)
+    print('Test 3: HTTP POST without auth...');
+    try {
+      final response = await http.post(
+        Uri.parse('${SupabaseConfig.functionsUrl}/generate-daily-challenges'),
+        headers: {'Content-Type': 'application/json'},
+        body: '{}',
+      ).timeout(const Duration(seconds: 10));
+      results['functionsPostNoAuth'] = 'Status: ${response.statusCode}, Body: ${response.body.substring(0, response.body.length.clamp(0, 200))}';
+      print('Test 3 result: ${response.statusCode} - ${response.body}');
+    } catch (e) {
+      results['functionsPostNoAuth'] = 'Error: $e';
+      print('Test 3 error: $e');
+    }
+
+    // Test 4: POST with auth using basic http client (not IOClient)
+    print('Test 4: HTTP POST with auth using basic http client...');
+    try {
+      final token = await _getAuthToken();
+      if (token != null) {
+        final response = await http.post(
+          Uri.parse('${SupabaseConfig.functionsUrl}/generate-daily-challenges'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: '{"forceRegenerate": false}',
+        ).timeout(const Duration(seconds: 15));
+        results['functionsPostWithAuth'] = 'Status: ${response.statusCode}, Body: ${response.body.substring(0, response.body.length.clamp(0, 200))}';
+        print('Test 4 result: ${response.statusCode} - ${response.body}');
+      } else {
+        results['functionsPostWithAuth'] = 'No auth token available';
+        print('Test 4: No auth token');
+      }
+    } catch (e) {
+      results['functionsPostWithAuth'] = 'Error: $e';
+      print('Test 4 error: $e');
+    }
+
+    print('=== CONNECTIVITY TEST COMPLETE ===');
+    print('Results: $results');
+    return results;
+  }
+
+  /// Test auth verification with minimal function (no Firebase imports)
+  Future<Map<String, dynamic>> testAuthOnly() async {
+    print('=== TEST AUTH ONLY ===');
+    final stopwatch = Stopwatch()..start();
+
+    try {
+      final token = await _getAuthToken();
+      print('Test auth: [${stopwatch.elapsedMilliseconds}ms] Got token: ${token != null}');
+
+      if (token == null) {
+        return {'success': false, 'error': 'No auth token'};
+      }
+
+      print('Test auth: [${stopwatch.elapsedMilliseconds}ms] Making request...');
+      final response = await http.post(
+        Uri.parse('${SupabaseConfig.functionsUrl}/test-auth'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: '{}',
+      ).timeout(const Duration(seconds: 15));
+
+      print('Test auth: [${stopwatch.elapsedMilliseconds}ms] Response: ${response.statusCode}');
+      print('Test auth: Body: ${response.body}');
+
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      print('Test auth: [${stopwatch.elapsedMilliseconds}ms] Error: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
   /// Make authenticated POST request to Supabase function
   Future<Map<String, dynamic>> _callFunction(
     String functionName,
     Map<String, dynamic> data,
   ) async {
+    final stopwatch = Stopwatch()..start();
+    print('Supabase: Starting call to $functionName');
+
+    // Step 1: Get auth token
+    print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Getting auth token...');
     final token = await _getAuthToken();
+    print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Got auth token: ${token != null ? "yes (${token.length} chars)" : "null"}');
+
     if (token == null) {
+      print('Supabase: User not authenticated');
       return {'success': false, 'error': 'User not authenticated'};
     }
 
+    final url = '$_supabaseUrl/$functionName';
+    print('Supabase: [${stopwatch.elapsedMilliseconds}ms] URL: $url');
+
+    // Step 2: Make POST request
+    print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Using ${useBasicHttpClient ? "basic http" : "IOClient"}...');
+
     try {
-      final response = await http.post(
-        Uri.parse('$_supabaseUrl/$functionName'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(data),
-      );
+      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Starting POST request...');
+      final requestBody = jsonEncode(data);
+      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Request body: $requestBody');
+
+      http.Response response;
+      if (useBasicHttpClient) {
+        // Use basic http client (simpler, might work better on some devices)
+        response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: requestBody,
+        ).timeout(const Duration(seconds: 30));
+      } else {
+        // Use IOClient with custom settings
+        final client = _createHttpClient();
+        try {
+          response = await client.post(
+            Uri.parse(url),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: requestBody,
+          ).timeout(const Duration(seconds: 30));
+        } finally {
+          client.close();
+        }
+      }
+
+      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Response received: ${response.statusCode}');
+      print('Supabase: Response body: ${response.body.substring(0, response.body.length.clamp(0, 500))}');
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       } else {
-        final errorBody = jsonDecode(response.body);
+        Map<String, dynamic> errorBody = {};
+        try {
+          errorBody = jsonDecode(response.body);
+        } catch (_) {}
         return {
           'success': false,
-          'error': errorBody['error'] ?? 'Request failed',
+          'error': errorBody['error'] ?? 'Request failed with ${response.statusCode}',
           'statusCode': response.statusCode,
         };
       }
-    } catch (e) {
-      print('Error calling $functionName: $e');
+    } on SocketException catch (e) {
+      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] SocketException: $e');
+      return {'success': false, 'error': 'Network error: ${e.message}'};
+    } on TimeoutException catch (e) {
+      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Timeout: $e');
+      return {'success': false, 'error': 'Request timed out'};
+    } on HandshakeException catch (e) {
+      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] TLS Handshake failed: $e');
+      return {'success': false, 'error': 'TLS error: ${e.message}'};
+    } catch (e, stackTrace) {
+      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Error calling $functionName: $e');
+      print('Supabase: Stack trace: $stackTrace');
       return {'success': false, 'error': e.toString()};
+    } finally {
+      stopwatch.stop();
+      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Request completed/failed');
     }
   }
 
@@ -159,9 +343,43 @@ class SupabaseFunctionsService {
   // DAILY ACTIVITIES
   // ============================================
 
-  /// Daily check-in
+  /// Daily check-in (with deduplication)
   Future<Map<String, dynamic>> dailyCheckIn() async {
-    return await _callFunction('daily-checkin', {});
+    return await _callFunctionWithDedup('daily-checkin', {});
+  }
+
+  /// Call function with deduplication to prevent duplicate calls
+  Future<Map<String, dynamic>> _callFunctionWithDedup(
+    String functionName,
+    Map<String, dynamic> data,
+  ) async {
+    final cacheKey = '$functionName:${_auth.currentUser?.uid ?? "anon"}';
+
+    // Check if there's a pending call - return the same future
+    if (_pendingCalls.containsKey(cacheKey)) {
+      print('Supabase: [$functionName] Returning pending call (dedup)');
+      return await _pendingCalls[cacheKey]!;
+    }
+
+    // Check if we called this recently - return cached result indicator
+    final lastCall = _lastCallTimes[cacheKey];
+    if (lastCall != null &&
+        DateTime.now().difference(lastCall) < _deduplicationWindow) {
+      print('Supabase: [$functionName] Skipped - called ${DateTime.now().difference(lastCall).inMilliseconds}ms ago (dedup)');
+      return {'success': true, 'deduplicated': true, 'message': 'Already called recently'};
+    }
+
+    // Make the actual call and track it
+    final future = _callFunction(functionName, data);
+    _pendingCalls[cacheKey] = future;
+    _lastCallTimes[cacheKey] = DateTime.now();
+
+    try {
+      final result = await future;
+      return result;
+    } finally {
+      _pendingCalls.remove(cacheKey);
+    }
   }
 
   /// Generate daily challenges
@@ -277,9 +495,44 @@ class SupabaseFunctionsService {
     return result;
   }
 
-  /// Daily check-in with challenge generation
+  /// Daily check-in with challenge generation (with deduplication)
   Future<Map<String, dynamic>> dailyCheckInWithChallenges() async {
+    final cacheKey = 'dailyCheckInWithChallenges:${_auth.currentUser?.uid ?? "anon"}';
+
+    // Check if there's a pending call - return the same future
+    if (_pendingCalls.containsKey(cacheKey)) {
+      print('Supabase: [dailyCheckInWithChallenges] Returning pending call (dedup)');
+      return await _pendingCalls[cacheKey]!;
+    }
+
+    // Check if we called this recently
+    final lastCall = _lastCallTimes[cacheKey];
+    if (lastCall != null &&
+        DateTime.now().difference(lastCall) < _deduplicationWindow) {
+      print('Supabase: [dailyCheckInWithChallenges] Skipped - called ${DateTime.now().difference(lastCall).inMilliseconds}ms ago (dedup)');
+      return {'success': true, 'deduplicated': true, 'message': 'Already called recently'};
+    }
+
+    // Make the call and track it
+    final future = _dailyCheckInWithChallengesImpl();
+    _pendingCalls[cacheKey] = future;
+    _lastCallTimes[cacheKey] = DateTime.now();
+
+    try {
+      return await future;
+    } finally {
+      _pendingCalls.remove(cacheKey);
+    }
+  }
+
+  /// Implementation of daily check-in with challenges (internal)
+  Future<Map<String, dynamic>> _dailyCheckInWithChallengesImpl() async {
     final checkInResult = await dailyCheckIn();
+
+    // Skip follow-up calls if this was already deduplicated
+    if (checkInResult['deduplicated'] == true) {
+      return checkInResult;
+    }
 
     // Generate daily challenges if check-in successful
     if (checkInResult['success'] == true) {

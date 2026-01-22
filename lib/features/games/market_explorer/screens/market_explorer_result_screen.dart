@@ -73,10 +73,10 @@ class _MarketExplorerResultScreenState
 
       // Build portfolio data for submission
       final portfolioData = <String, double>{};
-      for (var holding in portfolio.holdings) {
-        portfolioData[holding.asset.symbol] = holding.currentValue;
+      for (var asset in portfolio.assets.values) {
+        portfolioData[asset.type.name] = asset.currentValue;
       }
-      portfolioData['cash'] = portfolio.cashBalance;
+      portfolioData['cash'] = portfolio.unallocatedAmount;
 
       Map<String, dynamic> result;
 
@@ -96,7 +96,7 @@ class _MarketExplorerResultScreenState
         // Fallback to client-side logic if Supabase fails
         result = await _gameLogic.submitMarketExplorer(
           portfolioValue: portfolio.totalValue,
-          initialValue: portfolio.totalCapital,
+          initialValue: portfolio.totalCapital.toDouble(),
           portfolio: portfolioData,
           decisionsCount: portfolio.eventsOccurred.length,
         );

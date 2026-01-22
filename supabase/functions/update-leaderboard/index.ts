@@ -7,8 +7,8 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { initializeFirebase } from "../_shared/firebase.ts";
-import { handleCors, jsonResponse, errorResponse, verifyAuthToken } from "../_shared/cors.ts";
+import { initializeFirebase, warmupFirebase } from "../_shared/firebase-rest.ts";
+import { handleCors, jsonResponse, errorResponse, verifyAuthTokenLight } from "../_shared/cors.ts";
 import { getCurrentSeasonId, getTodayIST } from "../_shared/utils.ts";
 
 interface LeaderboardUpdate {
@@ -22,8 +22,8 @@ serve(async (req: Request) => {
   if (corsResponse) return corsResponse;
 
   try {
-    // Initialize Firebase
-    const { db, rtdb, auth } = initializeFirebase();
+    // Start Firebase warmup early
+    const warmupPromise = warmupFirebase();
 
     // Parse request body
     let body: LeaderboardUpdate = { mode: "user" };
@@ -46,16 +46,23 @@ serve(async (req: Request) => {
         }
       }
 
+      await warmupPromise;
+      const { db, rtdb } = initializeFirebase();
       // Full leaderboard refresh
       return await refreshFullLeaderboard(db, rtdb);
     }
 
-    // For user mode, verify authentication
-    const user = await verifyAuthToken(req, auth);
+    // For user mode, verify authentication (in parallel with warmup)
+    const [user] = await Promise.all([
+      verifyAuthTokenLight(req),
+      warmupPromise,
+    ]);
+
     if (!user) {
       return errorResponse("Unauthorized: Invalid or missing authentication token", 401);
     }
 
+    const { db, rtdb } = initializeFirebase();
     const uid = user.uid;
 
     // Update single user's leaderboard entry

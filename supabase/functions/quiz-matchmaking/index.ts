@@ -2,8 +2,8 @@
 // Handles multiplayer quiz match creation and joining
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { initializeFirebase } from "../_shared/firebase.ts";
-import { corsHeaders, handleCors, jsonResponse, errorResponse, verifyAuthToken } from "../_shared/cors.ts";
+import { initializeFirebase, warmupFirebase } from "../_shared/firebase-rest.ts";
+import { corsHeaders, handleCors, jsonResponse, errorResponse, verifyAuthTokenLight } from "../_shared/cors.ts";
 
 interface QuizMatch {
   matchId: string;
@@ -44,17 +44,22 @@ serve(async (req: Request) => {
   if (corsResponse) return corsResponse;
 
   try {
-    const { db, rtdb, auth } = initializeFirebase();
+    // Start warmup early
+    const warmupPromise = warmupFirebase();
 
     // Get request body
     const { action, matchId, category = 'general', answer, questionIndex } = await req.json();
 
-    // Verify authentication
-    const authResult = await verifyAuthToken(req, auth);
+    // Verify authentication (in parallel with warmup)
+    const [authResult] = await Promise.all([
+      verifyAuthTokenLight(req),
+      warmupPromise,
+    ]);
     if (!authResult) {
       return errorResponse("Unauthorized", 401);
     }
 
+    const { db, rtdb } = initializeFirebase();
     const userId = authResult.uid;
 
     // Get user profile

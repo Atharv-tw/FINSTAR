@@ -6,7 +6,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { initializeFirebase } from "../_shared/firebase.ts";
+import { initializeFirebase, warmupFirebase } from "../_shared/firebase-rest.ts";
 import { handleCors, jsonResponse, errorResponse } from "../_shared/cors.ts";
 import { getYesterdayIST } from "../_shared/utils.ts";
 
@@ -78,7 +78,8 @@ serve(async (req: Request) => {
       const batchDocs = usersSnapshot.docs.slice(i, i + batchSize);
 
       batchDocs.forEach((doc) => {
-        batch.update(doc.ref, {
+        const userRef = db.collection("users").doc(doc.id);
+        batch.update(userRef, {
           streakDays: 0,
           streakResetAt: new Date().toISOString(),
           previousStreak: doc.data().streakDays, // Keep for reference

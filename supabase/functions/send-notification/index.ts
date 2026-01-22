@@ -1,15 +1,15 @@
 /**
  * Send Push Notification Function
  *
- * Sends FCM push notifications using Firebase Admin SDK (V1 API)
+ * Sends FCM push notifications using FCM HTTP v1 API directly (no Admin SDK)
  * Can be called:
  * 1. By authenticated users to send to specific users
  * 2. By scheduled tasks (with CRON_SECRET) to send bulk notifications
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { initializeFirebase } from "../_shared/firebase.ts";
-import { handleCors, jsonResponse, errorResponse, verifyAuthToken } from "../_shared/cors.ts";
+import { initializeFirebase, warmupFirebase } from "../_shared/firebase-rest.ts";
+import { handleCors, jsonResponse, errorResponse, verifyAuthTokenLight } from "../_shared/cors.ts";
 
 interface NotificationRequest {
   // For single user notification
@@ -31,9 +31,11 @@ serve(async (req: Request) => {
   if (corsResponse) return corsResponse;
 
   try {
-    const { db, auth, messaging } = initializeFirebase();
-    const body: NotificationRequest = await req.json();
-    const { mode = "single", secret, targetUserId, title, body: notificationBody, data, imageUrl } = body;
+    // Start warmup early
+    const warmupPromise = warmupFirebase();
+
+    const reqBody: NotificationRequest = await req.json();
+    const { mode = "single", secret, targetUserId, title, body: notificationBody, data, imageUrl } = reqBody;
 
     // For bulk modes, verify cron secret
     if (mode !== "single") {
@@ -41,13 +43,19 @@ serve(async (req: Request) => {
       if (expectedSecret && secret !== expectedSecret) {
         return errorResponse("Unauthorized: Invalid cron secret", 401);
       }
+      await warmupPromise;
     } else {
-      // For single mode, verify user authentication
-      const authResult = await verifyAuthToken(req, auth);
+      // For single mode, verify user authentication (in parallel with warmup)
+      const [authResult] = await Promise.all([
+        verifyAuthTokenLight(req),
+        warmupPromise,
+      ]);
       if (!authResult) {
         return errorResponse("Unauthorized", 401);
       }
     }
+
+    const { db, messaging } = initializeFirebase();
 
     // Handle different modes
     if (mode === "streak_reminder") {
@@ -79,7 +87,7 @@ serve(async (req: Request) => {
  * Send notification to a single user
  */
 async function sendToUser(
-  db: FirebaseFirestore.Firestore,
+  db: any,
   messaging: any,
   userId: string,
   notification: { title: string; body: string; data?: Record<string, string>; imageUrl?: string }
@@ -154,7 +162,7 @@ async function sendToUser(
  * Send streak reminder notifications to users who haven't checked in today
  */
 async function sendStreakReminders(
-  db: FirebaseFirestore.Firestore,
+  db: any,
   messaging: any
 ): Promise<Response> {
   const today = new Date();
@@ -200,7 +208,7 @@ async function sendStreakReminders(
  * Send challenge reminder notifications to users with incomplete challenges
  */
 async function sendChallengeReminders(
-  db: FirebaseFirestore.Firestore,
+  db: any,
   messaging: any
 ): Promise<Response> {
   const today = new Date();
