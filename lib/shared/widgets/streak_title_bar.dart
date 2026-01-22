@@ -139,7 +139,7 @@ class _StreakTitleBarState extends State<StreakTitleBar>
             // Top row: User Profile (Left) & Title/Emoji (Right)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 // User Profile Button & Greeting
                 Row(
@@ -181,54 +181,60 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      'Hello, ${widget.userName ?? 'User'}!', // Display user's name in a single line with exclamation
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500, // Simple, not bold
-                        color: Color(0xFF393027),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6.0), // Move text down by 3 pixels
+                      child: Text(
+                        'Hello, ${widget.userName ?? 'User'}!', // Display user's name in a single line with exclamation
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500, // Simple, not bold
+                          color: Color(0xFF393027),
+                        ),
                       ),
                     ),
                   ],
                 ),
 
                 // Title and emoji (right)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: const Color(0xFF93A840).withOpacity(0.2), // Green with 20% opacity
-                    border: Border.all(
-                      color: const Color(0xFF393027).withOpacity(0.4), // Brown border with opacity
-                      width: 1.0,
+                Transform.translate(
+                  offset: const Offset(0, -3.5), // Move up by 2 + 1.5 = 3.5 pixels
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: const Color(0xFF93A840).withOpacity(0.2), // Green with 20% opacity
+                      border: Border.all(
+                        color: const Color(0xFF393027).withOpacity(0.4), // Brown border with opacity
+                        width: 1.0,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (streakTitle.emoji.isNotEmpty) ...[
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (streakTitle.emoji.isNotEmpty) ...[
+                          Text(
+                            streakTitle.emoji,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              height: 1,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                         Text(
-                          streakTitle.emoji,
+                          streakTitle.title,
                           style: const TextStyle(
+                            fontFamily: 'Poppins',
                             fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF393027), // Brown text
                             height: 1,
+                            letterSpacing: 0.2,
                           ),
                         ),
-                        const SizedBox(width: 8),
                       ],
-                      Text(
-                        streakTitle.title,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF393027), // Brown text
-                          height: 1,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ],

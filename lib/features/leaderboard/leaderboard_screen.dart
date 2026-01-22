@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../shared/widgets/nature_background.dart'; // Add this import
 
 /// Leaderboard Screen - Shows top players rankings with REAL Firebase data
 class LeaderboardScreen extends ConsumerStatefulWidget {
@@ -52,9 +53,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF0F2027),
-                    Color(0xFF203A43),
-                    Color(0xFF2C5364),
+                    DesignTokens.primaryStart, // Green from home screen
+                    DesignTokens.primaryEnd, // Green from home screen
                   ],
                 ),
               ),
@@ -416,45 +416,47 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
           position: cardSlideAnimation,
           child: Container(
             margin: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F172A).withValues(alpha: 0.9),
+            child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(12, 20, 12, 100),
-              itemCount: remainingEntries.length,
-              itemBuilder: (context, index) {
-                final entry = remainingEntries[index];
-                final isCurrentUser = entry.userId == currentUserId;
-                final delay = index * 0.05;
-
-                return AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    final staggerValue =
-                        (_animationController.value - delay).clamp(0.0, 1.0);
-                    return Transform.translate(
-                      offset: Offset(0, 20 * (1 - staggerValue)),
-                      child: Opacity(
-                        opacity: staggerValue,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildLeaderboardCard(entry, isCurrentUser),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: DesignTokens.backgroundPrimary.withOpacity(0.7),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
                   ),
-                );
-              },
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(12, 20, 12, 100),
+                    itemCount: remainingEntries.length,
+                    itemBuilder: (context, index) {
+                      final entry = remainingEntries[index];
+                      final isCurrentUser = entry.userId == currentUserId;
+                      final delay = index * 0.05;
+
+                      return AnimatedBuilder(
+                        animation: _animationController,
+                        builder: (context, child) {
+                          final staggerValue =
+                              (_animationController.value - delay).clamp(0.0, 1.0);
+                          return Transform.translate(
+                            offset: Offset(0, 20 * (1 - staggerValue)),
+                            child: Opacity(
+                              opacity: staggerValue,
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildLeaderboardCard(entry, isCurrentUser),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         );
