@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 class StreakTitleBar extends StatefulWidget {
   final int streakDays;
   final String? userPhotoUrl;
+  final String? userName; // Add userName
   final int currentXp;
   final int nextLevelXp;
 
@@ -13,6 +14,7 @@ class StreakTitleBar extends StatefulWidget {
     super.key,
     this.streakDays = 0,
     this.userPhotoUrl,
+    this.userName, // Add to constructor
     this.currentXp = 0,
     this.nextLevelXp = 1000,
   });
@@ -110,9 +112,9 @@ class _StreakTitleBarState extends State<StreakTitleBar>
       return StreakTitle(
         title: 'Beginner',
         emoji: '',
-        color: const Color(0xFF95A5A6), // Gray
+        color: const Color(0xFF393027), // Brown
         gradient: const LinearGradient(
-          colors: [Color(0xFF95A5A6), Color(0xFF7F8C8D)],
+          colors: [Color(0xFF393027), Color(0xFF261F1A)], // Brown gradient
         ),
       );
     }
@@ -139,44 +141,56 @@ class _StreakTitleBarState extends State<StreakTitleBar>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // User Profile Button (Replaces "0" streak counter)
-                GestureDetector(
-                  onTap: () => context.push('/profile'),
-                  child: AnimatedBuilder(
-                    animation: _glowController,
-                    builder: (context, child) {
-                      return Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF5F8724), // Brand Green border
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF5F8724).withValues(
-                                alpha: 0.1,
+                // User Profile Button & Greeting
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => context.push('/profile'),
+                      child: AnimatedBuilder(
+                        animation: _glowController,
+                        builder: (context, child) {
+                          return Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: const Color(0xFF393027), // Van Dyke brown border
+                                width: 1.5,
                               ),
-                              blurRadius: 8,
-                              spreadRadius: 2,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF393027).withOpacity(0.1),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
+                                ),
+                              ],
                             ),
-                          ],
+                            child: child,
+                          );
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: const Color(0xFFF3F3ED),
+                          backgroundImage: widget.userPhotoUrl != null
+                              ? NetworkImage(widget.userPhotoUrl!)
+                              : null,
+                          child: widget.userPhotoUrl == null
+                              ? const Icon(Icons.person, color: Color(0xFF393027))
+                              : null,
                         ),
-                        child: child,
-                      );
-                    },
-                    child: CircleAvatar(
-                      backgroundColor: const Color(0xFFF3F3ED),
-                      backgroundImage: widget.userPhotoUrl != null
-                          ? NetworkImage(widget.userPhotoUrl!)
-                          : null,
-                      child: widget.userPhotoUrl == null
-                          ? const Icon(Icons.person, color: Color(0xFF393027))
-                          : null,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Hello, ${widget.userName ?? 'User'}!', // Display user's name in a single line with exclamation
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500, // Simple, not bold
+                        color: Color(0xFF393027),
+                      ),
+                    ),
+                  ],
                 ),
 
                 // Title and emoji (right)
@@ -184,9 +198,9 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: const Color(0xFF393027).withValues(alpha: 0.04),
+                    color: const Color(0xFF93A840).withOpacity(0.2), // Green with 20% opacity
                     border: Border.all(
-                      color: const Color(0xFF393027).withValues(alpha: 0.08),
+                      color: const Color(0xFF393027).withOpacity(0.4), // Brown border with opacity
                       width: 1.0,
                     ),
                   ),
@@ -209,7 +223,7 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                           fontFamily: 'Poppins',
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF393027),
+                          color: Color(0xFF393027), // Brown text
                           height: 1,
                           letterSpacing: 0.2,
                         ),

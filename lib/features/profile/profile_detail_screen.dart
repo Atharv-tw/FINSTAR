@@ -7,6 +7,7 @@ import '../../shared/widgets/xp_ring.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/achievements_provider.dart';
+import '../../shared/widgets/progress_card.dart'; // Import ProgressCard
 
 /// Profile Detail Screen - Shows user stats, achievements, and progress
 class ProfileDetailScreen extends ConsumerStatefulWidget {
@@ -69,7 +70,15 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
         return Scaffold(
           body: Container(
             decoration: const BoxDecoration(
-              gradient: DesignTokens.vibrantBackgroundGradient,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFFAFAF7), // Primary light background
+                  Color(0xFFF5F5F0), // Slightly darker warm grey
+                  Color(0xFFEBEBE5), // Muted warm grey
+                ],
+              ),
             ),
             child: Stack(
               children: [
@@ -88,8 +97,8 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
 
                           const SizedBox(height: 32),
 
-                          // Profile Card
-                          _buildProfileCard(user),
+                          // Progress Card
+                          ProgressCard(user: user),
 
                           const SizedBox(height: 24),
 

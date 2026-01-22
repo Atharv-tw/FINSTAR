@@ -3,6 +3,7 @@ import '../../shared/widgets/nature_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
 import '../../core/motion_tokens.dart';
 import '../../shared/widgets/xp_ring.dart';
@@ -88,12 +89,24 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     // Hero at constant 55% height
     final heroHeightPercent = 0.55;
     final heroHeight = (screenHeight * heroHeightPercent).clamp(100.0, 480.0);
+    final parallaxProgress = (_scrollOffset / 400).clamp(0.0, 1.0);
+    final mascotScale = 1.0 - (parallaxProgress * 0.6); // 1.0 → 0.4
+    final mascotBlur = parallaxProgress * 10; // 0 → 10px
+    final mascotTranslateY = -parallaxProgress * 120; // 0 → -120px
 
     return Scaffold(
       body: Stack(
         children: [
-          // Calm Nature Background
-          const NatureBackground(),
+          // Custom Background Image
+          Opacity(
+            opacity: 0.5, // 50% opacity
+            child: Image.asset(
+              'assets/images/screenshot_2026_01_20_1_05_57_pm.png',
+              fit: BoxFit.cover, // Ensures the image covers the entire background
+            ),
+          ),
+
+
 
           // Main scrollable content
           CustomScrollView(
@@ -116,7 +129,13 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
               // Extra space to enable scrolling for card unfold animation
               SliverToBoxAdapter(
-                child: SizedBox(height: 600),
+                child: SizedBox(
+                  height: 225,
+                  child: Image.asset(
+                    'assets/images/screenshot_2026_01_20_1_05_57_pm.png',
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ],
           ),
@@ -137,7 +156,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
         color: shouldBlur
-            ? const Color(0xFF0B0B0D).withValues(alpha: 0.8)
+            ? const Color(0xFF0B0B0D).withOpacity(0.8)
             : Colors.transparent,
       ),
       child: SafeArea(
@@ -172,7 +191,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: DesignTokens.accentStart.withValues(alpha: 0.3),
+                        color: DesignTokens.accentStart.withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -227,177 +246,14 @@ class _PlayGameScreenState extends State<PlayGameScreen>
             ),
           ),
 
-                    // Level Progress Bar above panda
-
-                    Positioned(
-
-                      top: 97,
-
-                                            left: 24,
-
-                                            right: 24,
-
-                      child: _buildLevelProgressBar(),
-
-                    ),
-
-          
-
-                              // 3D Mascot with parallax and breathing
-
-          
-
-                              Positioned(
-
-          
-
-                                bottom: -50,
-
-          
-
-                                left: 0,
-
-          
-
-                                right: 0,
-
-          
-
-                                child: Transform.translate(
-
-                        offset: Offset(0, mascotTranslateY),
-
-                        child: RepaintBoundary(
-
-                          child: AnimatedBuilder(
-
-                            animation: _breathingController,
-
-                            builder: (context, child) {
-
-                              final breathingScale = 1.0 + (_breathingController.value * 0.02);
-
-                              return Transform.scale(
-
-                                scale: mascotScale * breathingScale,
-
-                                child: child,
-
-                              );
-
-                            },
-
-                            child: Center(
-
-                              child: TweenAnimationBuilder<double>(
-
-                                tween: Tween(begin: 0.8, end: 1.0),
-
-                                duration: const Duration(milliseconds: 600),
-
-                                curve: Curves.easeOutQuart,
-
-                                builder: (context, value, child) {
-
-                                  return Transform.scale(
-
-                                    scale: value,
-
-                                    child: Transform.rotate(
-
-                                      angle: (1.0 - value) * -0.087, // -5° to 0°
-
-                                      child: ImageFiltered(
-
-                                        imageFilter: ImageFilter.blur(
-
-                                          sigmaX: mascotBlur,
-
-                                          sigmaY: mascotBlur,
-
-                                        ),
-
-                                        child: child,
-
-                                      ),
-
-                                    ),
-
-                                  );
-
-                                },
-
-                                child: Transform.scale(
-
-                                  scale: 1.4,
-
-                                  child: Stack(
-
-                                    children: [
-
-                                      // 3D Realistic Drop Shadow
-
-                                      Transform.translate(
-
-                                        offset: const Offset(20, 20),
-
-                                        child: ImageFiltered(
-
-                                          imageFilter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-
-                                          child: ColorFiltered(
-
-                                            colorFilter: ColorFilter.mode(
-
-                                              Colors.black.withValues(alpha: 0.55),
-
-                                              BlendMode.srcIn,
-
-                                            ),
-
-                                            child: Image.asset(
-
-                                              'assets/images/Screenshot_2026-01-11_at_2.08.53_PM-removebg-preview.png',
-
-                                              width: 250,
-
-                                              fit: BoxFit.contain,
-
-                                            ),
-
-                                          ),
-
-                                        ),
-
-                                      ),
-
-                                      Image.asset(
-
-                                        'assets/images/Screenshot_2026-01-11_at_2.08.53_PM-removebg-preview.png',
-
-                                        width: 250,
-
-                                        fit: BoxFit.contain,
-
-                                      ),
-
-                                    ],
-
-                                  ),
-
-                                ),
-
-                              ),
-
-                            ),
-
-                          ),
-
-                        ),
-
-                      ),
-
-                    ),
+          // Level Progress Bar above panda
+
+          Positioned(
+            top: 97,
+            left: 24,
+            right: 24,
+            child: _buildLevelProgressBar(),
+          ),
         ],
       ),
     );
@@ -568,40 +424,36 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   Widget _buildCardStackZone(double screenHeight, double screenWidth) {
     final cards = [
       _CardData(
-        title: '',
+        title: 'LIFE SWIPE',
         subtitle: '',
         description: '',
         icon: Icons.swipe_rounded,
-        gradientColors: [const Color(0xFFFFE5CC), const Color(0xFFE5CCFF)],
+        gradientColors: [const Color(0xFFE1C1C6), const Color(0xFFE1C1C6)],
         route: '/game/life-swipe',
-        imagePath: 'assets/images/life_swipe_cover.png',
       ),
       _CardData(
-        title: '',
-        subtitle: '',
-        description: '',
-        icon: Icons.trending_up_rounded,
-        gradientColors: [DesignTokens.accentStart, DesignTokens.accentEnd],
-        route: '/game/market-explorer',
-        imagePath: 'assets/images/market_explorer_cover.png',
-      ),
-      _CardData(
-        title: '',
+        title: 'BUDGET BLITZ',
         subtitle: '',
         description: '',
         icon: Icons.bolt_rounded,
-        gradientColors: [const Color(0xFFFF6B9D), const Color(0xFFC06C84)],
+        gradientColors: [const Color(0xFFF6EDA3), const Color(0xFFF6EDA3)],
         route: '/game/budget-blitz',
-        imagePath: 'assets/images/budget_blitz_cover.png',
       ),
       _CardData(
-        title: '',
+        title: 'MARKET EXPLORER',
+        subtitle: '',
+        description: '',
+        icon: Icons.trending_up_rounded,
+        gradientColors: [const Color(0xFF94B8C9), const Color(0xFF94B8C9)],
+        route: '/game/market-explorer',
+      ),
+      _CardData(
+        title: 'QUIZ BATTLE',
         subtitle: '',
         description: '',
         icon: Icons.quiz_rounded,
-        gradientColors: [DesignTokens.secondaryStart, DesignTokens.secondaryEnd],
+        gradientColors: [const Color(0xFF829672), const Color(0xFF829672)],
         route: '/game/quiz-battle',
-        imagePath: 'assets/images/quiz_battle_cover.png',
       ),
     ];
 
@@ -620,39 +472,42 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     final unfoldedHeight = cards.length * (cardHeight + 20.0); // All cards with 20px gap
     final stackHeight = collapsedHeight + (unfoldProgress * (unfoldedHeight - collapsedHeight));
 
-    return Container(
-      padding: const EdgeInsets.only(top: 45, bottom: 24),
-      child: SizedBox(
-        height: stackHeight,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: displayCards.asMap().entries.map((entry) {
-          final index = entry.key; // 0 is Play Games (first), 3 is Friends (last)
-          final card = entry.value;
+    return Transform.translate(
+      offset: const Offset(0, -47),
+      child: Container(
+        padding: const EdgeInsets.only(top: 0, bottom: 24),
+        child: SizedBox(
+          height: stackHeight,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: displayCards.asMap().entries.map((entry) {
+            final index = entry.key; // 0 is Play Games (first), 3 is Friends (last)
+            final card = entry.value;
 
-          // When collapsed (unfoldProgress = 0): Cards stacked with only 40px visible each
-          // When unfolded (unfoldProgress = 1): Cards fully separated with 20px gap
+            // When collapsed (unfoldProgress = 0): Cards stacked with only 40px visible each
+            // When unfolded (unfoldProgress = 1): Cards fully separated with 20px gap
 
-          // Calculate vertical position
-          // Collapsed: cards overlap, showing 40px of each card
-          // Unfolded: full card height + 20px gap
-          final collapsedTop = index * 40.0; // Show 40px of each card when stacked
-          final unfoldedTop = index * (cardHeight + 20.0); // Full card + gap
-          final currentTop = collapsedTop + (unfoldProgress * (unfoldedTop - collapsedTop));
+            // Calculate vertical position
+            // Collapsed: cards overlap, showing 40px of each card
+            // Unfolded: full card height + 20px gap
+            final collapsedTop = index * 70.0; // Show 70px of each card when stacked
+            final unfoldedTop = index * (cardHeight + 80.0); // Full card + gap
+            final currentTop = collapsedTop + (unfoldProgress * (unfoldedTop - collapsedTop));
 
-          return AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutQuad,
-            top: currentTop,
-            left: 13,
-            right: 13,
-            child: _buildGlassmorphicCard(
-              card: card,
-              index: index,
-              screenHeight: screenHeight,
-            ),
-          );
-        }).toList(),
+            return AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutQuad,
+              top: currentTop,
+              left: 13,
+              right: 13,
+                          child: _buildGlassmorphicCard(
+                            card: card,
+                            index: index,
+                            screenHeight: screenHeight,
+                            unfoldProgress: unfoldProgress,
+                          ),            );
+          }).toList(),
+          ),
         ),
       ),
     );
@@ -662,6 +517,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     required _CardData card,
     required int index,
     required double screenHeight,
+    required double unfoldProgress,
   }) {
     // Progressive blur: +4px per card
     final blurAmount = 24.0 + (index * 4.0);
@@ -686,28 +542,14 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                 fit: StackFit.expand,
                 children: [
                   // 1. Background Layer
-                  if (card.imagePath != null) ...[
-                    // CASE A: Clear Full Cover (Text in Image)
-                    
-                    // Dark Base
-                    Container(color: const Color(0xFF0B0B0D)),
-                    
-                    // The Image: Full fill, clear visibility, no overlays
-                    Image.asset(
-                      card.imagePath!,
-                      fit: BoxFit.fill,
-                    ),
-                  ] else ...[
-                    // CASE B: Standard Glassmorphic Background
-                    BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0B0B0D).withValues(alpha: 0.7),
-                        ),
+                  BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: card.gradientColors[0].withOpacity(0.7),
                       ),
                     ),
-                  ],
+                  ),
 
                   // 2. Border & Outer Glow (Applied to both)
                   Container(
@@ -731,7 +573,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                   // 3. Content Layer
                   Padding(
                     padding: const EdgeInsets.all(24),
-                    child: _buildCollapsedCardContent(card),
+                    child: _buildCollapsedCardContent(card, unfoldProgress),
                   ),
                 ],
               ),
@@ -742,90 +584,46 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     );
   }
 
-  Widget _buildCollapsedCardContent(_CardData card) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // FIX: Icon badge with 16px offset from top-left
-        if (card.title.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 0, top: 0), // Already has 24px from container padding
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: card.gradientColors,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
+  Widget _buildCollapsedCardContent(_CardData card, double unfoldProgress) {
+    double animatedFontSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
+    double animatedIconSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
+    double iconSpacing = 8.0; // Default spacing
+
+    if (card.title == 'LIFE SWIPE') {
+      iconSpacing = 12.0;
+    } else if (card.title == 'MARKET EXPLORER') {
+      animatedFontSize = 24 - (unfoldProgress * 2); // Animate from 24 to 22
+      animatedIconSize = 24 - (unfoldProgress * 2); // Animate from 24 to 22
+    }
+
+    final Alignment animatedAlignment =
+        Alignment.lerp(Alignment.topLeft, Alignment.topCenter, unfoldProgress)!;
+
+    return Align(
+      alignment: animatedAlignment,
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // To keep the Row compact
+        children: [
+          Icon(
+            card.icon,
+            size: animatedIconSize,
+            color: DesignTokens.textPrimary,
+          ),
+          SizedBox(width: iconSpacing),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              card.title,
+              style: GoogleFonts.luckiestGuy(
+                fontSize: animatedFontSize,
+                color: DesignTokens.textPrimary,
+                height: 1.1,
+                letterSpacing: 0.5,
               ),
-              child: Icon(
-                card.icon,
-                size: 18,
-                color: Colors.white,
-              ),
             ),
           ),
-
-        if (card.title.isNotEmpty) const SizedBox(height: 16),
-
-        // Title - Poppins Bold 24px
-        if (card.title.isNotEmpty)
-          Text(
-            card.title,
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  color: Colors.black,
-                  offset: Offset(0, 2),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-          ),
-
-        if (card.title.isNotEmpty) const SizedBox(height: 4),
-
-        // Subtitle - Inter Regular 14px
-        if (card.subtitle.isNotEmpty)
-          Text(
-            card.subtitle,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Colors.white.withValues(alpha: 0.9), // Slightly brighter
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: 0.8),
-                  offset: Offset(0, 1),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-          ),
-
-        if (card.subtitle.isNotEmpty) const SizedBox(height: 12),
-
-        // Description - Fun and catchy info
-        if (card.description.isNotEmpty)
-          Text(
-            card.description,
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Colors.white.withValues(alpha: 0.85),
-              height: 1.4,
-            ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 
