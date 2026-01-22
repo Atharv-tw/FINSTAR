@@ -43,6 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/build/
+
+# Java heap dumps (large debug files)
+*.hprof
 
 # Claude Code
 .claude/
@@ -59,3 +63,4 @@ finstar_high_level_design_hld_v_1.md
 QUICK_START.md
 
 nul
+project data.md

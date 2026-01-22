@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../core/design_tokens.dart';
-import '../../../../services/local_storage_service.dart';
+import '../../../../services/game_logic_service.dart';
+import '../../../../services/supabase_functions_service.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final int totalQuestions;
@@ -32,6 +33,12 @@ class _QuizResultScreenState extends State<QuizResultScreen>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
+  final GameLogicService _gameLogic = GameLogicService();
+  final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
+
+  int _xpEarned = 0;
+  int _coinsEarned = 0;
+
   @override
   void initState() {
     super.initState();
@@ -54,19 +61,43 @@ class _QuizResultScreenState extends State<QuizResultScreen>
   }
 
   Future<void> _saveResults() async {
-    final storage = await LocalStorageService.getInstance();
+    try {
+      // Calculate time bonus (maxStreak can serve as a proxy for quick answers)
+      final timeBonus = widget.maxStreak * 5;
+      final isPerfect = widget.correctAnswers == widget.totalQuestions;
 
-    // Award coins and XP based on performance
-    int coinsEarned = widget.score ~/ 10; // 1 coin per 10 points
-    int xpEarned = widget.score ~/ 5; // 1 XP per 5 points
+      Map<String, dynamic> result;
 
-    // Bonus for perfect score
-    if (widget.correctAnswers == widget.totalQuestions) {
-      coinsEarned += 50;
-      xpEarned += 100;
+      // Try Supabase Edge Functions first (server-side validation)
+      try {
+        result = await _supabaseService.submitGameWithAchievements(
+          gameType: 'quiz_battle',
+          gameData: {
+            'correctAnswers': widget.correctAnswers,
+            'totalQuestions': widget.totalQuestions,
+            'timeBonus': timeBonus,
+            'isWinner': isPerfect, // Solo quiz - perfect score is a "win"
+          },
+        );
+      } catch (e) {
+        print('Supabase submission failed, falling back to client-side: $e');
+        // Fallback to client-side logic if Supabase fails
+        result = await _gameLogic.submitQuizBattle(
+          correctAnswers: widget.correctAnswers,
+          totalQuestions: widget.totalQuestions,
+          timeBonus: timeBonus,
+        );
+      }
+
+      if (result['success'] == true && mounted) {
+        setState(() {
+          _xpEarned = result['xpEarned'] ?? 0;
+          _coinsEarned = result['coinsEarned'] ?? 0;
+        });
+      }
+    } catch (e) {
+      print('Error saving quiz results: $e');
     }
-
-    await storage.addReward(coins: coinsEarned, xp: xpEarned);
   }
 
   @override
@@ -436,9 +467,10 @@ class _QuizResultScreenState extends State<QuizResultScreen>
   }
 
   Widget _buildRewardsCard() {
-    final coinsEarned = widget.score ~/ 10;
-    final xpEarned = widget.score ~/ 5;
     final isPerfect = widget.correctAnswers == widget.totalQuestions;
+    // Use server-returned values if available, otherwise use calculated fallback
+    final coinsToShow = _coinsEarned > 0 ? _coinsEarned : (widget.score ~/ 10 + (isPerfect ? 50 : 0));
+    final xpToShow = _xpEarned > 0 ? _xpEarned : (widget.score ~/ 5 + (isPerfect ? 100 : 0));
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -476,7 +508,7 @@ class _QuizResultScreenState extends State<QuizResultScreen>
               _buildRewardItem(
                 icon: Icons.monetization_on,
                 label: 'Coins',
-                value: '+${coinsEarned + (isPerfect ? 50 : 0)}',
+                value: '+$coinsToShow',
                 color: AppTheme.accentYellow,
               ),
               Container(
@@ -487,7 +519,7 @@ class _QuizResultScreenState extends State<QuizResultScreen>
               _buildRewardItem(
                 icon: Icons.stars,
                 label: 'XP',
-                value: '+${xpEarned + (isPerfect ? 100 : 0)}',
+                value: '+$xpToShow',
                 color: AppTheme.primaryColor,
               ),
             ],

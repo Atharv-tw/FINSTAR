@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../core/design_tokens.dart';
 import '../../../../services/game_logic_service.dart';
+import '../../../../services/supabase_functions_service.dart';
 import '../models/spending_scenario.dart';
 
 class LifeSwipeResultScreen extends StatefulWidget {
@@ -47,7 +48,11 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
   late Animation<double> _fadeAnimation;
   int _xpEarned = 0;
   int _coinsEarned = 0;
+  bool _leveledUp = false;
+  int _newLevel = 0;
+  List<Map<String, dynamic>> _unlockedAchievements = [];
   final GameLogicService _gameLogic = GameLogicService();
+  final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   @override
   void initState() {
@@ -67,26 +72,63 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
   Future<void> _saveResults() async {
     try {
       final overallScore = _calculateOverallScore();
+      final seed = DateTime.now().millisecondsSinceEpoch;
 
-      // Prepare allocations data (simplified)
+      // Prepare allocations data for Supabase (needs to sum to 10000)
+      final total = widget.spentMoney + widget.savedMoney + widget.remainingBudget;
       final Map<String, int> allocations = {
-        'spent': widget.spentMoney,
-        'saved': widget.savedMoney,
-        'remaining': widget.remainingBudget,
+        'spent': ((widget.spentMoney / total) * 10000).round(),
+        'saved': ((widget.savedMoney / total) * 10000).round(),
+        'remaining': ((widget.remainingBudget / total) * 10000).round(),
       };
 
-      // Submit to Firebase
-      final result = await _gameLogic.submitLifeSwipe(
-        seed: DateTime.now().millisecondsSinceEpoch, // Use timestamp as seed
-        allocations: allocations,
-        score: overallScore,
-        eventChoices: widget.decisions,
-      );
+      // Adjust to ensure sum is exactly 10000
+      final sum = allocations.values.reduce((a, b) => a + b);
+      if (sum != 10000) {
+        allocations['remaining'] = allocations['remaining']! + (10000 - sum);
+      }
+
+      // Try Supabase Edge Functions first (server-side validation)
+      Map<String, dynamic> result;
+      try {
+        result = await _supabaseService.submitGameWithAchievements(
+          gameType: 'life_swipe',
+          gameData: {
+            'seed': seed,
+            'allocations': allocations,
+            'score': overallScore,
+            'eventChoices': widget.decisions,
+          },
+        );
+      } catch (e) {
+        print('Supabase call failed, falling back to client-side: $e');
+        // Fallback to client-side logic if Supabase fails
+        result = await _gameLogic.submitLifeSwipe(
+          seed: seed,
+          allocations: {
+            'spent': widget.spentMoney,
+            'saved': widget.savedMoney,
+            'remaining': widget.remainingBudget,
+          },
+          score: overallScore,
+          eventChoices: widget.decisions,
+        );
+      }
 
       if (result['success'] == true && mounted) {
         setState(() {
           _xpEarned = result['xpEarned'] ?? 0;
           _coinsEarned = result['coinsEarned'] ?? 0;
+          _leveledUp = result['leveledUp'] ?? false;
+          _newLevel = result['newLevel'] ?? 0;
+
+          // Handle achievements from Supabase response
+          if (result['achievements'] != null &&
+              result['achievements']['newlyUnlocked'] != null) {
+            _unlockedAchievements = List<Map<String, dynamic>>.from(
+              result['achievements']['newlyUnlocked'],
+            );
+          }
         });
       }
     } catch (e) {

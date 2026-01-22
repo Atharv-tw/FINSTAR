@@ -20,6 +20,7 @@ import '../features/games/quiz_battle/screens/quiz_battle_screen.dart';
 import '../features/games/market_explorer/screens/market_explorer_allocation_screen.dart';
 import '../features/games/budget_blitz/screens/budget_blitz_game_screen.dart';
 import '../features/shop/shop_screen.dart';
+import '../features/challenges/daily_challenges_screen.dart';
 import '../shared/layouts/main_layout.dart';
 import '../providers/auth_provider.dart';
 
@@ -214,6 +215,13 @@ class AppRouter {
         path: '/shop',
         name: 'shop',
         builder: (context, state) => const ShopScreen(),
+      ),
+
+      // Daily Challenges
+      GoRoute(
+        path: '/challenges',
+        name: 'challenges',
+        builder: (context, state) => const DailyChallengesScreen(),
       ),
     ],
 

@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
 import 'game_logic_service.dart';
+import 'notification_service.dart';
 import '../providers/achievements_provider.dart';
 
 /// Firebase Service - Free Tier Only
@@ -86,6 +87,9 @@ class FirebaseServiceFree {
       // Create user profile if new user
       await _createUserProfileIfNeeded(userCredential.user!);
 
+      // Save FCM token for push notifications
+      await NotificationService().saveTokenAfterLogin();
+
       print('Google sign-in successful: ${userCredential.user?.uid}');
       return userCredential;
     } catch (e) {
@@ -96,10 +100,15 @@ class FirebaseServiceFree {
 
   /// Sign in with email/password
   Future<UserCredential> signInWithEmail(String email, String password) async {
-    return await _auth.signInWithEmailAndPassword(
+    final userCredential = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
+
+    // Save FCM token for push notifications
+    await NotificationService().saveTokenAfterLogin();
+
+    return userCredential;
   }
 
   /// Register with email/password
@@ -118,6 +127,9 @@ class FirebaseServiceFree {
       userCredential.user!,
       displayName: displayName,
     );
+
+    // Save FCM token for push notifications
+    await NotificationService().saveTokenAfterLogin();
 
     return userCredential;
   }
@@ -155,6 +167,8 @@ class FirebaseServiceFree {
 
   /// Sign out
   Future<void> signOut() async {
+    // Remove FCM token before signing out
+    await NotificationService().removeToken();
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
