@@ -115,12 +115,12 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         gradient: DesignTokens.primaryGradient,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.emoji_events, color: brownVanDyke, size: 12),
+                          const Icon(Icons.emoji_events, color: Colors.white, size: 12),
                           const SizedBox(width: 4),
                           Text(
                             '#${rank ?? "?"}',
@@ -138,12 +138,12 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         gradient: DesignTokens.primaryGradient,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.emoji_events, color: brownVanDyke, size: 12),
+                          Icon(Icons.emoji_events, color: Colors.white, size: 12),
                           SizedBox(width: 4),
                           SizedBox(
                             width: 12,
@@ -162,31 +162,16 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               GestureDetector(
                 onTap: () => context.push('/friends'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.all(8), // Adjusted padding for circle
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white.withOpacity(0.1),
+                    shape: BoxShape.circle, // Make it a circle
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white.withOpacity(0.2),
                       width: 1,
                     ),
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.people, color: brownVanDyke, size: 12),
-                      SizedBox(width: 4),
-                      Text(
-                        'Friends',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: brownVanDyke,
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 20),
                 ),
               ),
             ],
@@ -214,33 +199,35 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
           );
         }
 
-        return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 800),
-      curve: Curves.easeOutQuart,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // 2nd Place
-                _buildPodiumCard(top3[1], 2, 110, value),
-                const SizedBox(width: 12),
-                // 1st Place
-                _buildPodiumCard(top3[0], 1, 150, value),
-                const SizedBox(width: 12),
-                // 3rd Place
-                _buildPodiumCard(top3[2], 3, 90, value),
-              ],
-            ),
-          ),
+        return AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            // Use a curve for a more dynamic effect
+            final animValue =
+                Curves.easeOutQuart.transform(_animationController.value);
+
+            return Transform.scale(
+              scale: animValue,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // 2nd Place
+                    _buildPodiumCard(top3[1], 2, 110, animValue),
+                    const SizedBox(width: 12),
+                    // 1st Place
+                    _buildPodiumCard(top3[0], 1, 150, animValue),
+                    const SizedBox(width: 12),
+                    // 3rd Place
+                    _buildPodiumCard(top3[2], 3, 90, animValue),
+                  ],
+                ),
+              ),
+            );
+          },
         );
-      },
-    );
       },
       loading: () => const Center(
         child: Padding(

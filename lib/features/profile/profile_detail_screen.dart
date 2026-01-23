@@ -152,7 +152,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
-          'Profile',
+          'Your Profile',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 28,
@@ -160,35 +160,38 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
             color: DesignTokens.textDarkPrimary,
           ),
         ),
-        Row(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(12),
+        Transform.translate(
+          offset: const Offset(0, -4),
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.logout, color: DesignTokens.textDarkSecondary),
+                  onPressed: () async {
+                    await ref.read(authServiceProvider).signOut();
+                    if (mounted) context.go('/login');
+                  },
+                ),
               ),
-              child: IconButton(
-                icon: const Icon(Icons.logout, color: DesignTokens.textDarkSecondary),
-                onPressed: () async {
-                  await ref.read(authServiceProvider).signOut();
-                  if (mounted) context.go('/login');
-                },
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.settings, color: DesignTokens.textDarkSecondary),
+                  onPressed: () {
+                    // Navigate to settings
+                  },
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.settings, color: DesignTokens.textDarkSecondary),
-                onPressed: () {
-                  // Navigate to settings
-                },
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
