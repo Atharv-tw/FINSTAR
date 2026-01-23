@@ -533,9 +533,10 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                       ),
                       child: Text(
                         scorePopup!,
-                              color: const Color(0xFF393027),
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: const TextStyle(
+                          color: Color(0xFF393027),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   );
