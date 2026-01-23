@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../core/design_tokens.dart';
-import '../../../../services/game_logic_service.dart';
 import '../../../../services/supabase_functions_service.dart';
 
 class QuizResultScreen extends StatefulWidget {
@@ -33,7 +32,6 @@ class _QuizResultScreenState extends State<QuizResultScreen>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
-  final GameLogicService _gameLogic = GameLogicService();
   final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   int _xpEarned = 0;
@@ -66,28 +64,15 @@ class _QuizResultScreenState extends State<QuizResultScreen>
       final timeBonus = widget.maxStreak * 5;
       final isPerfect = widget.correctAnswers == widget.totalQuestions;
 
-      Map<String, dynamic> result;
-
-      // Try Supabase Edge Functions first (server-side validation)
-      try {
-        result = await _supabaseService.submitGameWithAchievements(
-          gameType: 'quiz_battle',
-          gameData: {
-            'correctAnswers': widget.correctAnswers,
-            'totalQuestions': widget.totalQuestions,
-            'timeBonus': timeBonus,
-            'isWinner': isPerfect, // Solo quiz - perfect score is a "win"
-          },
-        );
-      } catch (e) {
-        print('Supabase submission failed, falling back to client-side: $e');
-        // Fallback to client-side logic if Supabase fails
-        result = await _gameLogic.submitQuizBattle(
-          correctAnswers: widget.correctAnswers,
-          totalQuestions: widget.totalQuestions,
-          timeBonus: timeBonus,
-        );
-      }
+      final result = await _supabaseService.submitGameWithAchievements(
+        gameType: 'quiz_battle',
+        gameData: {
+          'correctAnswers': widget.correctAnswers,
+          'totalQuestions': widget.totalQuestions,
+          'timeBonus': timeBonus,
+          'isWinner': isPerfect, // Solo quiz - perfect score is a "win"
+        },
+      );
 
       if (result['success'] == true && mounted) {
         setState(() {
@@ -96,7 +81,7 @@ class _QuizResultScreenState extends State<QuizResultScreen>
         });
       }
     } catch (e) {
-      print('Error saving quiz results: $e');
+      debugPrint('Error saving quiz results: $e');
     }
   }
 

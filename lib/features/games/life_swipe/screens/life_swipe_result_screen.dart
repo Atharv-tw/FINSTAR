@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../core/design_tokens.dart';
-import '../../../../services/game_logic_service.dart';
 import '../../../../services/supabase_functions_service.dart';
 import '../models/spending_scenario.dart';
 
@@ -51,7 +50,6 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
   bool _leveledUp = false;
   int _newLevel = 0;
   List<Map<String, dynamic>> _unlockedAchievements = [];
-  final GameLogicService _gameLogic = GameLogicService();
   final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   @override
@@ -88,32 +86,15 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
         allocations['remaining'] = allocations['remaining']! + (10000 - sum);
       }
 
-      // Try Supabase Edge Functions first (server-side validation)
-      Map<String, dynamic> result;
-      try {
-        result = await _supabaseService.submitGameWithAchievements(
-          gameType: 'life_swipe',
-          gameData: {
-            'seed': seed,
-            'allocations': allocations,
-            'score': overallScore,
-            'eventChoices': widget.decisions,
-          },
-        );
-      } catch (e) {
-        print('Supabase call failed, falling back to client-side: $e');
-        // Fallback to client-side logic if Supabase fails
-        result = await _gameLogic.submitLifeSwipe(
-          seed: seed,
-          allocations: {
-            'spent': widget.spentMoney,
-            'saved': widget.savedMoney,
-            'remaining': widget.remainingBudget,
-          },
-          score: overallScore,
-          eventChoices: widget.decisions,
-        );
-      }
+      final result = await _supabaseService.submitGameWithAchievements(
+        gameType: 'life_swipe',
+        gameData: {
+          'seed': seed,
+          'allocations': allocations,
+          'score': overallScore,
+          'eventChoices': widget.decisions,
+        },
+      );
 
       if (result['success'] == true && mounted) {
         setState(() {
@@ -132,7 +113,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
         });
       }
     } catch (e) {
-      print('Error saving Life Swipe results: $e');
+      debugPrint('Error saving Life Swipe results: $e');
     }
   }
 

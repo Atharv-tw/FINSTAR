@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/design_tokens.dart';
-import '../../../../services/game_logic_service.dart';
 import '../../../../services/supabase_functions_service.dart';
 import '../models/expense.dart';
 
@@ -36,7 +35,6 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
   final Random _random = Random();
   List<Expense> _shuffledExpenses = [];
   int _expenseIndex = 0;
-  final GameLogicService _gameLogic = GameLogicService();
   final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   // Score thresholds for popups
@@ -93,29 +91,15 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
         _highScore = _score;
       }
 
-      Map<String, dynamic> result;
-
-      // Try Supabase Edge Functions first (server-side validation)
-      try {
-        result = await _supabaseService.submitGameWithAchievements(
-          gameType: 'budget_blitz',
-          gameData: {
-            'score': _score,
-            'level': _level,
-            'correctDecisions': _correctDecisions,
-            'totalDecisions': _totalDecisions,
-          },
-        );
-      } catch (e) {
-        print('Supabase submission failed, falling back to client-side: $e');
-        // Fallback to client-side logic if Supabase fails
-        result = await _gameLogic.submitBudgetBlitz(
-          score: _score,
-          level: _level,
-          correctDecisions: _correctDecisions,
-          totalDecisions: _totalDecisions,
-        );
-      }
+      final result = await _supabaseService.submitGameWithAchievements(
+        gameType: 'budget_blitz',
+        gameData: {
+          'score': _score,
+          'level': _level,
+          'correctDecisions': _correctDecisions,
+          'totalDecisions': _totalDecisions,
+        },
+      );
 
       if (result['success'] == true && mounted) {
         setState(() {
@@ -124,7 +108,8 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
         });
       }
     } catch (e) {
-      print('Error saving high score: $e');
+      debugPrint('Error saving score: $e');
+      // Score not saved but game still playable
     }
   }
 

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../core/design_tokens.dart';
 import '../models/market_explorer_models.dart';
-import '../../../../services/game_logic_service.dart';
 import '../../../../services/supabase_functions_service.dart';
 
 class MarketExplorerResultScreen extends StatefulWidget {
@@ -26,7 +25,6 @@ class _MarketExplorerResultScreenState
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
-  final GameLogicService _gameLogic = GameLogicService();
   final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   int _xpEarned = 0;
@@ -78,29 +76,15 @@ class _MarketExplorerResultScreenState
       }
       portfolioData['cash'] = portfolio.unallocatedAmount;
 
-      Map<String, dynamic> result;
-
-      // Try Supabase Edge Functions first (server-side validation)
-      try {
-        result = await _supabaseService.submitGameWithAchievements(
-          gameType: 'market_explorer',
-          gameData: {
-            'portfolioValue': portfolio.totalValue,
-            'initialValue': portfolio.totalCapital,
-            'portfolio': portfolioData,
-            'decisionsCount': portfolio.eventsOccurred.length,
-          },
-        );
-      } catch (e) {
-        debugPrint('Supabase submission failed, falling back to client-side: $e');
-        // Fallback to client-side logic if Supabase fails
-        result = await _gameLogic.submitMarketExplorer(
-          portfolioValue: portfolio.totalValue,
-          initialValue: portfolio.totalCapital.toDouble(),
-          portfolio: portfolioData,
-          decisionsCount: portfolio.eventsOccurred.length,
-        );
-      }
+      final result = await _supabaseService.submitGameWithAchievements(
+        gameType: 'market_explorer',
+        gameData: {
+          'portfolioValue': portfolio.totalValue,
+          'initialValue': portfolio.totalCapital,
+          'portfolio': portfolioData,
+          'decisionsCount': portfolio.eventsOccurred.length,
+        },
+      );
 
       if (result['success'] == true && mounted) {
         setState(() {
