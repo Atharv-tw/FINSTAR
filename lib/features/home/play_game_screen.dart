@@ -517,7 +517,11 @@ class _PlayGameScreenState extends State<PlayGameScreen>
           onTap: () {
             // Navigate to game
             HapticFeedback.mediumImpact();
-            context.push(card.route);
+            if (card.title == 'LIFE SWIPE') {
+              context.push('/game/life-swipe/tutorial');
+            } else {
+              context.push(card.route);
+            }
           },
           child: Container(
             height: screenHeight * 0.7, // Full card size (70% of screen height)
