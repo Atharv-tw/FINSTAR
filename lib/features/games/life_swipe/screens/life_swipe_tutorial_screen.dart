@@ -224,7 +224,7 @@ class _SwipingIconState extends State<SwipingIcon>
       animation: _swipeController,
       builder: (context, child) {
         final curve = CurvedAnimation(parent: _swipeController, curve: Curves.easeInOut);
-        final verticalOffset = const Offset(0, -10); // Move up by 10 pixels
+        final verticalOffset = const Offset(0, -14); // Move up by 14 pixels (additional 4)
         final offset = widget.swipeRight
             ? Tween<Offset>(begin: const Offset(-30, 0), end: const Offset(30, 0))
                 .animate(curve)

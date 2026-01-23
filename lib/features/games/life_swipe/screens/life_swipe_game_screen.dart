@@ -251,12 +251,21 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       appBar: hasStarted
           ? null
           : AppBar(
-              title: const Text('Life Swipe'),
+              title: const Text('Life Swipe', style: TextStyle(color: const Color(0xFF393027))),
               centerTitle: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
             ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white,
+              const Color(0xFFB6CFE4).withOpacity(0.3),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
         ),
         child: SafeArea(
           bottom: false,
@@ -282,18 +291,17 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFFFFD700), // Gold
-                          Color(0xFFFFA500), // Orange-gold
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(24),
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Colors.white,
+                                                    const Color(0xFF9BAD50).withOpacity(0.3),
+                                                  ],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                ),                      borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                          color: const Color(0xFF9BAD50).withOpacity(0.2),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -304,7 +312,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         Text(
                           '₹20,000',
                           style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                color: Colors.white,
+                                color: const Color(0xFF28301C),
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -312,7 +320,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         Text(
                           'Your Monthly Budget',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: Colors.white,
+                                color: const Color(0xFF28301C),
                                 fontWeight: FontWeight.w600,
                               ),
                         ),
@@ -320,51 +328,26 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         Text(
                           'Pocket money + internship earnings',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.9),
+                                color: const Color(0xFF28301C).withOpacity(0.9),
                               ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
 
-                // How to play
-                Text(
-                  'How It Works',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: DesignTokens.textDarkPrimary,
-                      ),
-                ),
-                const SizedBox(height: 16),
-
-                _buildInstructionItem(
-                  icon: Icons.swipe_right,
-                  title: 'Swipe Right = Spend',
-                  description: 'Accept the expense. Enjoy now, pay later.',
-                  color: const Color(0xFFFF6B6B),
-                ),
-                const SizedBox(height: 12),
-                _buildInstructionItem(
-                  icon: Icons.swipe_left,
-                  title: 'Swipe Left = Save',
-                  description: 'Skip the expense. Be disciplined, build wealth.',
-                  color: const Color(0xFF63E6BE),
-                ),
-                const SizedBox(height: 12),
                 _buildInstructionItem(
                   icon: Icons.trending_up,
                   title: 'Track Your Stats',
                   description: 'Every choice affects happiness, discipline, social life & future.',
-                  color: DesignTokens.primaryStart,
+                  color: const Color(0xFF9BAD50),
                 ),
                 const SizedBox(height: 12),
                 _buildInstructionItem(
                   icon: Icons.star,
                   title: 'Earn Streaks & Badges',
                   description: 'Build saving streaks to unlock achievements!',
-                  color: DesignTokens.accentStart,
+                  color: const Color(0xFFB6CFE4),
                 ),
                 const SizedBox(height: 32),
 
@@ -372,10 +355,10 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: DesignTokens.accentStart.withValues(alpha: 0.1),
+                    color: Colors.white.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: DesignTokens.accentStart.withValues(alpha: 0.6),
+                      color: const Color(0xFF393027).withOpacity(0.4),
                       width: 2,
                     ),
                   ),
@@ -391,7 +374,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         child: Text(
                           'These are REAL scenarios Indian teens face. Choose wisely!',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: DesignTokens.textDarkPrimary,
+                                color: const Color(0xFF393027),
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -416,7 +399,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                 _startGame();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: DesignTokens.primaryStart,
+                backgroundColor: const Color(0xFF9BAD50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -451,10 +434,10 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.3),
+        color: Colors.white.withOpacity(0.7), // Light background for item
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withValues(alpha: 0.5),
+          color: color.withOpacity(0.5), // Border color from item's color
           width: 1,
         ),
       ),
@@ -466,11 +449,11 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             height: 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [color, color.withValues(alpha: 0.7)],
+                colors: [color, color.withOpacity(0.7)], // Icon background gradient
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Colors.white, size: 24),
+            child: Icon(icon, color: Colors.white, size: 24), // Icon remains white
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -481,14 +464,14 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: DesignTokens.textDarkPrimary,
+                        color: const Color(0xFF393027), // Dark text
                       ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: DesignTokens.textDarkSecondary,
+                        color: const Color(0xFF28301C), // Slightly less dark text
                       ),
                 ),
               ],
@@ -537,12 +520,12 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
+                          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
                         ),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: DesignTokens.accentStart.withValues(alpha: 0.5),
+                            color: const Color(0xFF9BAD50).withOpacity(0.5),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
@@ -550,8 +533,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                       ),
                       child: Text(
                         scorePopup!,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
+                              color: const Color(0xFF393027),
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -580,10 +562,10 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0B0B0D).withValues(alpha: 0.45),
+                  color: Colors.white.withOpacity(0.7),
                   border: Border(
                     bottom: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: const Color(0xFF28301C).withOpacity(0.1),
                       width: 0.5,
                     ),
                   ),
@@ -596,9 +578,9 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: Colors.white.withOpacity(0.7),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: const Color(0xFF28301C).withOpacity(0.2),
                           width: 1,
                         ),
                       ),
@@ -620,14 +602,14 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: currentBudget < 5000
-                                    ? const Color(0xFFFF6B6B)
-                                    : const Color(0xFF63E6BE),
+                                    ? const Color(0xFF393027)
+                                    : const Color(0xFF9BAD50),
                               ),
                         ),
                         Text(
                           'Budget Left',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: DesignTokens.textDarkSecondary,
+                                color: const Color(0xFF28301C),
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -636,8 +618,8 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -664,15 +646,15 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       height: 6,
       decoration: BoxDecoration(
-        color: const Color(0xFF0B0B0D).withValues(alpha: 0.3),
+        color: const Color(0xFFB6CFE4).withOpacity(0.3),
       ),
       child: FractionallySizedBox(
         alignment: Alignment.centerLeft,
         widthFactor: progress,
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
+            gradient: const LinearGradient(
+              colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
             ),
           ),
         ),
@@ -684,7 +666,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B0B0D).withValues(alpha: 0.45),
+        color: Colors.white.withOpacity(0.7),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -702,17 +684,19 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
 
   Widget _buildStatChip(String emoji, int score) {
     final color = score >= 70
-        ? const Color(0xFF63E6BE)
+        ? const Color(0xFF9BAD50)
         : score >= 40
-            ? DesignTokens.accentStart
-            : const Color(0xFFFF6B6B);
+            ? const Color(0xFFB6CFE4)
+            : const Color(0xFF393027);
+
+    final textColor = color == const Color(0xFF393027) ? const Color(0xFF9BAD50) : color;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -722,7 +706,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
           Text(
             '$score',
             style: TextStyle(
-              color: color,
+              color: textColor,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -736,8 +720,8 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -850,12 +834,12 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
           end: Alignment.bottomRight,
           colors: [
             Colors.white,
-            categoryColor.withValues(alpha: 0.4),
+            categoryColor.withOpacity(0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: categoryColor.withValues(alpha: 1.0),
+          color: categoryColor.withOpacity(0.7),
           width: 2,
         ),
         boxShadow: [
@@ -925,14 +909,14 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         scenario.title,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1A1A1A),
+                              color: const Color(0xFF393027),
                             ),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         scenario.description,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: const Color(0xFF4A4A4A),
+                              color: const Color(0xFF28301C),
                               height: 1.5,
                             ),
                       ),
@@ -981,13 +965,13 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                   gradient: LinearGradient(
                     colors: [
                       (dragDistance > 0
-                              ? const Color(0xFFFF6B6B)
-                              : const Color(0xFF63E6BE))
-                          .withValues(alpha: 0.3),
+                              ? const Color(0xFF9BAD50)
+                              : const Color(0xFFB6CFE4))
+                          .withOpacity(0.3),
                       (dragDistance > 0
-                              ? const Color(0xFFFF6B6B)
-                              : const Color(0xFF63E6BE))
-                          .withValues(alpha: 0.1),
+                              ? const Color(0xFF9BAD50)
+                              : const Color(0xFFB6CFE4))
+                          .withOpacity(0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(32),
@@ -1005,16 +989,16 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: dragDistance > 0
-                                ? [const Color(0xFFFF6B6B), const Color(0xFFE74C3C)]
-                                : [const Color(0xFF63E6BE), const Color(0xFF5F8724)],
+                                ? [const Color(0xFF9BAD50), const Color(0xFF393027)]
+                                : [const Color(0xFFB6CFE4), const Color(0xFF28301C)],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
                               color: (dragDistance > 0
-                                      ? const Color(0xFFFF6B6B)
-                                      : const Color(0xFF63E6BE))
-                                  .withValues(alpha: 0.5),
+                                      ? const Color(0xFF9BAD50)
+                                      : const Color(0xFFB6CFE4))
+                                  .withOpacity(0.5),
                               blurRadius: 20,
                               spreadRadius: 2,
                             ),
@@ -1049,7 +1033,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
           _buildActionButton(
             icon: Icons.close,
             gradient: const LinearGradient(
-              colors: [Color(0xFF63E6BE), Color(0xFF5F8724)],
+              colors: [Color(0xFFB6CFE4), Color(0xFF9BAD50)],
             ),
             onPressed: () => _handleSwipe(false),
           ),
@@ -1057,7 +1041,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
           _buildActionButton(
             icon: Icons.favorite,
             gradient: const LinearGradient(
-              colors: [Color(0xFFFF6B6B), Color(0xFFE74C3C)],
+              colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
             ),
             onPressed: () => _handleSwipe(true),
           ),
