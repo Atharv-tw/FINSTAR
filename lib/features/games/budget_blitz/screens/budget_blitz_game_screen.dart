@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:finstar_app/features/games/budget_blitz/widgets/animated_game_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -49,11 +50,17 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
   final Set<int> _triggeredMessages = {};
   String _currentPopupMessage = '';
   bool _showPopup = false;
+  
+  late AnimationController _backgroundAnimationController;
 
   @override
   void initState() {
     super.initState();
     _loadHighScore();
+    _backgroundAnimationController = AnimationController(
+      duration: const Duration(seconds: 10),
+      vsync: this,
+    )..repeat(reverse: true);
   }
 
   @override
@@ -62,6 +69,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
     for (var expense in _fallingExpenses) {
       expense.controller.dispose();
     }
+    _backgroundAnimationController.dispose();
     super.dispose();
   }
 
@@ -298,10 +306,23 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
 
   Widget _buildStartScreen() {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
-        ),
+      body: AnimatedBuilder(
+        animation: _backgroundAnimationController,
+        builder: (context, child) {
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.lerp(const Color(0xFFFFFAE3), const Color(0xFFFFF8DC), _backgroundAnimationController.value)!,
+                  Color.lerp(const Color(0xFFFFFADF), const Color(0xFFFAFAD2), _backgroundAnimationController.value)!,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: child,
+          );
+        },
         child: SafeArea(
           child: Stack(
             children: [
@@ -315,6 +336,17 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                     HapticFeedback.mediumImpact();
                     context.pop();
                   },
+                ),
+              ),
+              // Shopping basket image
+              Transform.translate(
+                offset: const Offset(0, -40),
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/Shopping_basket_for_supermarket_-removebg-preview.png',
+                    width: 300, // Adjusted size
+                    height: 300, // Adjusted size
+                  ),
                 ),
               ),
               // Content
@@ -332,74 +364,73 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                   ),
                 );
               },
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Panda mascot
-                    Image.asset(
-                      'assets/images/panda.png',
-                      width: 200,
-                      height: 200,
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Title
-                    const Text(
-                      'Budget Blitz',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        color: DesignTokens.textDarkPrimary,
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Stack(
+                        children: [
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: Transform.translate(
+                              offset: const Offset(0, 40),
+                              child: const Text(
+                                'Budget Blitz',
+                                style: TextStyle(
+                                  fontFamily: 'Manrope',
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF393027),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 15.0),
+                                        child: Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Text(
+                                                'Drag the expenses to the correct buckets\n(Needs, Wants, Savings) to score points.',
+                                                style: TextStyle(
+                                                  fontFamily: 'Inter',
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              const SizedBox(height: 20),
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  HapticFeedback.mediumImpact();
+                                                  _startGame();
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                                                  backgroundColor: const Color(0xFF8D9F37),
+                                                  foregroundColor: Colors.white,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(16),
+                                                  ),
+                                                  elevation: 8,
+                                                ),
+                                                child: const Text(
+                                                  'Start Game',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Poppins',
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),                        ],
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Instructions
-                    const Text(
-                      'Drag the expenses to the correct buckets\n(Needs, Wants, Savings) to score points.',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        color: DesignTokens.textDarkPrimary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 48),
-
-                    // Start button
-                    ElevatedButton(
-                      onPressed: () {
-                        HapticFeedback.mediumImpact();
-                        _startGame();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-                        backgroundColor: const Color(0xFFFF6B9D),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 8,
-                      ),
-                      child: const Text(
-                        'Start Game',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                    ),            ),
               ),
             ],
           ),
@@ -410,42 +441,42 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
 
   Widget _buildGameScreen() {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Score header
-              _buildScoreHeader(),
+      body: Stack(
+        children: [
+          const AnimatedGameBackground(),
+          SafeArea(
+            child: Column(
+              children: [
+                // Score header
+                _buildScoreHeader(),
 
-              // Game area
-              Expanded(
-                child: Stack(
-                  children: [
-                    // Falling expenses
-                    ..._fallingExpenses.map((fe) => _buildFallingExpenseWidget(fe)),
+                // Game area
+                Expanded(
+                  child: Stack(
+                    children: [
+                      // Falling expenses
+                      ..._fallingExpenses.map((fe) => _buildFallingExpenseWidget(fe)),
 
-                    // Milestone popup
-                    if (_showPopup)
-                      Center(
-                        child: _buildMilestonePopup(),
-                      ),
-                  ],
+                      // Milestone popup
+                      if (_showPopup)
+                        Center(
+                          child: _buildMilestonePopup(),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Buckets at the bottom
-              _buildBuckets(),
-            ],
+                // Buckets at the bottom
+                _buildBuckets(),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
-
-  Widget _buildScoreHeader() {
+  
+    Widget _buildScoreHeader() {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -486,13 +517,6 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                 ),
               ),
             ],
-          ),
-
-          // Panda mascot
-          Image.asset(
-            'assets/images/panda.png',
-            width: 60,
-            height: 60,
           ),
 
           // Level
