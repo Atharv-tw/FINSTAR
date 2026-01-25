@@ -125,6 +125,8 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
 
     HapticFeedback.mediumImpact();
 
+    dragDistance = swipedRight ? 121.0 : -121.0;
+
     final scenario = scenarios[currentIndex];
     final impact = swipedRight ? scenario.acceptImpact : scenario.declineImpact;
 
@@ -490,6 +492,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             const SizedBox(height: 16),
             _buildGameHeader(),
             _buildProgressBar(),
+            const SizedBox(height: 10), // Move emoji bar down by 10 pixels
             _buildStatsRow(),
             Expanded(
               child: _buildCardStack(),
@@ -553,84 +556,67 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             lowBudgetWarning ? (_budgetShakeAnimation.value * (currentIndex % 2 == 0 ? 1 : -1)) : 0,
             0,
           ),
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.7),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: const Color(0xFF28301C).withOpacity(0.1),
-                      width: 0.5,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.7),
+                    border: Border.all(
+                      color: const Color(0xFF28301C).withOpacity(0.2),
+                      width: 1,
                     ),
                   ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.close, color: Color(0xFF393027), size: 20),
+                    onPressed: () {
+                      HapticFeedback.mediumImpact();
+                      // Go back to play games screen
+                      context.go('/game');
+                    },
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Budget counter without rectangle
+                Column(
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.7),
-                        border: Border.all(
-                          color: const Color(0xFF28301C).withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.close, color: Colors.white, size: 20),
-                        onPressed: () {
-                          HapticFeedback.mediumImpact();
-                          // Go back to play games screen
-                          context.go('/game');
-                        },
-                      ),
+                    const SizedBox(height: 10), // Move budget down by 10 pixels
+                    Text(
+                      '₹${currentBudget.toStringAsFixed(0)}',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF355E3B), // Changed to solid color
+                          ),
                     ),
-                    // Budget counter without rectangle
-                    Column(
-                      children: [
-                        Text(
-                          '₹${currentBudget.toStringAsFixed(0)}',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: currentBudget < 5000
-                                    ? const Color(0xFF393027)
-                                    : const Color(0xFF9BAD50),
-                              ),
-                        ),
-                        Text(
-                          'Budget Left',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: const Color(0xFF28301C),
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '${currentIndex + 1}/${scenarios.length}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                      ),
+                    Text(
+                      'Budget Left',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF28301C),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ],
                 ),
-              ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF355E3B), // Changed from gradient to solid color
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${currentIndex + 1}/${scenarios.length}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -662,9 +648,6 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
   Widget _buildStatsRow() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
-      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -808,7 +791,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             child: Transform.rotate(
               angle: dragAngle + (animValue * dragAngle * 2),
               child: Opacity(
-                opacity: 1.0 - (animValue * 0.5),
+                opacity: 1.0, // Make card fully opaque during animation
                 child: child,
               ),
             ),
@@ -826,22 +809,15 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       width: MediaQuery.of(context).size.width * 0.88,
       margin: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            categoryColor.withOpacity(0.2),
-          ],
-        ),
+        color: categoryColor, // Make card background fully opaque
         borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: categoryColor.withOpacity(0.7),
+          color: categoryColor, // Make border fully opaque
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: categoryColor.withValues(alpha: 0.15),
+            color: categoryColor, // Make shadow fully opaque
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -849,8 +825,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             BoxShadow(
               color: (dragDistance > 0
                       ? const Color(0xFFFF6B6B)
-                      : const Color(0xFF63E6BE))
-                  .withValues(alpha: 0.4),
+                      : const Color(0xFF63E6BE)), // Make shadow fully opaque
               blurRadius: 40,
               spreadRadius: 5,
             ),
@@ -1029,17 +1004,13 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
           // Save button
           _buildActionButton(
             icon: Icons.close,
-            gradient: const LinearGradient(
-              colors: [Color(0xFFB6CFE4), Color(0xFF9BAD50)],
-            ),
+            color: const Color(0xFF5F8724), // Lighter green
             onPressed: () => _handleSwipe(false),
           ),
           // Spend button
           _buildActionButton(
             icon: Icons.favorite,
-            gradient: const LinearGradient(
-              colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
-            ),
+            color: const Color(0xFF5F8724), // Lighter green
             onPressed: () => _handleSwipe(true),
           ),
         ],
@@ -1049,7 +1020,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
 
   Widget _buildActionButton({
     required IconData icon,
-    required Gradient gradient,
+    required Color color, // Changed from Gradient
     required VoidCallback onPressed,
   }) {
     return Container(
@@ -1057,7 +1028,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       height: 75,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: gradient,
+        color: color, // Changed from gradient
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
@@ -1085,25 +1056,25 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
   Color _getCategoryColor(ScenarioCategory category) {
     switch (category) {
       case ScenarioCategory.food:
-        return const Color(0xFFFF6B6B);
+        return const Color(0xFFF8C5C5); // Pastel Red
       case ScenarioCategory.entertainment:
-        return const Color(0xFF9B59B6);
+        return const Color(0xFFD4B2E0); // Pastel Purple
       case ScenarioCategory.social:
-        return const Color(0xFF3498DB);
+        return const Color(0xFFA9D2F0); // Pastel Blue
       case ScenarioCategory.education:
-        return const Color(0xFF5F8724);
+        return const Color(0xFFC1D9A9); // Pastel Green
       case ScenarioCategory.fashion:
-        return const Color(0xFFE91E63);
+        return const Color(0xFFF4C4D3); // Pastel Pink
       case ScenarioCategory.tech:
-        return const Color(0xFF607D8B);
+        return const Color(0xFFC9D6DD); // Pastel Gray
       case ScenarioCategory.transport:
-        return const Color(0xFFF39C12);
+        return const Color(0xFFFADDAF); // Pastel Orange
       case ScenarioCategory.emergency:
-        return const Color(0xFFE74C3C);
+        return const Color(0xFFF3BDBD); // Pastel Red
       case ScenarioCategory.health:
-        return const Color(0xFF00BCD4);
+        return const Color(0xFFA0E0E7); // Pastel Cyan
       case ScenarioCategory.investment:
-        return const Color(0xFF4CAF50);
+        return const Color(0xFFB3E0B5); // Pastel Green
     }
   }
 
