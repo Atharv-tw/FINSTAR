@@ -489,7 +489,6 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       children: [
         Column(
           children: [
-            const SizedBox(height: 16),
             _buildGameHeader(),
             _buildProgressBar(),
             const SizedBox(height: 10), // Move emoji bar down by 10 pixels
@@ -548,79 +547,86 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
   }
 
   Widget _buildGameHeader() {
-    return AnimatedBuilder(
-      animation: _budgetShakeAnimation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(
-            lowBudgetWarning ? (_budgetShakeAnimation.value * (currentIndex % 2 == 0 ? 1 : -1)) : 0,
-            0,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5), // Added vertical padding
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10.0),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.7),
+                border: Border.all(
+                  color: const Color(0xFF28301C).withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                icon: const Icon(Icons.close, color: Color(0xFF393027), size: 20),
+                onPressed: () {
+                  HapticFeedback.mediumImpact();
+                  // Go back to play games screen
+                  context.go('/game');
+                },
+              ),
+            ),
           ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Budget counter without rectangle
+          AnimatedBuilder(
+            animation: _budgetShakeAnimation,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(
+                  lowBudgetWarning ? (_budgetShakeAnimation.value * (currentIndex % 2 == 0 ? 1 : -1)) : 0,
+                  0,
+                ),
+                child: child,
+              );
+            },
+            child: Column(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.7),
-                    border: Border.all(
-                      color: const Color(0xFF28301C).withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(Icons.close, color: Color(0xFF393027), size: 20),
-                    onPressed: () {
-                      HapticFeedback.mediumImpact();
-                      // Go back to play games screen
-                      context.go('/game');
-                    },
-                  ),
+                const SizedBox(height: 10), // Move budget down by 10 pixels
+                Text(
+                  '₹${currentBudget.toStringAsFixed(0)}',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF355E3B), // Changed to solid color
+                      ),
                 ),
-                // Budget counter without rectangle
-                Column(
-                  children: [
-                    const SizedBox(height: 10), // Move budget down by 10 pixels
-                    Text(
-                      '₹${currentBudget.toStringAsFixed(0)}',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF355E3B), // Changed to solid color
-                          ),
-                    ),
-                    Text(
-                      'Budget Left',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: const Color(0xFF28301C),
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF355E3B), // Changed from gradient to solid color
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${currentIndex + 1}/${scenarios.length}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                  ),
+                Text(
+                  'Budget Left',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF28301C),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
           ),
-        );
-      },
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF355E3B), // Changed from gradient to solid color
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${currentIndex + 1}/${scenarios.length}',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
