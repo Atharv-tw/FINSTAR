@@ -1924,7 +1924,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                 context.push('/game/life-swipe');
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF355E3B), // New button color
+                backgroundColor: const Color(0xFF93A840), // New button color (same as header)
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -1948,7 +1948,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                 context.go('/game');
               },
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: const Color(0xFF355E3B)), // New button color
+                side: BorderSide(color: const Color(0xFF93A840)), // New button color (same as header)
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -1956,7 +1956,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
               child: Text(
                 'Back to Home',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: const Color(0xFF355E3B), // New button color
+                      color: const Color(0xFF93A840), // New button color (same as header)
                       fontWeight: FontWeight.bold,
                     ),
               ),
