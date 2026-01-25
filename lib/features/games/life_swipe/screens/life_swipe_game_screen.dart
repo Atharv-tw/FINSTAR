@@ -288,8 +288,8 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            const Color(0xFF355E3B),
-                            const Color(0xFF2A4B2F),
+                            const Color(0xFF9BAD50), // New base color
+                            const Color(0xFF798B43), // Darker shade for depth
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -297,9 +297,9 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF355E3B).withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                            color: const Color(0xFF9BAD50).withOpacity(0.4), // Shadow color with new base
+                            blurRadius: 30, // Increased blur
+                            offset: const Offset(0, 15), // Increased offset
                           ),
                         ],
                       ),
@@ -308,7 +308,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                           Text(
                             '₹20,000',
                             style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                  color: Colors.white,
+                                  color: Colors.white, // White font color
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -316,7 +316,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                           Text(
                             'Your Monthly Budget',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  color: Colors.white,
+                                  color: Colors.white, // White font color
                                   fontWeight: FontWeight.w600,
                                 ),
                           ),
@@ -324,7 +324,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                           Text(
                             'Pocket money + internship earnings',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withOpacity(0.9), // White font color
                                 ),
                           ),
                         ],
@@ -367,7 +367,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                     icon: Icons.trending_up,
                     title: 'Track Your Stats',
                     description: 'Every choice affects happiness, discipline, social life & future.',
-                    color: const Color(0xFF28A745), // Changed to sharp green
+                    color: const Color(0xFF689F38), // Darker pastel green (from previous interactions)
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -377,7 +377,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                     icon: Icons.star,
                     title: 'Earn Streaks & Badges',
                     description: 'Build saving streaks to unlock achievements!',
-                    color: const Color(0xFF007BFF), // Changed to sharp blue
+                    color: const Color(0xFF26C6DA), // Darker pastel blue (from previous interactions)
                   ),
                 ),
               ],
@@ -397,7 +397,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                 _startGame();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2A4B2F),
+                backgroundColor: const Color(0xFF694A47), // New button color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -432,10 +432,10 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7), // Light background for item
+        color: const Color(0xFFFFF0DE).withOpacity(0.8), // Semi-transparent light background
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withOpacity(0.5), // Border color from item's color
+          color: const Color(0xFF694A47), // Dark brown border
           width: 1,
         ),
       ),
@@ -447,7 +447,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             height: 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [color, color.withOpacity(0.7)], // Icon background gradient
+                colors: [color, color.withOpacity(0.7)], // Icon background gradient (original color remains for icon)
               ),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -462,14 +462,14 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF393027), // Dark text
+                        color: const Color(0xFF393027), // Dark text for contrast
                       ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF28301C), // Slightly less dark text
+                        color: const Color(0xFF393027).withOpacity(0.9), // Dark text for contrast
                       ),
                 ),
               ],
@@ -595,9 +595,8 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                   '₹${currentBudget.toStringAsFixed(0)}',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF355E3B), // Changed to solid color
-                      ),
-                ),
+                                                        color: const Color(0xFF93A840), // Changed to AppTheme.primaryColor
+                                                      ),                ),
                 Text(
                   'Budget Left',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
