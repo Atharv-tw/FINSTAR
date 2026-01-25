@@ -251,22 +251,13 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       appBar: hasStarted
           ? null
           : AppBar(
-              title: const Text('Life Swipe', style: TextStyle(color: const Color(0xFF393027))),
+              title: const Text('Life Swipe', style: TextStyle(color: const Color(0xFF393027))), // Reverted to #393027
               centerTitle: true,
-              backgroundColor: Colors.transparent,
+              backgroundColor: const Color(0xFFFFFAE3), // Header background color changed to #FFFAE3
               elevation: 0,
             ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.white,
-              const Color(0xFFB6CFE4).withOpacity(0.3),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        color: const Color(0xFFFFFAE3), // Background color changed to #FFFAE3
         child: SafeArea(
           bottom: false,
           child: hasStarted ? _buildGameScreen() : _buildInstructionsScreen(),
@@ -286,100 +277,105 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Budget display with golden styling
-                Center(
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                  colors: [
-                                                    Colors.white,
-                                                    const Color(0xFF9BAD50).withOpacity(0.3),
-                                                  ],
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                ),                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF9BAD50).withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0),
+                  child: Center(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF355E3B),
+                            const Color(0xFF2A4B2F),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          '₹20,000',
-                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                color: const Color(0xFF28301C),
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Your Monthly Budget',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: const Color(0xFF28301C),
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Pocket money + internship earnings',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: const Color(0xFF28301C).withOpacity(0.9),
-                              ),
-                        ),
-                      ],
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF355E3B).withOpacity(0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            '₹20,000',
+                            style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Your Monthly Budget',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Pocket money + internship earnings',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-
-                _buildInstructionItem(
-                  icon: Icons.trending_up,
-                  title: 'Track Your Stats',
-                  description: 'Every choice affects happiness, discipline, social life & future.',
-                  color: const Color(0xFF9BAD50),
-                ),
-                const SizedBox(height: 12),
-                _buildInstructionItem(
-                  icon: Icons.star,
-                  title: 'Earn Streaks & Badges',
-                  description: 'Build saving streaks to unlock achievements!',
-                  color: const Color(0xFFB6CFE4),
-                ),
                 const SizedBox(height: 32),
-
-                // Warning box with modern design
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.transparent, // Changed to transparent
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFF393027).withOpacity(0.4),
+                      color: const Color(0xFF73986f), // Changed color
                       width: 2,
                     ),
                   ),
                   child: Row(
                     children: [
-                      Image.asset(
-                        'assets/images/panda2.png',
-                        width: 40,
-                        height: 40,
-                      ),
+                      const Icon(Icons.lightbulb_outline, color: const Color(0xFF73986f), size: 40), // Changed icon and color
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'These are REAL scenarios Indian teens face. Choose wisely!',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: const Color(0xFF393027),
+                                color: const Color(0xFF73986f), // Changed color
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                Padding(
+                  padding: const EdgeInsets.only(top: 3.0), // Stats box moved up by 2 pixels
+                  child: _buildInstructionItem(
+                    icon: Icons.trending_up,
+                    title: 'Track Your Stats',
+                    description: 'Every choice affects happiness, discipline, social life & future.',
+                    color: const Color(0xFF28A745), // Changed to sharp green
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0), // Badges box moved down by 5 pixels
+                  child: _buildInstructionItem(
+                    icon: Icons.star,
+                    title: 'Earn Streaks & Badges',
+                    description: 'Build saving streaks to unlock achievements!',
+                    color: const Color(0xFF007BFF), // Changed to sharp blue
                   ),
                 ),
               ],
@@ -399,7 +395,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                 _startGame();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF9BAD50),
+                backgroundColor: const Color(0xFF2A4B2F),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
