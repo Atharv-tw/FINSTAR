@@ -343,7 +343,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                 offset: const Offset(0, -40),
                 child: Center(
                   child: Image.asset(
-                    'assets/images/Shopping_basket_for_supermarket_-removebg-preview.png',
+                    'assets/images/needsemovebg-preview.png',
                     width: 300, // Adjusted size
                     height: 300, // Adjusted size
                   ),

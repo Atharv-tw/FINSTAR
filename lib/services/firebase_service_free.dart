@@ -25,7 +25,7 @@ class FirebaseServiceFree {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseDatabase _rtdb = FirebaseDatabase.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   // Game logic service (client-side)
   final GameLogicService _gameLogic = GameLogicService();
@@ -65,19 +65,18 @@ class FirebaseServiceFree {
   Future<UserCredential> signInWithGoogle() async {
     try {
       // Trigger Google Sign-In flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
 
       if (googleUser == null) {
         throw Exception('Google sign-in cancelled');
       }
 
       // Obtain auth details
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
       // Create credential
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
+        accessToken: null, // accessToken is no longer available in this flow
         idToken: googleAuth.idToken,
       );
 
