@@ -125,6 +125,8 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
 
     HapticFeedback.mediumImpact();
 
+    dragDistance = swipedRight ? 121.0 : -121.0;
+
     final scenario = scenarios[currentIndex];
     final impact = swipedRight ? scenario.acceptImpact : scenario.declineImpact;
 
@@ -251,13 +253,13 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       appBar: hasStarted
           ? null
           : AppBar(
-              title: const Text('Life Swipe'),
+              title: const Text('Life Swipe', style: TextStyle(color: const Color(0xFF393027))), // Reverted to #393027
               centerTitle: true,
+              backgroundColor: const Color(0xFFFFFAE3), // Header background color changed to #FFFAE3
+              elevation: 0,
             ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
-        ),
+        color: const Color(0xFFFFFAE3), // Background color changed to #FFFAE3
         child: SafeArea(
           bottom: false,
           child: hasStarted ? _buildGameScreen() : _buildInstructionsScreen(),
@@ -277,126 +279,105 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Budget display with golden styling
-                Center(
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFFFFD700), // Gold
-                          Color(0xFFFFA500), // Orange-gold
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0),
+                  child: Center(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF9BAD50), // New base color
+                            const Color(0xFF798B43), // Darker shade for depth
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF9BAD50).withOpacity(0.4), // Shadow color with new base
+                            blurRadius: 30, // Increased blur
+                            offset: const Offset(0, 15), // Increased offset
+                          ),
                         ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          '₹20,000',
-                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Your Monthly Budget',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Pocket money + internship earnings',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.9),
-                              ),
-                        ),
-                      ],
+                      child: Column(
+                        children: [
+                          Text(
+                            '₹20,000',
+                            style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                                  color: Colors.white, // White font color
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Your Monthly Budget',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Colors.white, // White font color
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Pocket money + internship earnings',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white.withOpacity(0.9), // White font color
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 32),
-
-                // How to play
-                Text(
-                  'How It Works',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: DesignTokens.textDarkPrimary,
-                      ),
-                ),
-                const SizedBox(height: 16),
-
-                _buildInstructionItem(
-                  icon: Icons.swipe_right,
-                  title: 'Swipe Right = Spend',
-                  description: 'Accept the expense. Enjoy now, pay later.',
-                  color: const Color(0xFFFF6B6B),
-                ),
-                const SizedBox(height: 12),
-                _buildInstructionItem(
-                  icon: Icons.swipe_left,
-                  title: 'Swipe Left = Save',
-                  description: 'Skip the expense. Be disciplined, build wealth.',
-                  color: const Color(0xFF63E6BE),
-                ),
-                const SizedBox(height: 12),
-                _buildInstructionItem(
-                  icon: Icons.trending_up,
-                  title: 'Track Your Stats',
-                  description: 'Every choice affects happiness, discipline, social life & future.',
-                  color: DesignTokens.primaryStart,
-                ),
-                const SizedBox(height: 12),
-                _buildInstructionItem(
-                  icon: Icons.star,
-                  title: 'Earn Streaks & Badges',
-                  description: 'Build saving streaks to unlock achievements!',
-                  color: DesignTokens.accentStart,
-                ),
-                const SizedBox(height: 32),
-
-                // Warning box with modern design
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: DesignTokens.accentStart.withValues(alpha: 0.1),
+                    color: Colors.transparent, // Changed to transparent
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: DesignTokens.accentStart.withValues(alpha: 0.6),
+                      color: const Color(0xFF73986f), // Changed color
                       width: 2,
                     ),
                   ),
                   child: Row(
                     children: [
-                      Image.asset(
-                        'assets/images/panda2.png',
-                        width: 40,
-                        height: 40,
-                      ),
+                      const Icon(Icons.lightbulb_outline, color: const Color(0xFF73986f), size: 40), // Changed icon and color
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'These are REAL scenarios Indian teens face. Choose wisely!',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: DesignTokens.textDarkPrimary,
+                                color: const Color(0xFF73986f), // Changed color
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                Padding(
+                  padding: const EdgeInsets.only(top: 3.0), // Stats box moved up by 2 pixels
+                  child: _buildInstructionItem(
+                    icon: Icons.trending_up,
+                    title: 'Track Your Stats',
+                    description: 'Every choice affects happiness, discipline, social life & future.',
+                    color: const Color(0xFF689F38), // Darker pastel green (from previous interactions)
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0), // Badges box moved down by 5 pixels
+                  child: _buildInstructionItem(
+                    icon: Icons.star,
+                    title: 'Earn Streaks & Badges',
+                    description: 'Build saving streaks to unlock achievements!',
+                    color: const Color(0xFF26C6DA), // Darker pastel blue (from previous interactions)
                   ),
                 ),
               ],
@@ -416,7 +397,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                 _startGame();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: DesignTokens.primaryStart,
+                backgroundColor: const Color(0xFF694A47), // New button color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -451,10 +432,10 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.3),
+        color: const Color(0xFFFFF0DE).withOpacity(0.8), // Semi-transparent light background
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withValues(alpha: 0.5),
+          color: const Color(0xFF694A47), // Dark brown border
           width: 1,
         ),
       ),
@@ -466,11 +447,11 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             height: 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [color, color.withValues(alpha: 0.7)],
+                colors: [color, color.withOpacity(0.7)], // Icon background gradient (original color remains for icon)
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Colors.white, size: 24),
+            child: Icon(icon, color: Colors.white, size: 24), // Icon remains white
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -481,14 +462,14 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: DesignTokens.textDarkPrimary,
+                        color: const Color(0xFF393027), // Dark text for contrast
                       ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: DesignTokens.textDarkSecondary,
+                        color: const Color(0xFF393027).withOpacity(0.9), // Dark text for contrast
                       ),
                 ),
               ],
@@ -508,9 +489,9 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       children: [
         Column(
           children: [
-            const SizedBox(height: 16),
             _buildGameHeader(),
             _buildProgressBar(),
+            const SizedBox(height: 10), // Move emoji bar down by 10 pixels
             _buildStatsRow(),
             Expanded(
               child: _buildCardStack(),
@@ -537,12 +518,12 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
+                          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
                         ),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: DesignTokens.accentStart.withValues(alpha: 0.5),
+                            color: const Color(0xFF9BAD50).withOpacity(0.5),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
@@ -550,10 +531,10 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                       ),
                       child: Text(
                         scorePopup!,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: const TextStyle(
+                          color: Color(0xFF393027),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   );
@@ -566,96 +547,85 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
   }
 
   Widget _buildGameHeader() {
-    return AnimatedBuilder(
-      animation: _budgetShakeAnimation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(
-            lowBudgetWarning ? (_budgetShakeAnimation.value * (currentIndex % 2 == 0 ? 1 : -1)) : 0,
-            0,
-          ),
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0B0B0D).withValues(alpha: 0.45),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      width: 0.5,
-                    ),
-                  ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5), // Added vertical padding
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10.0),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.7),
+                border: Border.all(
+                  color: const Color(0xFF28301C).withOpacity(0.2),
+                  width: 1,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black.withValues(alpha: 0.3),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.close, color: Colors.white, size: 20),
-                        onPressed: () {
-                          HapticFeedback.mediumImpact();
-                          // Go back to play games screen
-                          context.go('/game');
-                        },
-                      ),
-                    ),
-                    // Budget counter without rectangle
-                    Column(
-                      children: [
-                        Text(
-                          '₹${currentBudget.toStringAsFixed(0)}',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: currentBudget < 5000
-                                    ? const Color(0xFFFF6B6B)
-                                    : const Color(0xFF63E6BE),
-                              ),
-                        ),
-                        Text(
-                          'Budget Left',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: DesignTokens.textDarkSecondary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '${currentIndex + 1}/${scenarios.length}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                icon: const Icon(Icons.close, color: Color(0xFF393027), size: 20),
+                onPressed: () {
+                  HapticFeedback.mediumImpact();
+                  // Go back to play games screen
+                  context.go('/game');
+                },
               ),
             ),
           ),
-        );
-      },
+          // Budget counter without rectangle
+          AnimatedBuilder(
+            animation: _budgetShakeAnimation,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(
+                  lowBudgetWarning ? (_budgetShakeAnimation.value * (currentIndex % 2 == 0 ? 1 : -1)) : 0,
+                  0,
+                ),
+                child: child,
+              );
+            },
+            child: Column(
+              children: [
+                const SizedBox(height: 10), // Move budget down by 10 pixels
+                Text(
+                  '₹${currentBudget.toStringAsFixed(0)}',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                                                        color: const Color(0xFF93A840), // Changed to AppTheme.primaryColor
+                                                      ),                ),
+                Text(
+                  'Budget Left',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF28301C),
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF355E3B), // Changed from gradient to solid color
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${currentIndex + 1}/${scenarios.length}',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -664,15 +634,15 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       height: 6,
       decoration: BoxDecoration(
-        color: const Color(0xFF0B0B0D).withValues(alpha: 0.3),
+        color: const Color(0xFFB6CFE4).withOpacity(0.3),
       ),
       child: FractionallySizedBox(
         alignment: Alignment.centerLeft,
         widthFactor: progress,
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
+            gradient: const LinearGradient(
+              colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
             ),
           ),
         ),
@@ -683,9 +653,6 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
   Widget _buildStatsRow() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0B0B0D).withValues(alpha: 0.45),
-      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -702,17 +669,19 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
 
   Widget _buildStatChip(String emoji, int score) {
     final color = score >= 70
-        ? const Color(0xFF63E6BE)
+        ? const Color(0xFF9BAD50)
         : score >= 40
-            ? DesignTokens.accentStart
-            : const Color(0xFFFF6B6B);
+            ? const Color(0xFFB6CFE4)
+            : const Color(0xFF393027);
+
+    final textColor = color == const Color(0xFF393027) ? const Color(0xFF9BAD50) : color;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -722,7 +691,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
           Text(
             '$score',
             style: TextStyle(
-              color: color,
+              color: textColor,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -736,8 +705,8 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -827,7 +796,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             child: Transform.rotate(
               angle: dragAngle + (animValue * dragAngle * 2),
               child: Opacity(
-                opacity: 1.0 - (animValue * 0.5),
+                opacity: 1.0, // Make card fully opaque during animation
                 child: child,
               ),
             ),
@@ -845,22 +814,15 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       width: MediaQuery.of(context).size.width * 0.88,
       margin: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            categoryColor.withValues(alpha: 0.4),
-          ],
-        ),
+        color: categoryColor, // Make card background fully opaque
         borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: categoryColor.withValues(alpha: 1.0),
+          color: categoryColor, // Make border fully opaque
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: categoryColor.withValues(alpha: 0.15),
+            color: categoryColor, // Make shadow fully opaque
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -868,8 +830,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             BoxShadow(
               color: (dragDistance > 0
                       ? const Color(0xFFFF6B6B)
-                      : const Color(0xFF63E6BE))
-                  .withValues(alpha: 0.4),
+                      : const Color(0xFF63E6BE)), // Make shadow fully opaque
               blurRadius: 40,
               spreadRadius: 5,
             ),
@@ -925,14 +886,14 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         scenario.title,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1A1A1A),
+                              color: const Color(0xFF393027),
                             ),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         scenario.description,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: const Color(0xFF4A4A4A),
+                              color: const Color(0xFF28301C),
                               height: 1.5,
                             ),
                       ),
@@ -981,13 +942,13 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                   gradient: LinearGradient(
                     colors: [
                       (dragDistance > 0
-                              ? const Color(0xFFFF6B6B)
-                              : const Color(0xFF63E6BE))
-                          .withValues(alpha: 0.3),
+                              ? const Color(0xFF9BAD50)
+                              : const Color(0xFFB6CFE4))
+                          .withOpacity(0.3),
                       (dragDistance > 0
-                              ? const Color(0xFFFF6B6B)
-                              : const Color(0xFF63E6BE))
-                          .withValues(alpha: 0.1),
+                              ? const Color(0xFF9BAD50)
+                              : const Color(0xFFB6CFE4))
+                          .withOpacity(0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(32),
@@ -1005,16 +966,16 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: dragDistance > 0
-                                ? [const Color(0xFFFF6B6B), const Color(0xFFE74C3C)]
-                                : [const Color(0xFF63E6BE), const Color(0xFF5F8724)],
+                                ? [const Color(0xFF9BAD50), const Color(0xFF393027)]
+                                : [const Color(0xFFB6CFE4), const Color(0xFF28301C)],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
                               color: (dragDistance > 0
-                                      ? const Color(0xFFFF6B6B)
-                                      : const Color(0xFF63E6BE))
-                                  .withValues(alpha: 0.5),
+                                      ? const Color(0xFF9BAD50)
+                                      : const Color(0xFFB6CFE4))
+                                  .withOpacity(0.5),
                               blurRadius: 20,
                               spreadRadius: 2,
                             ),
@@ -1048,17 +1009,13 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
           // Save button
           _buildActionButton(
             icon: Icons.close,
-            gradient: const LinearGradient(
-              colors: [Color(0xFF63E6BE), Color(0xFF5F8724)],
-            ),
+            color: const Color(0xFF5F8724), // Lighter green
             onPressed: () => _handleSwipe(false),
           ),
           // Spend button
           _buildActionButton(
             icon: Icons.favorite,
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFF6B6B), Color(0xFFE74C3C)],
-            ),
+            color: const Color(0xFF5F8724), // Lighter green
             onPressed: () => _handleSwipe(true),
           ),
         ],
@@ -1068,7 +1025,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
 
   Widget _buildActionButton({
     required IconData icon,
-    required Gradient gradient,
+    required Color color, // Changed from Gradient
     required VoidCallback onPressed,
   }) {
     return Container(
@@ -1076,7 +1033,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       height: 75,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: gradient,
+        color: color, // Changed from gradient
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
@@ -1104,25 +1061,25 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
   Color _getCategoryColor(ScenarioCategory category) {
     switch (category) {
       case ScenarioCategory.food:
-        return const Color(0xFFFF6B6B);
+        return const Color(0xFFF8C5C5); // Pastel Red
       case ScenarioCategory.entertainment:
-        return const Color(0xFF9B59B6);
+        return const Color(0xFFD4B2E0); // Pastel Purple
       case ScenarioCategory.social:
-        return const Color(0xFF3498DB);
+        return const Color(0xFFA9D2F0); // Pastel Blue
       case ScenarioCategory.education:
-        return const Color(0xFF5F8724);
+        return const Color(0xFFC1D9A9); // Pastel Green
       case ScenarioCategory.fashion:
-        return const Color(0xFFE91E63);
+        return const Color(0xFFF4C4D3); // Pastel Pink
       case ScenarioCategory.tech:
-        return const Color(0xFF607D8B);
+        return const Color(0xFFC9D6DD); // Pastel Gray
       case ScenarioCategory.transport:
-        return const Color(0xFFF39C12);
+        return const Color(0xFFFADDAF); // Pastel Orange
       case ScenarioCategory.emergency:
-        return const Color(0xFFE74C3C);
+        return const Color(0xFFF3BDBD); // Pastel Red
       case ScenarioCategory.health:
-        return const Color(0xFF00BCD4);
+        return const Color(0xFFA0E0E7); // Pastel Cyan
       case ScenarioCategory.investment:
-        return const Color(0xFF4CAF50);
+        return const Color(0xFFB3E0B5); // Pastel Green
     }
   }
 

@@ -194,17 +194,17 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
 
   Color _getGradeColor() {
     final score = _calculateOverallScore();
-    if (score >= 70) return AppTheme.successColor;
-    if (score >= 50) return AppTheme.warningColor;
-    return AppTheme.errorColor;
+    if (score >= 70) return const Color(0xFF7CB342); // Even darker pastel green
+    if (score >= 50) return const Color(0xFFFFB74D); // Even darker pastel orange-yellow
+    return const Color(0xFFE57373); // Even darker pastel red
   }
 
   Widget _buildFinancialHealthCard() {
     final healthColor = widget.financialHealth >= 80
-        ? AppTheme.successColor
+        ? const Color(0xFF7CB342) // Even darker pastel green
         : widget.financialHealth >= 50
-            ? AppTheme.warningColor
-            : AppTheme.errorColor;
+            ? const Color(0xFFFFB74D) // Even darker pastel orange-yellow
+            : const Color(0xFFE57373); // Even darker pastel red
 
     final healthStatus = widget.financialHealth >= 80
         ? 'Excellent'
@@ -334,47 +334,43 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
-        ),
-        child: SafeArea(
-          top: false,
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                      _buildGradeCard(),
+      backgroundColor: const Color(0xFFFFFAE3), // Change background color
+      body: SafeArea(
+        top: false,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                    _buildGradeCard(),
+                    const SizedBox(height: 24),
+                    _buildFinancialSummary(),
+                    const SizedBox(height: 24),
+                    _buildScoreBreakdown(),
+                    const SizedBox(height: 24),
+                    _buildFinancialHealthCard(),
+                    const SizedBox(height: 24),
+                    if ((widget.badges?.isNotEmpty ?? false) || (widget.maxStreak ?? 0) > 0)
+                      _buildAchievements(),
+                    if ((widget.badges?.isNotEmpty ?? false) || (widget.maxStreak ?? 0) > 0)
                       const SizedBox(height: 24),
-                      _buildFinancialSummary(),
-                      const SizedBox(height: 24),
-                      _buildScoreBreakdown(),
-                      const SizedBox(height: 24),
-                      _buildFinancialHealthCard(),
-                      const SizedBox(height: 24),
-                      if ((widget.badges?.isNotEmpty ?? false) || (widget.maxStreak ?? 0) > 0)
-                        _buildAchievements(),
-                      if ((widget.badges?.isNotEmpty ?? false) || (widget.maxStreak ?? 0) > 0)
-                        const SizedBox(height: 24),
-                      _buildInsights(),
-                      const SizedBox(height: 24),
-                      _buildDecisionHistory(),
-                      const SizedBox(height: 24),
-                      _buildCategoryBreakdown(),
-                      ],
-                    ),
+                    _buildInsights(),
+                    const SizedBox(height: 24),
+                    _buildDecisionHistory(),
+                    const SizedBox(height: 24),
+                    _buildCategoryBreakdown(),
+                    ],
                   ),
                 ),
-                _buildActionButtons(),
-              ],
-            ),
+              ),
+              _buildActionButtons(),
+            ],
           ),
         ),
       ),
@@ -385,7 +381,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 32, 20, 20),
       decoration: const BoxDecoration(
-        color: Colors.black,
+        color: Color(0xFF93A840), // New header color
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -503,7 +499,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                           fontFamily: 'Poppins',
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF63E6BE),
+                          color: AppTheme.successColor,
                         ),
                       ),
                     ],
@@ -530,7 +526,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                           fontFamily: 'Poppins',
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFFFD700),
+                          color: AppTheme.accentYellow,
                         ),
                       ),
                     ],
@@ -602,7 +598,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
             label: 'Spent',
             value: '₹${widget.spentMoney}',
             icon: Icons.trending_down,
-            color: AppTheme.errorColor,
+            color: const Color(0xFFE57373), // Even darker pastel red
             percentage: '${(spendRate * 100).toStringAsFixed(0)}%',
           ),
           const SizedBox(height: 12),
@@ -610,7 +606,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
             label: 'Saved',
             value: '₹${widget.remainingBudget}',
             icon: Icons.trending_up,
-            color: AppTheme.successColor,
+            color: const Color(0xFF7CB342), // Even darker pastel green
             percentage: '${(savingsRate * 100).toStringAsFixed(0)}%',
           ),
 
@@ -634,10 +630,10 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                     '${(savingsRate * 100).toStringAsFixed(1)}%',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: savingsRate >= 0.5
-                              ? AppTheme.successColor
+                              ? const Color(0xFF7CB342) // Even darker pastel green
                               : savingsRate >= 0.3
-                                  ? AppTheme.warningColor
-                                  : AppTheme.errorColor,
+                                  ? const Color(0xFFFFB74D) // Even darker pastel orange-yellow
+                                  : const Color(0xFFE57373), // Even darker pastel red
                           fontWeight: FontWeight.bold,
                         ),
                   ),
@@ -658,19 +654,19 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: savingsRate >= 0.5
-                            ? [const Color(0xFF22C55E), const Color(0xFF16A34A)]
+                            ? [const Color(0xFF7CB342), const Color(0xFF8BC34A)] // Even darker pastel green gradient
                             : savingsRate >= 0.3
-                                ? [const Color(0xFFF59E0B), const Color(0xFFEA580C)]
-                                : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
+                                ? [const Color(0xFFFFB74D), const Color(0xFFFFCC80)] // Even darker pastel orange-yellow gradient
+                                : [const Color(0xFFE57373), const Color(0xFFEF9A9A)], // Even darker pastel red gradient
                       ),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
                           color: (savingsRate >= 0.5
-                                  ? AppTheme.successColor
+                                  ? const Color(0xFF7CB342) // Even darker pastel green
                                   : savingsRate >= 0.3
-                                      ? AppTheme.warningColor
-                                      : AppTheme.errorColor)
+                                      ? const Color(0xFFFFB74D) // Even darker pastel orange-yellow
+                                      : const Color(0xFFE57373)) // Even darker pastel red
                               .withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
@@ -848,13 +844,13 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
             ],
           ),
           const SizedBox(height: 20),
-          _buildScoreBar('Happiness', widget.happinessScore, AppTheme.accentYellow),
+          _buildScoreBar('Happiness', widget.happinessScore, const Color(0xFFFFB74D)), // Even darker pastel orange-yellow
           const SizedBox(height: 16),
-          _buildScoreBar('Discipline', widget.disciplineScore, AppTheme.successColor),
+          _buildScoreBar('Discipline', widget.disciplineScore, const Color(0xFF7CB342)), // Even darker pastel green
           const SizedBox(height: 16),
-          _buildScoreBar('Social Life', widget.socialScore, AppTheme.primaryColor),
+          _buildScoreBar('Social Life', widget.socialScore, const Color(0xFF26C6DA)), // Even darker pastel blue
           const SizedBox(height: 16),
-          _buildScoreBar('Future Planning', widget.futureScore, AppTheme.secondaryColor),
+          _buildScoreBar('Future Planning', widget.futureScore, const Color(0xFF689F38)), // Even darker pastel green,
         ],
       ),
     );
@@ -1909,7 +1905,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                 context.push('/game/life-swipe');
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: const Color(0xFF93A840), // New button color (same as header)
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -1933,7 +1929,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                 context.go('/game');
               },
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppTheme.primaryColor),
+                side: BorderSide(color: const Color(0xFF93A840)), // New button color (same as header)
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -1941,7 +1937,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
               child: Text(
                 'Back to Home',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppTheme.primaryColor,
+                      color: const Color(0xFF93A840), // New button color (same as header)
                       fontWeight: FontWeight.bold,
                     ),
               ),
