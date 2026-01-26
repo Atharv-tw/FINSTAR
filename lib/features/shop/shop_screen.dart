@@ -1,9 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design_tokens.dart';
 import '../../providers/shop_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../shared/widgets/game_coin_counter.dart';
 
 /// Shop Screen - Purchase avatars, themes, power-ups, and badges with coins
 class ShopScreen extends ConsumerStatefulWidget {
@@ -43,7 +43,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
+          gradient: DesignTokens.beigeGradient,
         ),
         child: SafeArea(
           child: Column(
@@ -63,7 +63,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
     final userAsync = ref.watch(userProfileProvider);
 
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
       child: Row(
         children: [
           // Back button
@@ -72,63 +72,54 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: DesignTokens.accentSolid.withValues(alpha: 0.15),
+                  width: 1,
+                ),
+                boxShadow: DesignTokens.elevation1(),
               ),
               child: const Icon(
                 Icons.arrow_back,
-                color: DesignTokens.textDarkPrimary,
-                size: 24,
+                color: DesignTokens.textPrimary,
+                size: 20,
               ),
             ),
           ),
           const SizedBox(width: 16),
           const Expanded(
-            child: Text(
-              'Shop',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: DesignTokens.textDarkPrimary,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Shop',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: DesignTokens.textPrimary,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
             ),
           ),
           // Coin balance
           userAsync.when(
-            data: (user) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                gradient: DesignTokens.accentGradient,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: DesignTokens.accentGlow(0.3),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.monetization_on, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${user?.coins ?? 0}',
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+            data: (user) => GameCoinCounter(
+              coins: user?.coins ?? 0,
+              showPlusButton: false,
             ),
             loading: () => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 gradient: DesignTokens.accentGradient,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(18),
               ),
               child: const SizedBox(
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   color: Colors.white,
@@ -170,15 +161,15 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  gradient: isSelected ? DesignTokens.primaryGradient : null,
-                  color: isSelected ? null : Colors.white.withValues(alpha: 0.6),
+                  color: isSelected ? DesignTokens.accentSolid : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
                         ? Colors.transparent
-                        : DesignTokens.primarySolid.withValues(alpha: 0.3),
+                        : DesignTokens.accentSolid.withValues(alpha: 0.15),
                     width: 1,
                   ),
+                  boxShadow: isSelected ? DesignTokens.elevation2() : DesignTokens.elevation1(),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -188,7 +179,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                       size: 18,
                       color: isSelected
                           ? Colors.white
-                          : DesignTokens.textDarkSecondary,
+                          : DesignTokens.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -199,7 +190,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                         fontWeight: FontWeight.w600,
                         color: isSelected
                             ? Colors.white
-                            : DesignTokens.textDarkPrimary,
+                            : DesignTokens.textPrimary,
                       ),
                     ),
                   ],
@@ -283,25 +274,25 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
           Icon(
             Icons.shopping_bag_outlined,
             size: 80,
-            color: DesignTokens.textDarkTertiary,
+            color: DesignTokens.textTertiary,
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'No items available',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: DesignTokens.textDarkSecondary,
+              color: DesignTokens.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'Check back later for new items!',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 14,
-              color: DesignTokens.textDarkTertiary,
+              color: DesignTokens.textSecondary,
             ),
           ),
         ],
@@ -320,22 +311,22 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
             color: DesignTokens.error,
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'Failed to load shop',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: DesignTokens.textDarkPrimary,
+              color: DesignTokens.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'Please try again later',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 14,
-              color: DesignTokens.textDarkTertiary,
+              color: DesignTokens.textSecondary,
             ),
           ),
         ],
@@ -366,177 +357,144 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
 
     return GestureDetector(
       onTap: isOwned ? null : () => _showPurchaseDialog(item),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isOwned
-                  ? Colors.white.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isOwned
-                    ? DesignTokens.success.withValues(alpha: 0.5)
-                    : color.withValues(alpha: 0.3),
-                width: isOwned ? 2 : 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.15),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Item icon
-                      Expanded(
-                        child: Center(
-                          child: Container(
-                            width: 72,
-                            height: 72,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  color.withValues(alpha: 0.2),
-                                  color.withValues(alpha: 0.1),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              icon,
-                              size: 36,
-                              color: color,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Item name
-                      Text(
-                        item.name,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: DesignTokens.textDarkPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      // Description
-                      Text(
-                        item.description,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          color: DesignTokens.textDarkTertiary,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Price or Owned badge
-                      if (isOwned)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: DesignTokens.success.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: DesignTokens.success.withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.check_circle,
-                                  color: DesignTokens.success, size: 14),
-                              SizedBox(width: 4),
-                              Text(
-                                'Owned',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: DesignTokens.success,
-                                ),
-                              ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: DesignTokens.surfaceCardLight,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isOwned
+                ? DesignTokens.success.withValues(alpha: 0.5)
+                : DesignTokens.accentSolid.withValues(alpha: 0.12),
+            width: isOwned ? 2 : 1,
+          ),
+          boxShadow: DesignTokens.elevation2(),
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Item icon
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              color.withValues(alpha: 0.18),
+                              color.withValues(alpha: 0.08),
                             ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                        )
-                      else
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: DesignTokens.accentGradient,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.monetization_on,
-                                  color: Colors.white, size: 14),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${item.price}',
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: DesignTokens.accentSolid.withValues(alpha: 0.12),
+                            width: 1,
                           ),
                         ),
-                    ],
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Image.asset(
+                            item.iconPath,
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.high,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                icon,
+                                size: 34,
+                                color: DesignTokens.textPrimary,
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
 
-                // Premium badge
-                if (item.isPremiumOnly)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
+                  // Item name
+                  Text(
+                    item.name,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: DesignTokens.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // Description
+                  Text(
+                    item.description,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 11,
+                      color: DesignTokens.textSecondary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Price or Owned badge
+                  if (isOwned)
+                    Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                        color: DesignTokens.success.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: DesignTokens.success.withValues(alpha: 0.3),
+                          width: 1,
                         ),
-                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.star, color: Colors.white, size: 12),
-                          SizedBox(width: 2),
+                          Icon(Icons.check_circle,
+                              color: DesignTokens.success, size: 14),
+                          SizedBox(width: 4),
                           Text(
-                            'VIP',
+                            'Owned',
                             style: TextStyle(
                               fontFamily: 'Poppins',
-                              fontSize: 10,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: DesignTokens.success,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        gradient: DesignTokens.primaryGradient,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.monetization_on,
+                              color: Colors.white, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${item.price}',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -544,10 +502,43 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                         ],
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
+
+            // Premium badge
+            if (item.isPremiumOnly)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.star, color: Colors.white, size: 12),
+                      SizedBox(width: 2),
+                      Text(
+                        'VIP',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -610,7 +601,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                 fontFamily: 'Poppins',
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: DesignTokens.textDarkPrimary,
+                color: DesignTokens.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -621,7 +612,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,
-                color: DesignTokens.textDarkSecondary,
+                color: DesignTokens.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -642,7 +633,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 16,
-                      color: DesignTokens.textDarkSecondary,
+                      color: DesignTokens.textSecondary,
                     ),
                   ),
                   Row(
@@ -656,7 +647,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                           fontFamily: 'Poppins',
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: DesignTokens.textDarkPrimary,
+                          color: DesignTokens.textPrimary,
                         ),
                       ),
                     ],
@@ -671,9 +662,15 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: canAfford
-                    ? DesignTokens.success.withValues(alpha: 0.1)
-                    : DesignTokens.error.withValues(alpha: 0.1),
+                    ? DesignTokens.success.withValues(alpha: 0.12)
+                    : DesignTokens.error.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: canAfford
+                      ? DesignTokens.success.withValues(alpha: 0.3)
+                      : DesignTokens.error.withValues(alpha: 0.3),
+                  width: 1,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -683,7 +680,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 16,
-                      color: DesignTokens.textDarkSecondary,
+                      color: DesignTokens.textSecondary,
                     ),
                   ),
                   Row(
@@ -736,7 +733,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: BorderSide(
-                        color: DesignTokens.textDarkTertiary,
+                        color: DesignTokens.textTertiary,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -748,7 +745,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                         fontFamily: 'Poppins',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: DesignTokens.textDarkSecondary,
+                        color: DesignTokens.textSecondary,
                       ),
                     ),
                   ),
@@ -879,7 +876,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                   fontFamily: 'Poppins',
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: DesignTokens.textDarkPrimary,
+                  color: DesignTokens.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -889,7 +886,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
-                  color: DesignTokens.textDarkSecondary,
+                  color: DesignTokens.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),

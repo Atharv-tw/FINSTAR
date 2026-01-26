@@ -171,11 +171,13 @@ final defaultShopItems = [
 
 /// Provider for all shop items
 final shopItemsProvider = StreamProvider<List<ShopItem>>((ref) {
-  // For global shop catalog, read from a 'shop' collection
+  // Global shop catalog stored at /store/items/{itemId}
   final firestore = FirebaseFirestore.instance;
 
   return firestore
-      .collection('shop')
+      .collection('store')
+      .doc('items')
+      .collection('items')
       .snapshots()
       .map((snapshot) {
     return snapshot.docs
@@ -214,9 +216,10 @@ final purchaseItemProvider = Provider((ref) {
     if (userId == null) throw Exception('User not authenticated');
 
     final firestore = FirebaseFirestore.instance;
+    final itemsRef = firestore.collection('store').doc('items').collection('items');
 
     // Get item details
-    final itemDoc = await firestore.collection('shop').doc(itemId).get();
+    final itemDoc = await itemsRef.doc(itemId).get();
     if (!itemDoc.exists) {
       throw Exception('Item not found');
     }
@@ -283,11 +286,10 @@ final purchaseItemProvider = Provider((ref) {
 Future<void> initializeShopItems() async {
   final firestore = FirebaseFirestore.instance;
   final batch = firestore.batch();
+  final itemsRef = firestore.collection('store').doc('items').collection('items');
 
   for (var itemData in defaultShopItems) {
-    final docRef = firestore
-        .collection('shop')
-        .doc(itemData['id'] as String);
+    final docRef = itemsRef.doc(itemData['id'] as String);
 
     batch.set(docRef, {
       'name': itemData['name'],

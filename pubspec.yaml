@@ -34,7 +34,7 @@ dependencies:
 
   # Firebase Core
   firebase_core: ^4.4.0
-  firebase_analytics: ^12.1.1
+  # firebase_analytics: ^12.1.1
 
   # Firebase Auth
   firebase_auth: ^6.1.4
@@ -81,4 +81,6 @@ flutter:
   assets:
     - assets/images/
     - assets/images/needsemovebg-preview.png
+    - assets/shop/
+    - assets/icons/
 
