@@ -172,6 +172,18 @@ class DesignTokens {
     end: Alignment.bottomCenter,
   );
 
+  static const LinearGradient softGreenGradient = LinearGradient(
+    colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient darkGreenGradient = LinearGradient(
+    colors: [Color(0xFF6B8E23), Color(0xFF556B2F)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
   // ===== SPACING =====
 
   static const double spacingXS = 4.0;

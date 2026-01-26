@@ -704,7 +704,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
+          color: Color(0xFF9BAD50), // Changed from 0xFF0A360A
         ),
         child: SafeArea(
           child: Center(
@@ -742,7 +742,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: const Color(0xFFF6EDA3), // #f6eda3
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.2),
@@ -780,7 +780,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                           ),
                           if (_xpEarned > 0 || _coinsEarned > 0) ...[
                             const SizedBox(height: 16),
-                            const Divider(color: Colors.white24),
+                            const Divider(color: Colors.black12),
                             const SizedBox(height: 16),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -802,7 +802,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                                         fontFamily: 'Poppins',
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF63E6BE),
+                                        color: Color(0xFF355E3B), // Changed to #355E3B
                                       ),
                                     ),
                                   ],
@@ -825,7 +825,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                                         fontFamily: 'Poppins',
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFFFFD700),
+                                        color: Color(0xFF355E3B), // Changed to #355E3B
                                       ),
                                     ),
                                   ],
@@ -845,7 +845,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                       style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 16,
-                        color: DesignTokens.textDarkPrimary,
+                        color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -863,8 +863,8 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
-                            foregroundColor: Colors.white,
+                            backgroundColor: const Color(0xFFB0E0E6), // Powder blue
+                            foregroundColor: DesignTokens.textDarkPrimary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -886,7 +886,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                            backgroundColor: const Color(0xFFFF6B9D),
+                            backgroundColor: const Color(0xFF022E17), // #022e17
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
