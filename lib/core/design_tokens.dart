@@ -142,6 +142,48 @@ class DesignTokens {
     end: Alignment.bottomCenter,
   );
 
+  static const LinearGradient needsCustomGradient = LinearGradient(
+    colors: [Color(0xFFA2C1DF), Color(0xFF8CAACF)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient wantsCustomGradient = LinearGradient(
+    colors: [Color(0xFFFE95A2), Color(0xFFE8818D)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient savingsCustomGradient = LinearGradient(
+    colors: [Color(0xFF8D9F37), Color(0xFF7D8F27)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient pastelOrangeGradient = LinearGradient(
+    colors: [Color(0xFFFFB5A7), Color(0xFFFFA08C)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient tealPastelGradient = LinearGradient(
+    colors: [Color(0xFF96C1C5), Color(0xFF86AAB1)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient softGreenGradient = LinearGradient(
+    colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient darkGreenGradient = LinearGradient(
+    colors: [Color(0xFF6B8E23), Color(0xFF556B2F)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
   // ===== SPACING =====
 
   static const double spacingXS = 4.0;
