@@ -143,9 +143,12 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
   Widget _buildStickyHeader() {
     final topInset = MediaQuery.of(context).padding.top;
+    const headerHeight = 52.0;
+    const counterScale = 0.9;
+    const shopIconSize = 38.0;
     return AnimatedContainer(
       duration: MotionTokens.medium,
-      height: topInset + 56,
+      height: topInset + headerHeight,
       padding: EdgeInsets.only(left: 24, right: 24, top: topInset),
       decoration: const BoxDecoration(
         color: Colors.transparent,
@@ -155,18 +158,22 @@ class _PlayGameScreenState extends State<PlayGameScreen>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Gaming-style coin counter (left side)
-          GameCoinCounter(
-            coins: _coins,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Coin shop coming soon!'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-            showPlusButton: false,
+          Transform.scale(
+            scale: counterScale,
+            alignment: Alignment.centerLeft,
+            child: GameCoinCounter(
+              coins: _coins,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Coin shop coming soon!'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              },
+              showPlusButton: false,
+            ),
           ),
           // Shop icon button (right side)
           GestureDetector(
@@ -174,19 +181,33 @@ class _PlayGameScreenState extends State<PlayGameScreen>
               HapticFeedback.lightImpact();
               context.push('/shop');
             },
-            child: Image.asset(
-              'assets/icons/shop_arcade.png',
-              width: 44,
-              height: 44,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.storefront_outlined,
-                  color: Colors.white,
-                  size: 24,
-                );
-              },
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: DesignTokens.primaryStart.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: SizedBox(
+                width: shopIconSize,
+                height: shopIconSize,
+                child: Image.asset(
+                  'assets/icons/shop_arcade.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(
+                      Icons.storefront_outlined,
+                      color: DesignTokens.primaryEnd,
+                      size: 22,
+                    );
+                  },
+                ),
+              ),
             ),
           ),
         ],
