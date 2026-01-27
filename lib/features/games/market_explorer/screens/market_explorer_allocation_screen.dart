@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../../../config/theme.dart';
-import '../../../../core/design_tokens.dart';
+
 import '../models/market_explorer_models.dart';
 import 'market_explorer_simulation_screen.dart';
 
 class MarketExplorerAllocationScreen extends StatefulWidget {
-  const MarketExplorerAllocationScreen({super.key});
+  final String difficulty;
+  final int initialInvestment;
+
+  const MarketExplorerAllocationScreen({
+    super.key,
+    required this.difficulty,
+    required this.initialInvestment,
+  });
 
   @override
   State<MarketExplorerAllocationScreen> createState() =>
@@ -15,8 +22,8 @@ class MarketExplorerAllocationScreen extends StatefulWidget {
 class _MarketExplorerAllocationScreenState
     extends State<MarketExplorerAllocationScreen>
     with SingleTickerProviderStateMixin {
-  DifficultyLevel _selectedDifficulty = DifficultyLevel.medium;
-  late int _totalCapital;
+  late final DifficultyLevel _selectedDifficulty;
+  late final int _totalCapital;
 
   final Map<AssetType, double> _allocations = {
     AssetType.fixedDeposit: 0,
@@ -31,7 +38,8 @@ class _MarketExplorerAllocationScreenState
   @override
   void initState() {
     super.initState();
-    _totalCapital = _selectedDifficulty.startingCapital;
+    _selectedDifficulty = DifficultyLevelExtension.fromString(widget.difficulty);
+    _totalCapital = widget.initialInvestment;
 
     _animationController = AnimationController(
       vsync: this,
@@ -57,19 +65,7 @@ class _MarketExplorerAllocationScreenState
 
   double get _remainingAmount => _totalCapital - _allocatedAmount;
 
-  bool get _canStart =>
-      _allocatedAmount > 0 && _remainingAmount >= 0;
-
-  void _updateDifficulty(DifficultyLevel difficulty) {
-    setState(() {
-      _selectedDifficulty = difficulty;
-      _totalCapital = difficulty.startingCapital;
-      // Reset allocations if they exceed new capital
-      if (_allocatedAmount > _totalCapital) {
-        _allocations.updateAll((key, value) => 0);
-      }
-    });
-  }
+  bool get _canStart => _allocatedAmount > 0 && _remainingAmount >= 0;
 
   void _updateAllocation(AssetType type, double value) {
     setState(() {
@@ -105,12 +101,13 @@ class _MarketExplorerAllocationScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Market Explorer'),
+        title: const Text('Market Explorer', style: TextStyle(color: Color(0xFF393027))),
+        backgroundColor: const Color(0xFFF6EDA3),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF393027)),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.beigeGradient,
-        ),
+        color: const Color(0xFFFFFAE3),
         child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -119,37 +116,33 @@ class _MarketExplorerAllocationScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                // Header
-                _buildHeader(),
-                const SizedBox(height: 24),
+                  // Header
+                  _buildHeader(),
+                  const SizedBox(height: 24),
 
-                // Difficulty Selection
-                _buildDifficultySelector(),
-                const SizedBox(height: 24),
+                  // Capital Display
+                  _buildCapitalDisplay(),
+                  const SizedBox(height: 32),
 
-                // Capital Display
-                _buildCapitalDisplay(),
-                const SizedBox(height: 32),
+                  // Asset Allocation Cards
+                  Text(
+                    'Choose Your Islands',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: const Color(0xFF393027),
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Allocate your capital across different investment islands',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFF393027).withAlpha((0.7 * 255).round()),
+                        ),
+                  ),
+                  const SizedBox(height: 20),
 
-                // Asset Allocation Cards
-                Text(
-                  'Choose Your Islands',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: DesignTokens.textDarkPrimary,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Allocate your capital across different investment islands',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: DesignTokens.textDarkSecondary,
-                      ),
-                ),
-                const SizedBox(height: 20),
+                  ...AssetType.values.map((type) => _buildAssetCard(type)),
 
-                ...AssetType.values.map((type) => _buildAssetCard(type)),
-
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
                   // Start Button
                   _buildStartButton(),
@@ -167,11 +160,8 @@ class _MarketExplorerAllocationScreenState
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.gamesColor,
-            AppTheme.gamesColor.withOpacity(0.8),
-          ],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -183,7 +173,7 @@ class _MarketExplorerAllocationScreenState
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: const Color(0xFF022E17).withAlpha((0.2 * 255).round()),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Text('🏝️', style: TextStyle(fontSize: 40)),
@@ -196,7 +186,7 @@ class _MarketExplorerAllocationScreenState
                 Text(
                   'Explore Markets',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
+                        color: const Color(0xFF022E17),
                         fontWeight: FontWeight.bold,
                       ),
                 ),
@@ -204,7 +194,7 @@ class _MarketExplorerAllocationScreenState
                 Text(
                   'Invest wisely and watch your portfolio grow over 5 years',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
+                        color: const Color(0xFF022E17).withAlpha((0.9 * 255).round()),
                       ),
                 ),
               ],
@@ -215,92 +205,17 @@ class _MarketExplorerAllocationScreenState
     );
   }
 
-  Widget _buildDifficultySelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Select Difficulty',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: DesignTokens.textDarkPrimary,
-              ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: DifficultyLevel.values.map((difficulty) {
-            final isSelected = _selectedDifficulty == difficulty;
-            return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: InkWell(
-                  onTap: () => _updateDifficulty(difficulty),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppTheme.gamesColor
-                          : Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppTheme.gamesColor
-                            : AppTheme.dividerColor,
-                        width: 2,
-                      ),
-                      boxShadow: isSelected ? AppTheme.shadow3DSmall : null,
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          difficulty.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppTheme.textPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '₹${difficulty.startingCapital}',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isSelected
-                                        ? Colors.white.withOpacity(0.9)
-                                        : AppTheme.textSecondary,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _selectedDifficulty.description,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: DesignTokens.textDarkSecondary,
-              ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
   Widget _buildCapitalDisplay() {
     final progress = _totalCapital > 0 ? _allocatedAmount / _totalCapital : 0.0;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppTheme.gradientGold,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF393027), Color(0xFF022E17)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppTheme.shadow3DMedium,
       ),
@@ -315,13 +230,13 @@ class _MarketExplorerAllocationScreenState
                   Text(
                     'Total Capital',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: const Color(0xFFF6EDA3).withAlpha((0.9 * 255).round()),
                         ),
                   ),
                   Text(
                     '₹${_totalCapital.toStringAsFixed(0)}',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: Colors.white,
+                          color: const Color(0xFFF6EDA3),
                           fontWeight: FontWeight.w900,
                         ),
                   ),
@@ -333,15 +248,15 @@ class _MarketExplorerAllocationScreenState
                   Text(
                     'Remaining',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: const Color(0xFFF6EDA3).withAlpha((0.9 * 255).round()),
                         ),
                   ),
                   Text(
                     '₹${_remainingAmount.toStringAsFixed(0)}',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           color: _remainingAmount < 0
-                              ? Colors.red.shade200
-                              : Colors.white,
+                              ? const Color(0xFFFFC3CC)
+                              : const Color(0xFFF6EDA3),
                           fontWeight: FontWeight.bold,
                         ),
                   ),
@@ -355,9 +270,9 @@ class _MarketExplorerAllocationScreenState
             child: LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
               minHeight: 12,
-              backgroundColor: Colors.white.withOpacity(0.3),
+              backgroundColor: const Color(0xFFF6EDA3).withAlpha((0.3 * 255).round()),
               valueColor: AlwaysStoppedAnimation<Color>(
-                _remainingAmount < 0 ? Colors.red : Colors.white,
+                _remainingAmount < 0 ? const Color(0xFFFFC3CC) : const Color(0xFFB6CFE4),
               ),
             ),
           ),
@@ -365,7 +280,7 @@ class _MarketExplorerAllocationScreenState
           Text(
             '${(progress * 100).toStringAsFixed(1)}% Allocated',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: const Color(0xFFF6EDA3).withAlpha((0.9 * 255).round()),
                 ),
           ),
         ],
@@ -380,10 +295,10 @@ class _MarketExplorerAllocationScreenState
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: const Color(0xFFF6EDA3).withAlpha((0.7 * 255).round()),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: _getAssetColor(type).withOpacity(0.3),
+          color: _getAssetColor(type).withAlpha((0.3 * 255).round()),
           width: 2,
         ),
         boxShadow: AppTheme.shadow3DSmall,
@@ -399,7 +314,7 @@ class _MarketExplorerAllocationScreenState
           leading: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: _getAssetColor(type).withOpacity(0.1),
+              color: _getAssetColor(type).withAlpha((0.1 * 255).round()),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -411,6 +326,7 @@ class _MarketExplorerAllocationScreenState
             type.name,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: const Color(0xFF393027),
                 ),
           ),
           subtitle: allocation > 0
@@ -426,7 +342,7 @@ class _MarketExplorerAllocationScreenState
             Text(
               type.description,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
+                    color: const Color(0xFF393027).withAlpha((0.7 * 255).round()),
                   ),
             ),
             const SizedBox(height: 12),
@@ -438,13 +354,13 @@ class _MarketExplorerAllocationScreenState
                     children: [
                       Text(
                         'Expected Return',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF393027)),
                       ),
                       Text(
                         '${(type.baseReturnRate * 100).toStringAsFixed(1)}% /year',
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.successColor,
+                                  color: const Color(0xFF9BAD50),
                                   fontWeight: FontWeight.bold,
                                 ),
                       ),
@@ -457,7 +373,7 @@ class _MarketExplorerAllocationScreenState
                     children: [
                       Text(
                         'Risk Level',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF393027)),
                       ),
                       Text(
                         '${(type.volatility * 100).toStringAsFixed(0)}%',
@@ -514,8 +430,8 @@ class _MarketExplorerAllocationScreenState
       child: ElevatedButton(
         onPressed: _canStart ? _startSimulation : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.gamesColor,
-          disabledBackgroundColor: AppTheme.cardSunken,
+          backgroundColor: const Color(0xFF9BAD50),
+          disabledBackgroundColor: const Color(0xFFB6CFE4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -531,7 +447,7 @@ class _MarketExplorerAllocationScreenState
                   ? 'Start 5-Year Simulation'
                   : 'Allocate Money to Start',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: _canStart ? Colors.white : AppTheme.textSecondary,
+                    color: _canStart ? const Color(0xFF022E17) : const Color(0xFF393027).withAlpha((0.7 * 255).round()),
                     fontWeight: FontWeight.bold,
                   ),
             ),
@@ -544,19 +460,19 @@ class _MarketExplorerAllocationScreenState
   Color _getAssetColor(AssetType type) {
     switch (type) {
       case AssetType.fixedDeposit:
-        return AppTheme.successColor;
+        return const Color(0xFFB6CFE4);
       case AssetType.sip:
-        return AppTheme.gamesColor;
+        return const Color(0xFF9BAD50);
       case AssetType.stocks:
-        return AppTheme.quizColor;
+        return const Color(0xFFFFC3CC);
       case AssetType.crypto:
-        return AppTheme.streakColor;
+        return const Color(0xFF393027);
     }
   }
 
   Color _getRiskColor(double volatility) {
-    if (volatility < 0.1) return AppTheme.successColor;
-    if (volatility < 0.3) return AppTheme.warningColor;
-    return AppTheme.errorColor;
+    if (volatility < 0.1) return const Color(0xFF9BAD50);
+    if (volatility < 0.3) return const Color(0xFFF6EDA3);
+    return const Color(0xFFFFC3CC);
   }
 }

@@ -130,6 +130,19 @@ extension DifficultyLevelExtension on DifficultyLevel {
         return 8000;
     }
   }
+
+  static DifficultyLevel fromString(String name) {
+    switch (name) {
+      case 'Easy':
+        return DifficultyLevel.easy;
+      case 'Medium':
+        return DifficultyLevel.medium;
+      case 'Hard':
+        return DifficultyLevel.hard;
+      default:
+        throw ArgumentError('Unknown difficulty level: $name');
+    }
+  }
 }
 
 /// Market events that can occur during simulation
