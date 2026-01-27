@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
-import '../../../../core/design_tokens.dart';
+
 import '../models/market_explorer_models.dart';
 import '../../../../services/supabase_functions_service.dart';
 
@@ -101,16 +101,16 @@ class _MarketExplorerResultScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Results'),
+        title: const Text('Results', style: TextStyle(color: Color(0xFF393027))),
+        backgroundColor: const Color(0xFFFFFAE3),
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, color: Color(0xFF393027)),
           onPressed: () => context.go('/'),
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.beigeGradient,
-        ),
+        color: const Color(0xFFFFFAE3),
         child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -119,28 +119,28 @@ class _MarketExplorerResultScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                // Performance Rating
-                _buildPerformanceCard(),
-                const SizedBox(height: 24),
+                  // Performance Rating
+                  _buildPerformanceCard(),
+                  const SizedBox(height: 24),
 
-                // Score Breakdown
-                _buildScoreCard(),
-                const SizedBox(height: 24),
+                  // Score Breakdown
+                  _buildScoreCard(),
+                  const SizedBox(height: 24),
 
-                // Portfolio Summary
-                _buildPortfolioSummary(),
-                const SizedBox(height: 24),
+                  // Portfolio Summary
+                  _buildPortfolioSummary(),
+                  const SizedBox(height: 24),
 
-                // Insights
-                _buildInsights(),
-                const SizedBox(height: 24),
+                  // Insights
+                  _buildInsights(),
+                  const SizedBox(height: 24),
 
-                // Rewards
-                _buildRewardsCard(),
-                const SizedBox(height: 24),
+                  // Rewards
+                  _buildRewardsCard(),
+                  const SizedBox(height: 24),
 
-                // Action Buttons
-                _buildActionButtons(),
+                  // Action Buttons
+                  _buildActionButtons(),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -171,7 +171,9 @@ class _MarketExplorerResultScreenState
             Text(
               widget.result.performanceRating,
               style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: Colors.white,
+                    color: widget.result.performanceRating == 'Average'
+                        ? const Color(0xFF393027)
+                        : const Color(0xFF022E17),
                     fontWeight: FontWeight.w900,
                   ),
             ),
@@ -179,7 +181,10 @@ class _MarketExplorerResultScreenState
             Text(
               _getPerformanceMessage(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
+                    color: (widget.result.performanceRating == 'Average'
+                            ? const Color(0xFF393027)
+                            : const Color(0xFF022E17))
+                        .withAlpha((0.9 * 255).round()),
                   ),
               textAlign: TextAlign.center,
             ),
@@ -187,13 +192,18 @@ class _MarketExplorerResultScreenState
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: (widget.result.performanceRating == 'Average'
+                        ? const Color(0xFF393027)
+                        : const Color(0xFF022E17))
+                    .withAlpha((0.2 * 255).round()),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
                 'Score: ${widget.result.score}/100',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: Colors.white,
+                      color: widget.result.performanceRating == 'Average'
+                          ? const Color(0xFF393027)
+                          : const Color(0xFF022E17),
                       fontWeight: FontWeight.bold,
                     ),
               ),
@@ -210,7 +220,7 @@ class _MarketExplorerResultScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: const Color(0xFFF6EDA3).withAlpha((0.7 * 255).round()),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppTheme.shadow3DSmall,
       ),
@@ -220,26 +230,26 @@ class _MarketExplorerResultScreenState
           Text(
             'Score Breakdown',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: DesignTokens.textDarkPrimary,
+                  color: const Color(0xFF393027),
                 ),
           ),
           const SizedBox(height: 20),
           _buildScoreRow(
             'Return',
             portfolio.returnPercentage,
-            AppTheme.successColor,
+            const Color(0xFF9BAD50),
             suffix: '%',
           ),
           _buildScoreRow(
             'Diversification',
             portfolio.diversificationScore,
-            AppTheme.gamesColor,
+            const Color(0xFFB6CFE4),
             suffix: '/100',
           ),
           _buildScoreRow(
             'Risk Management',
             100 - portfolio.riskScore,
-            AppTheme.warningColor,
+            const Color(0xFFFFC3CC),
             suffix: '/100',
           ),
         ],
@@ -259,7 +269,7 @@ class _MarketExplorerResultScreenState
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: const Color(0xFF393027)),
               ),
               Text(
                 '${value.toStringAsFixed(1)}$suffix',
@@ -276,7 +286,7 @@ class _MarketExplorerResultScreenState
             child: LinearProgressIndicator(
               value: (value / 100).clamp(0.0, 1.0),
               minHeight: 8,
-              backgroundColor: color.withOpacity(0.2),
+              backgroundColor: color.withAlpha((0.2 * 255).round()),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
@@ -291,7 +301,7 @@ class _MarketExplorerResultScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: const Color(0xFFF6EDA3).withAlpha((0.7 * 255).round()),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppTheme.shadow3DSmall,
       ),
@@ -301,7 +311,7 @@ class _MarketExplorerResultScreenState
           Text(
             'Portfolio Summary',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: DesignTokens.textDarkPrimary,
+                  color: const Color(0xFF393027),
                 ),
           ),
           const SizedBox(height: 20),
@@ -313,14 +323,14 @@ class _MarketExplorerResultScreenState
             'Total Return',
             '₹${portfolio.totalReturn.toStringAsFixed(0)}',
             valueColor: portfolio.totalReturn >= 0
-                ? AppTheme.successColor
-                : AppTheme.errorColor,
+                ? const Color(0xFF9BAD50)
+                : const Color(0xFFFFC3CC),
           ),
           _buildSummaryRow('Return %',
               '${portfolio.returnPercentage.toStringAsFixed(1)}%',
               valueColor: portfolio.returnPercentage >= 0
-                  ? AppTheme.successColor
-                  : AppTheme.errorColor),
+                  ? const Color(0xFF9BAD50)
+                  : const Color(0xFFFFC3CC)),
           _buildSummaryRow('Market Events', '${portfolio.eventsOccurred.length}'),
         ],
       ),
@@ -335,12 +345,12 @@ class _MarketExplorerResultScreenState
         children: [
           Text(
             label,
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: const Color(0xFF393027)),
           ),
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: valueColor ?? AppTheme.textPrimary,
+                  color: valueColor ?? const Color(0xFF393027),
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -353,7 +363,7 @@ class _MarketExplorerResultScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: const Color(0xFFF6EDA3).withAlpha((0.7 * 255).round()),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppTheme.shadow3DSmall,
       ),
@@ -367,7 +377,7 @@ class _MarketExplorerResultScreenState
               Text(
                 'Key Insights',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: DesignTokens.textDarkPrimary,
+                      color: const Color(0xFF393027),
                     ),
               ),
             ],
@@ -382,8 +392,8 @@ class _MarketExplorerResultScreenState
                       margin: const EdgeInsets.only(top: 6),
                       width: 8,
                       height: 8,
-                      decoration: BoxDecoration(
-                        color: AppTheme.gamesColor,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF9BAD50),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -391,7 +401,7 @@ class _MarketExplorerResultScreenState
                     Expanded(
                       child: Text(
                         insight,
-                        style: Theme.of(context).textTheme.bodyLarge,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: const Color(0xFF393027)),
                       ),
                     ),
                   ],
@@ -410,7 +420,11 @@ class _MarketExplorerResultScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppTheme.gradientGold,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF393027), Color(0xFF022E17)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppTheme.shadow3DMedium,
       ),
@@ -421,7 +435,7 @@ class _MarketExplorerResultScreenState
           Text(
             'Rewards Earned!',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
+                  color: const Color(0xFFF6EDA3),
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -437,7 +451,7 @@ class _MarketExplorerResultScreenState
               Container(
                 width: 2,
                 height: 50,
-                color: Colors.white.withOpacity(0.3),
+                color: const Color(0xFFF6EDA3).withAlpha((0.3 * 255).round()),
               ),
               _buildRewardItem(
                 Icons.stars,
@@ -454,19 +468,19 @@ class _MarketExplorerResultScreenState
   Widget _buildRewardItem(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white, size: 32),
+        Icon(icon, color: const Color(0xFFF6EDA3), size: 32),
         const SizedBox(height: 8),
         Text(
           value,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
+                color: const Color(0xFFF6EDA3),
                 fontWeight: FontWeight.bold,
               ),
         ),
         Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white.withOpacity(0.9),
+                color: const Color(0xFFF6EDA3).withAlpha((0.9 * 255).round()),
               ),
         ),
       ],
@@ -486,7 +500,8 @@ class _MarketExplorerResultScreenState
             icon: const Icon(Icons.home),
             label: const Text('Back to Home'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.gamesColor,
+              backgroundColor: const Color(0xFF9BAD50),
+              foregroundColor: const Color(0xFF022E17),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -504,8 +519,8 @@ class _MarketExplorerResultScreenState
             icon: const Icon(Icons.replay),
             label: const Text('Play Again'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.gamesColor,
-              side: const BorderSide(color: AppTheme.gamesColor, width: 2),
+              foregroundColor: const Color(0xFFB6CFE4),
+              side: const BorderSide(color: Color(0xFFB6CFE4), width: 2),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -519,26 +534,26 @@ class _MarketExplorerResultScreenState
   LinearGradient _getPerformanceGradient() {
     switch (widget.result.performanceRating) {
       case 'Excellent':
-        return LinearGradient(
-          colors: [AppTheme.successColor, AppTheme.successColor.withOpacity(0.8)],
+        return const LinearGradient(
+          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
       case 'Good':
-        return LinearGradient(
-          colors: [AppTheme.gamesColor, AppTheme.gamesColor.withOpacity(0.8)],
+        return const LinearGradient(
+          colors: [Color(0xFFB6CFE4), Color(0xFF9BAD50)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
       case 'Average':
-        return LinearGradient(
-          colors: [AppTheme.warningColor, AppTheme.warningColor.withOpacity(0.8)],
+        return const LinearGradient(
+          colors: [Color(0xFFF6EDA3), Color(0xFFF6EDA3)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
       default:
-        return LinearGradient(
-          colors: [AppTheme.errorColor, AppTheme.errorColor.withOpacity(0.8)],
+        return const LinearGradient(
+          colors: [Color(0xFFFFC3CC), Color(0xFFFFC3CC)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );

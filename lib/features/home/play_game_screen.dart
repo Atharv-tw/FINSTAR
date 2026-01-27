@@ -501,6 +501,8 @@ class _PlayGameScreenState extends State<PlayGameScreen>
             HapticFeedback.mediumImpact();
             if (card.title == 'LIFE SWIPE') {
               context.push('/game/life-swipe/tutorial');
+            } else if (card.title == 'MARKET EXPLORER') {
+              context.push('/game/market-explorer'); // Navigate to the splash screen
             } else {
               context.push(card.route);
             }
