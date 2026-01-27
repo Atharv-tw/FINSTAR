@@ -1,9 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
-import '../../shared/widgets/xp_ring.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/achievements_provider.dart';
@@ -17,28 +15,7 @@ class ProfileDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<ProfileDetailScreen> createState() => _ProfileDetailScreenState();
 }
 
-class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _animationController.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
+class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -102,12 +79,10 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
 
                           const SizedBox(height: 24),
 
-                          // Stats Grid
-                          _buildStatsGrid(user),
+                          _buildStatsSection(user),
 
                           const SizedBox(height: 24),
 
-                          // Achievements Section
                           _buildAchievementsSection(),
 
                           const SizedBox(height: 24), // Bottom spacing
@@ -197,311 +172,156 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
     );
   }
 
-  Widget _buildProfileCard(UserProfile user) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 800),
-      curve: Curves.easeOutQuart,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.white.withValues(alpha: 0.8),
-                      Colors.white.withValues(alpha: 0.6),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: DesignTokens.primarySolid.withValues(alpha: 0.25),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: DesignTokens.primarySolid.withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Avatar and XP Ring
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        XpRing(
-                          currentXp: user.currentXpInLevel,
-                          xpForNextLevel: user.xpForNextLevel,
-                          level: user.level,
-                          size: 120,
-                        ),
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: DesignTokens.primaryGradient,
-                          ),
-                          child: Center(
-                            child: Text(
-                              user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : 'U',
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Username
-                    Text(
-                      user.displayName,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: DesignTokens.textDarkPrimary,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Rank and XP
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: DesignTokens.primarySolid.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: DesignTokens.primarySolid.withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.emoji_events,
-                                  color: DesignTokens.primarySolid, size: 16),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Level ${user.level}',
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: DesignTokens.textDarkPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: DesignTokens.accentSolid.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: DesignTokens.accentSolid.withValues(alpha: 0.4),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.stars,
-                                  color: DesignTokens.accentEnd, size: 16),
-                              const SizedBox(width: 6),
-                              Text(
-                                '${user.xp} XP',
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: DesignTokens.textDarkPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Streak
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF6B35).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFFFF6B35).withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.local_fire_department,
-                              color: Color(0xFFFF6B35), size: 24),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${user.streakDays} Day Streak',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: DesignTokens.textDarkPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildStatsGrid(UserProfile user) {
+  Widget _buildStatsSection(UserProfile user) {
     final stats = [
-      {'icon': Icons.school, 'label': 'Level', 'value': '${user.level}'},
-      {'icon': Icons.quiz, 'label': 'XP', 'value': '${user.xp}'},
-      {'icon': Icons.monetization_on, 'label': 'Coins', 'value': '${user.coins}'},
-      {
-        'icon': Icons.local_fire_department,
-        'label': 'Streak',
-        'value': '${user.streakDays} days'
-      },
+      _StatTileData(
+        label: 'Level',
+        value: '${user.level}',
+        icon: Icons.school,
+        gradient: const LinearGradient(
+          colors: [DesignTokens.primaryStart, DesignTokens.primaryEnd],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      _StatTileData(
+        label: 'XP',
+        value: '${user.xp}',
+        icon: Icons.auto_awesome,
+        gradient: const LinearGradient(
+          colors: [DesignTokens.secondaryStart, DesignTokens.secondaryEnd],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      _StatTileData(
+        label: 'Coins',
+        value: '${user.coins}',
+        icon: Icons.monetization_on_rounded,
+        gradient: const LinearGradient(
+          colors: [DesignTokens.beigeLight, DesignTokens.beigeDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      _StatTileData(
+        label: 'Streak',
+        value: '${user.streakDays}',
+        icon: Icons.local_fire_department,
+        gradient: const LinearGradient(
+          colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.5,
-      ),
-      itemCount: stats.length,
-      itemBuilder: (context, index) {
-        final stat = stats[index];
-        final delay = index * 0.1;
-
-        return AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            final staggerValue =
-                (_animationController.value - delay).clamp(0.0, 1.0);
-            return Transform.scale(
-              scale: staggerValue,
-              child: Opacity(
-                opacity: staggerValue,
-                child: child,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Stats Snapshot',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: DesignTokens.textDarkPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final cardWidth = (constraints.maxWidth - 12) / 2;
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: stats
+                  .map((stat) => SizedBox(
+                        width: cardWidth,
+                        height: 92,
+                        child: _buildStatTile(stat),
+                      ))
+                  .toList(),
             );
           },
-          child: _buildStatCard(stat),
-        );
-      },
+        ),
+      ],
     );
   }
 
-  Widget _buildStatCard(Map<String, dynamic> stat) {
-    // Define colors for each stat type
-    final statColors = {
-      'Level': DesignTokens.primarySolid,
-      'XP': DesignTokens.accentEnd,
-      'Coins': DesignTokens.secondaryEnd,
-      'Streak': const Color(0xFFFF6B35),
-    };
-    final color = statColors[stat['label']] ?? DesignTokens.primarySolid;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: color.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  stat['icon'] as IconData,
-                  color: color,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                stat['value'] as String,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: DesignTokens.textDarkPrimary,
-                ),
-              ),
-              Text(
-                stat['label'] as String,
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 11,
-                  color: DesignTokens.textDarkSecondary,
-                ),
-              ),
-            ],
-          ),
+  Widget _buildStatTile(_StatTileData stat) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: LinearGradient(
+          colors: [
+            stat.gradient.colors.first.withValues(alpha: 0.18),
+            stat.gradient.colors.last.withValues(alpha: 0.12),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        border: Border.all(
+          color: DesignTokens.textDarkPrimary.withValues(alpha: 0.12),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: stat.gradient.colors.first.withValues(alpha: 0.18),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: 10,
+            bottom: 10,
+            child: Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: stat.gradient.colors.first.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                stat.icon,
+                size: 18,
+                color: DesignTokens.textDarkPrimary.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  stat.label.toUpperCase(),
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.6,
+                    color: DesignTokens.textDarkSecondary,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  stat.value,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: DesignTokens.textDarkPrimary,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -509,167 +329,405 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
   Widget _buildAchievementsSection() {
     final achievementsAsync = ref.watch(achievementsProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Achievements',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: DesignTokens.textDarkPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        achievementsAsync.when(
-          data: (achievements) {
-            if (achievements.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.emoji_events_outlined,
-                        size: 48,
-                        color: DesignTokens.textDarkDisabled,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No achievements yet!\nKeep playing to unlock badges.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 14,
-                          color: DesignTokens.textDarkSecondary,
-                        ),
-                      ),
-                    ],
+    return achievementsAsync.when(
+      data: (achievements) {
+        final visibleAchievements = achievements
+            .where((a) => a.title.trim().isNotEmpty)
+            .toList();
+        final unlocked = visibleAchievements.where((a) => a.unlocked).toList();
+        final streaks = visibleAchievements
+            .where((a) => a.type == AchievementType.streak)
+            .toList();
+        final inProgress =
+            visibleAchievements.where((a) => !a.unlocked).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Achievements',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: DesignTokens.textDarkPrimary,
                   ),
                 ),
-              );
-            }
-
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.85,
-              ),
-              itemCount: achievements.length,
-              itemBuilder: (context, index) {
-                final achievement = achievements[index];
-                final delay = index * 0.08;
-
-                return AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    final staggerValue =
-                        (_animationController.value - delay).clamp(0.0, 1.0);
-                    return Transform.scale(
-                      scale: staggerValue,
-                      child: Opacity(
-                        opacity: staggerValue,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: _buildAchievementCard(achievement),
-                );
-              },
-            );
-          },
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: CircularProgressIndicator(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: DesignTokens.primarySolid.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: DesignTokens.primarySolid.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Text(
+                    '${unlocked.length}/${visibleAchievements.length} unlocked',
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: DesignTokens.textDarkPrimary,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          error: (error, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Text(
-                'Error loading achievements',
-                style: TextStyle(color: Colors.red.shade300),
-              ),
+            const SizedBox(height: 12),
+            _buildAchievementRail(
+              title: 'Badges',
+              subtitle: 'Unlocked moments',
+              emptyText: 'Unlock your first badge to start the collection.',
+              items: unlocked,
+              itemHeight: 118,
+              itemBuilder: _buildBadgeChip,
             ),
+            const SizedBox(height: 16),
+            _buildAchievementRail(
+              title: 'Streaks',
+              subtitle: 'Daily momentum',
+              emptyText: 'No streak badges yet.',
+              items: streaks,
+              itemHeight: 112,
+              itemBuilder: _buildStreakChip,
+            ),
+            const SizedBox(height: 16),
+            _buildAchievementRail(
+              title: 'In Progress',
+              subtitle: 'Next goals',
+              emptyText: 'You are all caught up!',
+              items: inProgress,
+              itemHeight: 128,
+              itemBuilder: _buildProgressCard,
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, stack) => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: DesignTokens.surfaceCardLight,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: DesignTokens.textDarkDisabled.withValues(alpha: 0.25),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildAchievementCard(Achievement achievement) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: achievement.unlocked
-                ? Colors.white.withValues(alpha: 0.7)
-                : Colors.white.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: achievement.unlocked
-                  ? achievement.color.withValues(alpha: 0.5)
-                  : DesignTokens.textDarkDisabled.withValues(alpha: 0.3),
-              width: achievement.unlocked ? 2 : 1,
-            ),
-            boxShadow: achievement.unlocked
-                ? [
-                    BoxShadow(
-                      color: achievement.color.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: achievement.unlocked
-                      ? achievement.color.withValues(alpha: 0.2)
-                      : DesignTokens.textDarkDisabled.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  achievement.icon,
-                  color: achievement.unlocked
-                      ? achievement.color
-                      : DesignTokens.textDarkDisabled,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                achievement.title,
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: achievement.unlocked
-                      ? DesignTokens.textDarkPrimary
-                      : DesignTokens.textDarkDisabled,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+        child: Text(
+          'Achievements are temporarily unavailable. Try again later.',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 12,
+            color: DesignTokens.textDarkSecondary,
           ),
         ),
       ),
     );
   }
+
+  Widget _buildAchievementRail({
+    required String title,
+    required String subtitle,
+    required String emptyText,
+    required List<Achievement> items,
+    required double itemHeight,
+    required Widget Function(Achievement achievement) itemBuilder,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: DesignTokens.textDarkPrimary,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 11,
+                    color: DesignTokens.textDarkSecondary,
+                  ),
+                ),
+              ],
+            ),
+            if (items.isNotEmpty)
+              Text(
+                '${items.length}',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: DesignTokens.textDarkSecondary,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (items.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: DesignTokens.surfaceCardLight,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: DesignTokens.textDarkDisabled.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Text(
+              emptyText,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                color: DesignTokens.textDarkSecondary,
+              ),
+            ),
+          )
+        else
+          SizedBox(
+            height: itemHeight,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) => itemBuilder(items[index]),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildBadgeChip(Achievement achievement) {
+    final baseColor = achievement.color;
+    return Container(
+      width: 110,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: baseColor.withValues(alpha: 0.16),
+        border: Border.all(color: baseColor.withValues(alpha: 0.45)),
+        boxShadow: [
+          BoxShadow(
+            color: baseColor.withValues(alpha: 0.18),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.8),
+              border: Border.all(color: baseColor.withValues(alpha: 0.5)),
+            ),
+            child: Icon(
+              achievement.icon,
+              color: baseColor,
+              size: 22,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            achievement.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: DesignTokens.textDarkPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStreakChip(Achievement achievement) {
+    final baseColor = achievement.color;
+    final progress = achievement.progressPercentage;
+    return Container(
+      width: 140,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: [
+            baseColor.withValues(alpha: 0.22),
+            baseColor.withValues(alpha: 0.12),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: baseColor.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: baseColor.withValues(alpha: 0.2),
+                ),
+                child: Icon(
+                  achievement.icon,
+                  color: baseColor,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  achievement.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: DesignTokens.textDarkPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '${achievement.currentProgress}/${achievement.targetValue} days',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 11,
+              color: DesignTokens.textDarkSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: Colors.white.withValues(alpha: 0.6),
+              valueColor: AlwaysStoppedAnimation<Color>(baseColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressCard(Achievement achievement) {
+    final baseColor = achievement.color;
+    final progress = achievement.progressPercentage;
+    return Container(
+      width: 180,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: DesignTokens.surfaceCardLight,
+        border: Border.all(color: baseColor.withValues(alpha: 0.35)),
+        boxShadow: [
+          BoxShadow(
+            color: baseColor.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            achievement.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: DesignTokens.textDarkPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            achievement.description,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 10,
+              color: DesignTokens.textDarkSecondary,
+            ),
+          ),
+          const Spacer(),
+          Row(
+            children: [
+              Icon(achievement.icon, size: 16, color: baseColor),
+              const SizedBox(width: 6),
+              Text(
+                '${achievement.currentProgress}/${achievement.targetValue}',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 10,
+                  color: DesignTokens.textDarkSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: DesignTokens.textDarkDisabled.withValues(alpha: 0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(baseColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatTileData {
+  final String label;
+  final String value;
+  final IconData icon;
+  final LinearGradient gradient;
+
+  const _StatTileData({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.gradient,
+  });
 }

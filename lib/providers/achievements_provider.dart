@@ -31,7 +31,10 @@ class Achievement {
     this.currentProgress = 0,
   });
 
-  double get progressPercentage => (currentProgress / targetValue).clamp(0.0, 1.0);
+  double get progressPercentage {
+    if (targetValue <= 0) return 0.0;
+    return (currentProgress / targetValue).clamp(0.0, 1.0);
+  }
 
   /// Get icon for achievement type
   IconData get icon {
@@ -73,24 +76,40 @@ class Achievement {
     }
   }
 
+  static int _toInt(dynamic value, {int fallback = 0}) {
+    if (value == null) return fallback;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  static DateTime? _toDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+    return null;
+  }
+
   factory Achievement.fromFirestore(String id, Map<String, dynamic> data) {
     return Achievement(
       id: id,
       title: data['title'] ?? '',
       description: data['description'] ?? '',
       iconPath: data['iconPath'] ?? 'assets/icons/achievement_default.png',
-      coinsReward: data['coinsReward'] ?? 50,
-      xpReward: data['xpReward'] ?? 100,
+      coinsReward: _toInt(data['coinsReward'], fallback: 50),
+      xpReward: _toInt(data['xpReward'], fallback: 100),
       unlocked: data['unlocked'] ?? false,
-      unlockedAt: data['unlockedAt'] != null
-          ? (data['unlockedAt'] as Timestamp).toDate()
-          : null,
+      unlockedAt: _toDateTime(data['unlockedAt']),
       type: AchievementType.values.firstWhere(
         (e) => e.name == data['type'],
         orElse: () => AchievementType.other,
       ),
-      targetValue: data['targetValue'] ?? 1,
-      currentProgress: data['currentProgress'] ?? 0,
+      targetValue: _toInt(data['targetValue'], fallback: 1),
+      currentProgress: _toInt(data['currentProgress'], fallback: 0),
     );
   }
 
