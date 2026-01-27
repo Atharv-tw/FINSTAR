@@ -199,7 +199,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
         value: '${user.coins}',
         icon: Icons.monetization_on_rounded,
         gradient: const LinearGradient(
-          colors: [DesignTokens.beigeLight, DesignTokens.beigeDark],
+          colors: [Color(0xFFFFF3B0), Color(0xFFFFC857)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -209,7 +209,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
         value: '${user.streakDays}',
         icon: Icons.local_fire_department,
         gradient: const LinearGradient(
-          colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
+          colors: [Color(0xFFFFB55A), Color(0xFFFF7A2F)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -404,6 +404,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
               itemHeight: 128,
               itemBuilder: _buildProgressCard,
             ),
+            const SizedBox(height: 60),
           ],
         );
       },
