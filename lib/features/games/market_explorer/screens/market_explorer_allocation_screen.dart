@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'dart:ui';
 
 import '../models/market_explorer_models.dart';
 import 'market_explorer_simulation_screen.dart';
@@ -34,8 +35,9 @@ class _MarketExplorerAllocationScreenState
   AssetType? _selectedAsset;
   bool _hasInteracted = false;
   
-  late AnimationController _pulseController;
+  late AnimationController _floatController;
   late AnimationController _controlsController;
+  late AnimationController _sparkleController;
 
   @override
   void initState() {
@@ -43,21 +45,27 @@ class _MarketExplorerAllocationScreenState
     _selectedDifficulty = DifficultyLevelExtension.fromString(widget.difficulty);
     _totalCapital = widget.initialInvestment;
     
-    _pulseController = AnimationController(
+    _floatController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
     
     _controlsController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
     );
+
+    _sparkleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _floatController.dispose();
     _controlsController.dispose();
+    _sparkleController.dispose();
     super.dispose();
   }
 
@@ -113,144 +121,134 @@ class _MarketExplorerAllocationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Allocate Your Capital', style: TextStyle(color: Color(0xFF393027), fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFFFFFAE3),
+        title: const Text('Explore the Market', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, shadows: [Shadow(color: Colors.black38, blurRadius: 10)])),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF393027)),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Container(
-        color: const Color(0xFFFFFAE3),
-        child: Stack(
-          children: [
-            _buildIslandWidget(AssetType.fixedDeposit, const Alignment(-0.8, -0.6)),
-            _buildIslandWidget(AssetType.sip, const Alignment(0.8, -0.6)),
-            _buildIslandWidget(AssetType.stocks, const Alignment(-0.5, 0.15)),
-            _buildIslandWidget(AssetType.crypto, const Alignment(0.5, 0.15)),
-            
-            _buildCapitalDisplay(),
-            
-            _buildInstructionText(),
-
-            if (_selectedAsset != null) _buildContextualControls(),
-          ],
-        ),
+      body: Stack(
+        children: [
+          // Background Image
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/gemini_Generated_Image_jyboudjyboudjybo-2.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // Dark Overlay
+          Container(
+            color: Colors.black.withAlpha(153),
+          ),
+          // Islands and UI
+          _buildFloatingIsland(AssetType.fixedDeposit, -0.6, -0.8, 0),
+          _buildFloatingIsland(AssetType.sip, 0.6, -0.3, 1),
+          _buildFloatingIsland(AssetType.stocks, -0.6, 0.2, 2),
+          _buildFloatingIsland(AssetType.crypto, 0.6, 0.7, 3),
+          _buildCapitalDisplay(),
+          _buildInstructionText(),
+          if (_selectedAsset != null) _buildContextualControls(),
+        ],
       ),
     );
   }
 
   Widget _buildInstructionText() {
-    return AnimatedOpacity(
-      opacity: _hasInteracted ? 0.0 : 1.0,
-      duration: const Duration(milliseconds: 300),
-      child: const Align(
-        alignment: Alignment(0, 0.5),
-        child: Text(
-          'Tap an island to invest!',
-          style: TextStyle(
-            color: Color(0xFF393027),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        opacity: _hasInteracted ? 0.0 : 1.0,
+        duration: const Duration(milliseconds: 500),
+        child: Align(
+          alignment: Alignment(0, 0.95),
+          child: Text(
+            'Tap an island to invest!',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              shadows: [Shadow(color: Colors.black.withAlpha(138), blurRadius: 10)]
+            ),
           ),
         ),
       ),
     );
   }
   
-  Widget _buildIslandWidget(AssetType type, Alignment alignment) {
-    final allocation = _allocations[type]!;
+  Widget _buildFloatingIsland(AssetType type, double alignX, double alignY, int index) {
     final isSelected = _selectedAsset == type;
-
-    Widget island = GestureDetector(
-      onTap: () => _selectAsset(type),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        width: isSelected ? 150 : 130,
-        height: isSelected ? 150 : 130,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Shadow
-            Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 15,
-                    spreadRadius: 5,
-                    offset: const Offset(0, 10),
-                  )
-                ],
-              ),
-            ),
-            // Island Base (Earth)
-            Positioned(
-              bottom: 0,
-              child: Container(
-                width: 120,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFa0522d),
-                  borderRadius: const BorderRadius.all(Radius.circular(60)),
-                ),
-              ),
-            ),
-            // Island Top (Grass)
-            Positioned(
-              top: 10,
-              child: Container(
-                width: 120,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: _getAssetColor(type).withAlpha(200),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(60)),
-                ),
-              ),
-            ),
-            // Content
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(_getAssetIcon(type), color: const Color(0xFF022E17), size: 28),
-                const SizedBox(height: 4),
-                Text(
-                  type.name,
-                  style: const TextStyle(
-                      color: Color(0xFF393027),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '₹${allocation.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
+    final floatAnimation = Tween<double>(begin: -8.0, end: 8.0).animate(
+      CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
 
-    return Align(
-      alignment: alignment,
-      child: ScaleTransition(
-        scale: Tween<double>(begin: 0.98, end: 1.02).animate(_pulseController),
-        child: island,
+    return AnimatedBuilder(
+      animation: floatAnimation,
+      builder: (context, child) {
+        final offset = index.isEven ? floatAnimation.value : -floatAnimation.value;
+        return Align(
+          alignment: Alignment(alignX, alignY),
+          child: Transform.translate(
+            offset: Offset(0, offset),
+            child: child,
+          ),
+        );
+      },
+      child: GestureDetector(
+        onTap: () => _selectAsset(type),
+        child: SizedBox(
+          width: 180,
+          height: 180,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: isSelected ? Colors.yellow.withAlpha(150) : Colors.black.withAlpha(100),
+                      blurRadius: 30,
+                      spreadRadius: 5,
+                    )
+                  ]
+                ),
+                child: ClipOval(
+                  child: Container(
+                    width: 140,
+                    height: 140,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/gemini_Generated_Image_jyboudjyboudjybo-2.png'),
+                        fit: BoxFit.cover,
+                        opacity: 0.9,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 35,
+                child: Icon(_getAssetIcon(type), color: Colors.white, size: 40, shadows: [Shadow(color: Colors.black87, blurRadius: 15, offset: Offset(0,2))]),
+              ),
+              Positioned(
+                bottom: 45,
+                child: Text(
+                  type.name,
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20, shadows: [Shadow(color: Colors.black87, blurRadius: 15)]),
+                ),
+              ),
+              if (isSelected)
+                IgnorePointer(
+                  child: CustomPaint(
+                    size: const Size(180, 180),
+                    painter: SparklePainter(animation: _sparkleController),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -265,53 +263,44 @@ class _MarketExplorerAllocationScreenState
         position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(
           CurvedAnimation(parent: _controlsController, curve: Curves.easeOutCubic)
         ),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-          decoration: const BoxDecoration(
-            color: Color(0xFF393027),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 20,
-                offset: Offset(0, -5),
+        child: ClipPath(
+          clipper: WaveClipper(),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(30, 40, 30, 40),
+              decoration: BoxDecoration(
+                color: Colors.blue.withAlpha(100),
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Asset Info and Slider
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(_getAssetIcon(assetType), color: _getAssetColor(assetType), size: 24),
-                  const SizedBox(width: 12),
-                  Text(assetType.name, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => _selectAsset(null),
-                  )
+                  Row(
+                    children: [
+                      Icon(_getAssetIcon(assetType), color: Colors.white, size: 28),
+                      const SizedBox(width: 12),
+                      Text(assetType.name, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                        onPressed: () => _selectAsset(null),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Slider(
+                    value: allocation,
+                    min: 0,
+                    max: _totalCapital.toDouble(),
+                    activeColor: Colors.white,
+                    inactiveColor: Colors.white.withAlpha(80),
+                    onChanged: (value) => _updateAllocation(assetType, value),
+                  ),
+                  const SizedBox(height: 15),
+                  _buildStartButton(),
                 ],
               ),
-              const SizedBox(height: 10),
-              Slider(
-                value: allocation,
-                min: 0,
-                max: _totalCapital.toDouble(),
-                activeColor: _getAssetColor(assetType),
-                inactiveColor: _getAssetColor(assetType).withAlpha(50),
-                onChanged: (value) {
-                  _updateAllocation(assetType, value);
-                },
-              ),
-              const SizedBox(height: 20),
-              // Close button or Start Simulation
-              _buildStartButton(),
-            ],
+            ),
           ),
         ),
       ),
@@ -320,24 +309,21 @@ class _MarketExplorerAllocationScreenState
 
   Widget _buildCapitalDisplay() {
     return Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        margin: const EdgeInsets.only(top: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF393027).withAlpha(220),
-          borderRadius: BorderRadius.circular(20),
-        ),
+      alignment: Alignment.bottomLeft,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Remaining Capital', style: TextStyle(color: Color(0xFFB6CFE4), fontSize: 14)),
+            const Text('Remaining', style: TextStyle(color: Colors.white70, fontSize: 14)),
             Text(
               '₹${_remainingAmount.toStringAsFixed(0)}',
               style: TextStyle(
-                  color: _remainingAmount < 0 ? const Color(0xFFFFC3CC) : Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold),
+                  color: _remainingAmount < 0 ? Colors.red.shade200 : Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  shadows: const [Shadow(color: Colors.black45, blurRadius: 10)]),
             ),
           ],
         ),
@@ -352,15 +338,14 @@ class _MarketExplorerAllocationScreenState
       child: ElevatedButton(
         onPressed: _canStart ? _startSimulation : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF9BAD50),
-          disabledBackgroundColor: const Color(0xFFB6CFE4),
+          backgroundColor: Colors.white,
+          disabledBackgroundColor: Colors.white.withAlpha(100),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: _canStart ? 4 : 0,
         ),
         child: Text(
           _canStart ? 'Start 5-Year Simulation' : 'Allocate Money to Start',
           style: TextStyle(
-            color: _canStart ? const Color(0xFF022E17) : const Color(0xFF393027).withAlpha(180),
+            color: _canStart ? const Color(0xFF0052D4) : Colors.black.withAlpha(100),
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -369,78 +354,63 @@ class _MarketExplorerAllocationScreenState
     );
   }
 
-  Color _getAssetColor(AssetType type) {
-    switch (type) {
-      case AssetType.fixedDeposit: return const Color(0xFFB6CFE4);
-      case AssetType.sip: return const Color(0xFF9BAD50);
-      case AssetType.stocks: return const Color(0xFFFFC3CC);
-      case AssetType.crypto: return const Color(0xFFF4A261);
-    }
-  }
-
   IconData _getAssetIcon(AssetType type) {
     switch (type) {
-      case AssetType.fixedDeposit: return Icons.account_balance;
-      case AssetType.sip: return Icons.show_chart;
-      case AssetType.stocks: return Icons.bar_chart;
+      case AssetType.fixedDeposit: return Icons.account_balance_wallet;
+      case AssetType.sip: return Icons.spa;
+      case AssetType.stocks: return Icons.show_chart;
       case AssetType.crypto: return Icons.currency_bitcoin;
     }
   }
 }
 
-class IslandPainter extends CustomPainter {
-  final Color color;
-  final double fillPercent;
-  final bool isSelected;
-
-  IslandPainter({required this.color, required this.fillPercent, this.isSelected = false});
+class SparklePainter extends CustomPainter {
+  final Animation<double> animation;
+  SparklePainter({required this.animation}) : super(repaint: animation);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double w = size.width;
-    final double h = size.height;
-
-    final Path path = Path()
-      ..moveTo(w * 0.5, h * 0.0)
-      ..quadraticBezierTo(w * 0.1, h * 0.2, w * 0.2, h * 0.5)
-      ..quadraticBezierTo(w * 0.0, h * 0.8, w * 0.5, h * 0.95)
-      ..quadraticBezierTo(w * 1.0, h * 0.8, w * 0.8, h * 0.5)
-      ..quadraticBezierTo(w * 0.9, h * 0.2, w * 0.5, h * 0.0)
-      ..close();
+    final random = Random();
+    final paint = Paint()..color = Colors.white.withAlpha((150 * (1.0 - (animation.value * 2.0 - 1.0).abs())).toInt());
     
-    // Island Fill
-    canvas.drawPath(path, Paint()..color = color.withAlpha(100));
-
-    // Water Fill
-    final Rect bounds = path.getBounds();
-    final double fillHeight = bounds.height * fillPercent.clamp(0.0, 1.0);
-    canvas.clipPath(path);
-    canvas.drawRect(
-      Rect.fromLTWH(bounds.left, bounds.bottom - fillHeight, bounds.width, fillHeight),
-      Paint()..color = color.withAlpha(200),
-    );
-
-    // Island Stroke
-    final strokePaint = Paint()
-      ..color = color
-      ..strokeWidth = isSelected ? 5 : 3
-      ..style = PaintingStyle.stroke;
-    canvas.drawPath(path, strokePaint);
-
-    // Glowing effect if selected
-    if (isSelected) {
-      final glowPaint = Paint()
-        ..color = color.withOpacity(0.5)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10.0);
-      canvas.drawPath(path, glowPaint);
+    final int sparkleCount = 7;
+    for (int i = 0; i < sparkleCount; i++) {
+      final double progress = (animation.value + (i / sparkleCount) + random.nextDouble() * 0.1) % 1.0;
+      final double angle = 2 * pi * progress;
+      final double distance = (size.width / 2.5) * (0.8 + progress * 0.4) * (random.nextDouble() * 0.4 + 0.8);
+      final double x = size.width / 2 + cos(angle) * distance;
+      final double y = size.height / 2 + sin(angle) * distance;
+      final double radius = (1.0 - (progress * 2.0 - 1.0).abs()) * (random.nextDouble() * 2.0 + 2.0);
+      if (radius > 0) {
+        canvas.drawCircle(Offset(x, y), radius, paint);
+      }
     }
   }
 
   @override
-  bool shouldRepaint(covariant IslandPainter oldDelegate) {
-    return oldDelegate.fillPercent != fillPercent ||
-           oldDelegate.color != color ||
-           oldDelegate.isSelected != isSelected;
-  }
+  bool shouldRepaint(covariant SparklePainter oldDelegate) => false;
 }
 
+class WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    var path = Path();
+    path.lineTo(0, 20); // Start 20px down
+    
+    var firstControlPoint = Offset(size.width / 4, 0);
+    var firstEndPoint = Offset(size.width / 2.25, 30.0);
+    path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy, firstEndPoint.dx, firstEndPoint.dy);
+
+    var secondControlPoint = Offset(size.width - (size.width / 3.25), 65);
+    var secondEndPoint = Offset(size.width, 10.0);
+    path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy, secondEndPoint.dx, secondEndPoint.dy);
+
+    path.lineTo(size.width, size.height);
+    path.lineTo(0.0, size.height);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
