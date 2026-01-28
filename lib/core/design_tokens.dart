@@ -177,7 +177,7 @@ class DesignTokens {
           offset: const Offset(0, 2),
           blurRadius: 4,
           spreadRadius: 0,
-          color: Colors.black.withValues(alpha: 0.1),
+          color: Colors.black.withOpacity(0.1),
         ),
       ];
 
@@ -186,7 +186,7 @@ class DesignTokens {
           offset: const Offset(0, 4),
           blurRadius: 8,
           spreadRadius: 0,
-          color: Colors.black.withValues(alpha: 0.15),
+          color: Colors.black.withOpacity(0.15),
         ),
       ];
 
@@ -195,7 +195,7 @@ class DesignTokens {
           offset: const Offset(0, 8),
           blurRadius: 16,
           spreadRadius: 0,
-          color: Colors.black.withValues(alpha: 0.2),
+          color: Colors.black.withOpacity(0.2),
         ),
       ];
 
@@ -204,7 +204,7 @@ class DesignTokens {
           offset: const Offset(0, 12),
           blurRadius: 24,
           spreadRadius: 0,
-          color: Colors.black.withValues(alpha: 0.25),
+          color: Colors.black.withOpacity(0.25),
         ),
       ];
 
@@ -213,7 +213,7 @@ class DesignTokens {
           offset: const Offset(0, 16),
           blurRadius: 32,
           spreadRadius: 0,
-          color: Colors.black.withValues(alpha: 0.3),
+          color: Colors.black.withOpacity(0.3),
         ),
       ];
 
@@ -222,7 +222,7 @@ class DesignTokens {
           offset: const Offset(0, 24),
           blurRadius: 48,
           spreadRadius: 0,
-          color: Colors.black.withValues(alpha: 0.4),
+          color: Colors.black.withOpacity(0.4),
         ),
       ];
 
@@ -232,7 +232,7 @@ class DesignTokens {
           offset: Offset.zero,
           blurRadius: 24,
           spreadRadius: 0,
-          color: primaryStart.withValues(alpha: opacity),
+          color: primaryStart.withOpacity(opacity),
         ),
       ];
 
@@ -241,7 +241,7 @@ class DesignTokens {
           offset: Offset.zero,
           blurRadius: 24,
           spreadRadius: 0,
-          color: secondaryStart.withValues(alpha: opacity),
+          color: secondaryStart.withOpacity(opacity),
         ),
       ];
 
@@ -250,7 +250,7 @@ class DesignTokens {
           offset: Offset.zero,
           blurRadius: 24,
           spreadRadius: 0,
-          color: accentStart.withValues(alpha: opacity),
+          color: accentStart.withOpacity(opacity),
         ),
       ];
 
@@ -285,7 +285,7 @@ class DesignTokens {
         offset: Offset.zero,
         blurRadius: 24,
         spreadRadius: 0,
-        color: glowColor.withValues(alpha: glowOpacity),
+        color: glowColor.withOpacity(glowOpacity),
       ),
     ];
   }
