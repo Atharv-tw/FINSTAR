@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../config/theme.dart';
+import 'dart:math';
 
 import '../models/market_explorer_models.dart';
 import 'market_explorer_simulation_screen.dart';
@@ -21,72 +21,85 @@ class MarketExplorerAllocationScreen extends StatefulWidget {
 
 class _MarketExplorerAllocationScreenState
     extends State<MarketExplorerAllocationScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final DifficultyLevel _selectedDifficulty;
   late final int _totalCapital;
-
   final Map<AssetType, double> _allocations = {
     AssetType.fixedDeposit: 0,
     AssetType.sip: 0,
     AssetType.stocks: 0,
     AssetType.crypto: 0,
   };
-
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
+  
+  AssetType? _selectedAsset;
+  bool _hasInteracted = false;
+  
+  late AnimationController _pulseController;
+  late AnimationController _controlsController;
 
   @override
   void initState() {
     super.initState();
     _selectedDifficulty = DifficultyLevelExtension.fromString(widget.difficulty);
     _totalCapital = widget.initialInvestment;
-
-    _animationController = AnimationController(
+    
+    _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+    
+    _controlsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
     );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-
-    _animationController.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _pulseController.dispose();
+    _controlsController.dispose();
     super.dispose();
   }
 
-  double get _allocatedAmount =>
-      _allocations.values.fold(0.0, (sum, amount) => sum + amount);
-
+  double get _allocatedAmount => _allocations.values.fold(0.0, (sum, amount) => sum + amount);
   double get _remainingAmount => _totalCapital - _allocatedAmount;
-
   bool get _canStart => _allocatedAmount > 0 && _remainingAmount >= 0;
 
   void _updateAllocation(AssetType type, double value) {
     setState(() {
-      final newTotal = _allocatedAmount - _allocations[type]! + value;
-      if (newTotal <= _totalCapital) {
-        _allocations[type] = value;
+      final currentAllocation = _allocations[type]!;
+      final otherAllocations = _allocatedAmount - currentAllocation;
+      final newValue = value.roundToDouble();
+      
+      if (otherAllocations + newValue <= _totalCapital) {
+        _allocations[type] = newValue;
+      } else {
+        _allocations[type] = _totalCapital - otherAllocations;
+      }
+    });
+  }
+
+  void _selectAsset(AssetType? assetType) {
+    setState(() {
+      _hasInteracted = true;
+      if (_selectedAsset == assetType) {
+        _selectedAsset = null;
+        _controlsController.reverse();
+      } else {
+        _selectedAsset = assetType;
+        _controlsController.forward(from: 0.0);
       }
     });
   }
 
   void _startSimulation() {
     if (!_canStart) return;
-
-    // Create portfolio with allocations
     final portfolio = Portfolio(
       totalCapital: _totalCapital,
       simulationYears: 5,
       difficulty: _selectedDifficulty,
       initialAllocations: _allocations,
     );
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -101,328 +114,237 @@ class _MarketExplorerAllocationScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Market Explorer', style: TextStyle(color: Color(0xFF393027))),
-        backgroundColor: const Color(0xFFF6EDA3),
+        title: const Text('Allocate Your Capital', style: TextStyle(color: Color(0xFF393027), fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFFFFFAE3),
         elevation: 0,
         iconTheme: const IconThemeData(color: Color(0xFF393027)),
       ),
       body: Container(
         color: const Color(0xFFFFFAE3),
-        child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  _buildHeader(),
-                  const SizedBox(height: 24),
-
-                  // Capital Display
-                  _buildCapitalDisplay(),
-                  const SizedBox(height: 32),
-
-                  // Asset Allocation Cards
-                  Text(
-                    'Choose Your Islands',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: const Color(0xFF393027),
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Allocate your capital across different investment islands',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFF393027).withAlpha((0.7 * 255).round()),
-                        ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  ...AssetType.values.map((type) => _buildAssetCard(type)),
-
-                  const SizedBox(height: 32),
-
-                  // Start Button
-                  _buildStartButton(),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.shadow3DMedium,
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF022E17).withAlpha((0.2 * 255).round()),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Text('🏝️', style: TextStyle(fontSize: 40)),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Explore Markets',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: const Color(0xFF022E17),
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Invest wisely and watch your portfolio grow over 5 years',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF022E17).withAlpha((0.9 * 255).round()),
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCapitalDisplay() {
-    final progress = _totalCapital > 0 ? _allocatedAmount / _totalCapital : 0.0;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF393027), Color(0xFF022E17)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.shadow3DMedium,
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Total Capital',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: const Color(0xFFF6EDA3).withAlpha((0.9 * 255).round()),
-                        ),
-                  ),
-                  Text(
-                    '₹${_totalCapital.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: const Color(0xFFF6EDA3),
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'Remaining',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: const Color(0xFFF6EDA3).withAlpha((0.9 * 255).round()),
-                        ),
-                  ),
-                  Text(
-                    '₹${_remainingAmount.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: _remainingAmount < 0
-                              ? const Color(0xFFFFC3CC)
-                              : const Color(0xFFF6EDA3),
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress.clamp(0.0, 1.0),
-              minHeight: 12,
-              backgroundColor: const Color(0xFFF6EDA3).withAlpha((0.3 * 255).round()),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _remainingAmount < 0 ? const Color(0xFFFFC3CC) : const Color(0xFFB6CFE4),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${(progress * 100).toStringAsFixed(1)}% Allocated',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFFF6EDA3).withAlpha((0.9 * 255).round()),
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAssetCard(AssetType type) {
-    final allocation = _allocations[type]!;
-    final maxAllocation = _totalCapital - (_allocatedAmount - allocation);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6EDA3).withAlpha((0.7 * 255).round()),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: _getAssetColor(type).withAlpha((0.3 * 255).round()),
-          width: 2,
-        ),
-        boxShadow: AppTheme.shadow3DSmall,
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          dividerColor: Colors.transparent,
-        ),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          childrenPadding:
-              const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-          leading: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _getAssetColor(type).withAlpha((0.1 * 255).round()),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              type.emoji,
-              style: const TextStyle(fontSize: 28),
-            ),
-          ),
-          title: Text(
-            type.name,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF393027),
-                ),
-          ),
-          subtitle: allocation > 0
-              ? Text(
-                  '₹${allocation.toStringAsFixed(0)} allocated',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: _getAssetColor(type),
-                        fontWeight: FontWeight.w600,
-                      ),
-                )
-              : null,
+        child: Stack(
           children: [
-            Text(
-              type.description,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF393027).withAlpha((0.7 * 255).round()),
-                  ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Expected Return',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF393027)),
-                      ),
-                      Text(
-                        '${(type.baseReturnRate * 100).toStringAsFixed(1)}% /year',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: const Color(0xFF9BAD50),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Risk Level',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF393027)),
-                      ),
-                      Text(
-                        '${(type.volatility * 100).toStringAsFixed(0)}%',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: _getRiskColor(type.volatility),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Slider(
-                    value: allocation,
-                    min: 0,
-                    max: maxAllocation,
-                    divisions: maxAllocation > 0 ? (maxAllocation / 100).ceil() : 1,
-                    activeColor: _getAssetColor(type),
-                    onChanged: (value) {
-                      _updateAllocation(type, value.roundToDouble());
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 80,
-                  child: Text(
-                    '₹${allocation.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: _getAssetColor(type),
-                          fontWeight: FontWeight.bold,
-                        ),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-              ],
-            ),
+            _buildIslandWidget(AssetType.fixedDeposit, const Alignment(-0.8, -0.6)),
+            _buildIslandWidget(AssetType.sip, const Alignment(0.8, -0.6)),
+            _buildIslandWidget(AssetType.stocks, const Alignment(-0.5, 0.15)),
+            _buildIslandWidget(AssetType.crypto, const Alignment(0.5, 0.15)),
+            
+            _buildCapitalDisplay(),
+            
+            _buildInstructionText(),
+
+            if (_selectedAsset != null) _buildContextualControls(),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildInstructionText() {
+    return AnimatedOpacity(
+      opacity: _hasInteracted ? 0.0 : 1.0,
+      duration: const Duration(milliseconds: 300),
+      child: const Align(
+        alignment: Alignment(0, 0.5),
+        child: Text(
+          'Tap an island to invest!',
+          style: TextStyle(
+            color: Color(0xFF393027),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildIslandWidget(AssetType type, Alignment alignment) {
+    final allocation = _allocations[type]!;
+    final isSelected = _selectedAsset == type;
+
+    Widget island = GestureDetector(
+      onTap: () => _selectAsset(type),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        width: isSelected ? 150 : 130,
+        height: isSelected ? 150 : 130,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Shadow
+            Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 15,
+                    spreadRadius: 5,
+                    offset: const Offset(0, 10),
+                  )
+                ],
+              ),
+            ),
+            // Island Base (Earth)
+            Positioned(
+              bottom: 0,
+              child: Container(
+                width: 120,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFa0522d),
+                  borderRadius: const BorderRadius.all(Radius.circular(60)),
+                ),
+              ),
+            ),
+            // Island Top (Grass)
+            Positioned(
+              top: 10,
+              child: Container(
+                width: 120,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: _getAssetColor(type).withAlpha(200),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(60)),
+                ),
+              ),
+            ),
+            // Content
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(_getAssetIcon(type), color: const Color(0xFF022E17), size: 28),
+                const SizedBox(height: 4),
+                Text(
+                  type.name,
+                  style: const TextStyle(
+                      color: Color(0xFF393027),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '₹${allocation.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+
+    return Align(
+      alignment: alignment,
+      child: ScaleTransition(
+        scale: Tween<double>(begin: 0.98, end: 1.02).animate(_pulseController),
+        child: island,
+      ),
+    );
+  }
+  
+  Widget _buildContextualControls() {
+    final assetType = _selectedAsset!;
+    final allocation = _allocations[assetType]!;
+    
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: SlideTransition(
+        position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(
+          CurvedAnimation(parent: _controlsController, curve: Curves.easeOutCubic)
+        ),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+          decoration: const BoxDecoration(
+            color: Color(0xFF393027),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 20,
+                offset: Offset(0, -5),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Asset Info and Slider
+              Row(
+                children: [
+                  Icon(_getAssetIcon(assetType), color: _getAssetColor(assetType), size: 24),
+                  const SizedBox(width: 12),
+                  Text(assetType.name, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => _selectAsset(null),
+                  )
+                ],
+              ),
+              const SizedBox(height: 10),
+              Slider(
+                value: allocation,
+                min: 0,
+                max: _totalCapital.toDouble(),
+                activeColor: _getAssetColor(assetType),
+                inactiveColor: _getAssetColor(assetType).withAlpha(50),
+                onChanged: (value) {
+                  _updateAllocation(assetType, value);
+                },
+              ),
+              const SizedBox(height: 20),
+              // Close button or Start Simulation
+              _buildStartButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCapitalDisplay() {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        margin: const EdgeInsets.only(top: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF393027).withAlpha(220),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Remaining Capital', style: TextStyle(color: Color(0xFFB6CFE4), fontSize: 14)),
+            Text(
+              '₹${_remainingAmount.toStringAsFixed(0)}',
+              style: TextStyle(
+                  color: _remainingAmount < 0 ? const Color(0xFFFFC3CC) : Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
   Widget _buildStartButton() {
     return SizedBox(
       width: double.infinity,
@@ -432,26 +354,16 @@ class _MarketExplorerAllocationScreenState
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF9BAD50),
           disabledBackgroundColor: const Color(0xFFB6CFE4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: _canStart ? 4 : 0,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.play_arrow_rounded, size: 28),
-            const SizedBox(width: 8),
-            Text(
-              _canStart
-                  ? 'Start 5-Year Simulation'
-                  : 'Allocate Money to Start',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: _canStart ? const Color(0xFF022E17) : const Color(0xFF393027).withAlpha((0.7 * 255).round()),
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ],
+        child: Text(
+          _canStart ? 'Start 5-Year Simulation' : 'Allocate Money to Start',
+          style: TextStyle(
+            color: _canStart ? const Color(0xFF022E17) : const Color(0xFF393027).withAlpha(180),
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
       ),
     );
@@ -459,20 +371,76 @@ class _MarketExplorerAllocationScreenState
 
   Color _getAssetColor(AssetType type) {
     switch (type) {
-      case AssetType.fixedDeposit:
-        return const Color(0xFFB6CFE4);
-      case AssetType.sip:
-        return const Color(0xFF9BAD50);
-      case AssetType.stocks:
-        return const Color(0xFFFFC3CC);
-      case AssetType.crypto:
-        return const Color(0xFF393027);
+      case AssetType.fixedDeposit: return const Color(0xFFB6CFE4);
+      case AssetType.sip: return const Color(0xFF9BAD50);
+      case AssetType.stocks: return const Color(0xFFFFC3CC);
+      case AssetType.crypto: return const Color(0xFFF4A261);
     }
   }
 
-  Color _getRiskColor(double volatility) {
-    if (volatility < 0.1) return const Color(0xFF9BAD50);
-    if (volatility < 0.3) return const Color(0xFFF6EDA3);
-    return const Color(0xFFFFC3CC);
+  IconData _getAssetIcon(AssetType type) {
+    switch (type) {
+      case AssetType.fixedDeposit: return Icons.account_balance;
+      case AssetType.sip: return Icons.show_chart;
+      case AssetType.stocks: return Icons.bar_chart;
+      case AssetType.crypto: return Icons.currency_bitcoin;
+    }
   }
 }
+
+class IslandPainter extends CustomPainter {
+  final Color color;
+  final double fillPercent;
+  final bool isSelected;
+
+  IslandPainter({required this.color, required this.fillPercent, this.isSelected = false});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double w = size.width;
+    final double h = size.height;
+
+    final Path path = Path()
+      ..moveTo(w * 0.5, h * 0.0)
+      ..quadraticBezierTo(w * 0.1, h * 0.2, w * 0.2, h * 0.5)
+      ..quadraticBezierTo(w * 0.0, h * 0.8, w * 0.5, h * 0.95)
+      ..quadraticBezierTo(w * 1.0, h * 0.8, w * 0.8, h * 0.5)
+      ..quadraticBezierTo(w * 0.9, h * 0.2, w * 0.5, h * 0.0)
+      ..close();
+    
+    // Island Fill
+    canvas.drawPath(path, Paint()..color = color.withAlpha(100));
+
+    // Water Fill
+    final Rect bounds = path.getBounds();
+    final double fillHeight = bounds.height * fillPercent.clamp(0.0, 1.0);
+    canvas.clipPath(path);
+    canvas.drawRect(
+      Rect.fromLTWH(bounds.left, bounds.bottom - fillHeight, bounds.width, fillHeight),
+      Paint()..color = color.withAlpha(200),
+    );
+
+    // Island Stroke
+    final strokePaint = Paint()
+      ..color = color
+      ..strokeWidth = isSelected ? 5 : 3
+      ..style = PaintingStyle.stroke;
+    canvas.drawPath(path, strokePaint);
+
+    // Glowing effect if selected
+    if (isSelected) {
+      final glowPaint = Paint()
+        ..color = color.withOpacity(0.5)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10.0);
+      canvas.drawPath(path, glowPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant IslandPainter oldDelegate) {
+    return oldDelegate.fillPercent != fillPercent ||
+           oldDelegate.color != color ||
+           oldDelegate.isSelected != isSelected;
+  }
+}
+
