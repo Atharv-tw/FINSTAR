@@ -414,7 +414,7 @@ class LearningModulesData {
       // Earning
       Lesson(
         id: 'ec_01',
-        title: 'Money-Making 101',
+        title: 'Money-Making\n101',
         description: 'All the ways to earn and grow wealth',
         xpReward: 50,
         estimatedMinutes: 6,
