@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../../config/theme.dart';
-import '../../../../core/design_tokens.dart';
+
 import '../models/market_explorer_models.dart';
 import '../services/market_simulator.dart';
 import 'market_explorer_result_screen.dart';
@@ -19,6 +19,10 @@ class MarketExplorerSimulationScreen extends StatefulWidget {
       _MarketExplorerSimulationScreenState();
 }
 
+enum EventDecision { stayCourse, shiftSafety, leanIn }
+
+enum EventSentiment { positive, negative, mixed }
+
 class _MarketExplorerSimulationScreenState
     extends State<MarketExplorerSimulationScreen>
     with TickerProviderStateMixin {
@@ -26,9 +30,11 @@ class _MarketExplorerSimulationScreenState
   late AnimationController _yearProgressController;
   late AnimationController _chartAnimationController;
 
-  List<SimulationYearResult> _yearResults = [];
+  final List<SimulationYearResult> _yearResults = [];
   int _currentYear = 0;
   bool _isSimulating = false;
+  int _decisionsCount = 0;
+  int _correctDecisions = 0;
 
   @override
   void initState() {
@@ -86,11 +92,14 @@ class _MarketExplorerSimulationScreenState
 
       // Show event if any
       if (yearResult.hasEvent) {
-        await _showEventDialog(yearResult.event!);
+        final decision = await _showEventDialog(yearResult.event!);
+        if (decision != null) {
+          _applyEventDecision(yearResult.event!, decision);
+        }
       }
 
-      // Allow rebalancing at year 3
-      if (year == 3) {
+      // Allow rebalancing based on difficulty
+      if (year == widget.portfolio.difficulty.rebalanceYear) {
         await _offerRebalancing();
       }
     }
@@ -104,11 +113,12 @@ class _MarketExplorerSimulationScreenState
     _navigateToResults();
   }
 
-  Future<void> _showEventDialog(MarketEvent event) async {
-    await showDialog(
+  Future<EventDecision?> _showEventDialog(MarketEvent event) async {
+    return showDialog<EventDecision>(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFF6EDA3),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
@@ -117,26 +127,129 @@ class _MarketExplorerSimulationScreenState
             Expanded(
               child: Text(
                 event.name,
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: const Color(0xFF393027)),
               ),
             ),
           ],
         ),
-        content: Text(event.description),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              event.description,
+              style: TextStyle(color: const Color(0xFF393027).withAlpha((0.8 * 255).round())),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'How will you react?',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: const Color(0xFF393027)),
+            ),
+          ],
+        ),
         actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, EventDecision.stayCourse),
+            child: const Text('Stay Course', style: TextStyle(color: Color(0xFF393027))),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, EventDecision.shiftSafety),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF393027),
+              side: const BorderSide(color: Color(0xFF393027)),
+            ),
+            child: const Text('Shift to Safety'),
+          ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Continue'),
+            onPressed: () => Navigator.pop(context, EventDecision.leanIn),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9BAD50)),
+            child: const Text('Lean In', style: TextStyle(color: Color(0xFF022E17))),
           ),
         ],
       ),
     );
   }
 
+  EventSentiment _getEventSentiment(MarketEvent event) {
+    double sum = 0;
+    int count = 0;
+    for (var multiplier in event.impactMultipliers.values) {
+      sum += multiplier;
+      count += 1;
+    }
+    final avg = count == 0 ? 1.0 : sum / count;
+    if (avg >= 1.1) return EventSentiment.positive;
+    if (avg <= 0.9) return EventSentiment.negative;
+    return EventSentiment.mixed;
+  }
+
+  EventDecision _getRecommendedDecision(EventSentiment sentiment) {
+    switch (sentiment) {
+      case EventSentiment.positive:
+        return EventDecision.leanIn;
+      case EventSentiment.negative:
+        return EventDecision.shiftSafety;
+      case EventSentiment.mixed:
+        return EventDecision.stayCourse;
+    }
+  }
+
+  void _applyEventDecision(MarketEvent event, EventDecision decision) {
+    _decisionsCount++;
+    final sentiment = _getEventSentiment(event);
+    final recommended = _getRecommendedDecision(sentiment);
+    if (decision == recommended) {
+      _correctDecisions++;
+    }
+
+    if (decision == EventDecision.stayCourse) {
+      return;
+    }
+
+    final totalValue = widget.portfolio.totalValue;
+    if (totalValue <= 0) return;
+
+    final currentPercentages = <AssetType, double>{};
+    for (var entry in widget.portfolio.assets.entries) {
+      currentPercentages[entry.key] =
+          (entry.value.currentValue / totalValue) * 100;
+    }
+
+    final target = Map<AssetType, double>.from(currentPercentages);
+    if (decision == EventDecision.shiftSafety) {
+      target[AssetType.fixedDeposit] =
+          (target[AssetType.fixedDeposit] ?? 0) + 8;
+      target[AssetType.sip] = (target[AssetType.sip] ?? 0) + 4;
+      target[AssetType.stocks] = (target[AssetType.stocks] ?? 0) - 6;
+      target[AssetType.crypto] = (target[AssetType.crypto] ?? 0) - 6;
+    } else if (decision == EventDecision.leanIn) {
+      target[AssetType.stocks] = (target[AssetType.stocks] ?? 0) + 6;
+      target[AssetType.crypto] = (target[AssetType.crypto] ?? 0) + 6;
+      target[AssetType.fixedDeposit] =
+          (target[AssetType.fixedDeposit] ?? 0) - 8;
+      target[AssetType.cash] = (target[AssetType.cash] ?? 0) - 4;
+    }
+
+    _normalizeAllocations(target);
+    _simulator.rebalancePortfolio(widget.portfolio, target);
+  }
+
+  void _normalizeAllocations(Map<AssetType, double> allocations) {
+    double total = 0;
+    allocations.forEach((key, value) {
+      allocations[key] = value.clamp(0, 100);
+      total += allocations[key]!;
+    });
+
+    if (total == 0) return;
+    allocations.updateAll((key, value) => (value / total) * 100);
+  }
+
   Future<void> _offerRebalancing() async {
     final shouldRebalance = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFF6EDA3),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
@@ -145,26 +258,26 @@ class _MarketExplorerSimulationScreenState
             Expanded(
               child: Text(
                 'Rebalance Portfolio?',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: const Color(0xFF393027)),
               ),
             ),
           ],
         ),
         content: Text(
           'You\'ve reached Year 3. Want to adjust your allocations based on market performance?',
-          style: Theme.of(context).textTheme.bodyMedium,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF393027).withAlpha((0.8 * 255).round())),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('No, Continue'),
+            child: const Text('No, Continue', style: TextStyle(color: Color(0xFF393027))),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.gamesColor,
+              backgroundColor: const Color(0xFF9BAD50),
             ),
-            child: const Text('Yes, Rebalance'),
+            child: const Text('Yes, Rebalance', style: TextStyle(color: Color(0xFF022E17))),
           ),
         ],
       ),
@@ -176,27 +289,111 @@ class _MarketExplorerSimulationScreenState
   }
 
   Future<void> _showRebalancingDialog() async {
-    // Show rebalancing UI (simplified version for now)
+    final totalValue = widget.portfolio.totalValue;
+    if (totalValue <= 0) return;
+
+    final assetTypes = [
+      AssetType.fixedDeposit,
+      AssetType.sip,
+      AssetType.stocks,
+      AssetType.crypto,
+    ];
+
+    final percentages = <AssetType, double>{};
+    for (var entry in widget.portfolio.assets.entries) {
+      percentages[entry.key] =
+          (entry.value.currentValue / totalValue) * 100;
+    }
+    percentages[AssetType.cash] = percentages[AssetType.cash] ?? 0;
+
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Rebalancing'),
-        content: Text(
-          'Rebalancing interface would go here. For now, continuing with current allocation.',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            double nonCashTotal = 0;
+            for (var type in assetTypes) {
+              nonCashTotal += percentages[type] ?? 0;
+            }
+            final cashValue = (100 - nonCashTotal).clamp(0, 100);
+            percentages[AssetType.cash] = cashValue.toDouble();
+
+            return AlertDialog(
+              backgroundColor: const Color(0xFFF6EDA3),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('Rebalance Portfolio', style: TextStyle(color: Color(0xFF393027))),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ...assetTypes.map((type) {
+                      final otherTotal = nonCashTotal - (percentages[type] ?? 0);
+                      final maxValue = (100 - otherTotal).clamp(0, 100).toDouble();
+                      final currentValue = (percentages[type] ?? 0).clamp(0.0, maxValue);
+                      if (currentValue != (percentages[type] ?? 0)) {
+                        percentages[type] = currentValue;
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${type.name}: ${currentValue.toStringAsFixed(1)}%',
+                              style: const TextStyle(color: Color(0xFF393027))),
+                          Slider(
+                            value: currentValue,
+                            min: 0,
+                            max: maxValue,
+                            activeColor: const Color(0xFF9BAD50),
+                            inactiveColor: const Color(0xFF393027).withAlpha((0.2 * 255).round()),
+                            onChanged: (value) {
+                              setState(() {
+                                percentages[type] = value;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      );
+                    }),
+                    const Divider(),
+                    Text('Cash: ${percentages[AssetType.cash]!.toStringAsFixed(1)}%',
+                        style: const TextStyle(color: Color(0xFF393027))),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Color(0xFF393027))),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final newAllocations = <AssetType, double>{};
+                    for (var entry in percentages.entries) {
+                      newAllocations[entry.key] = entry.value;
+                    }
+
+                    widget.portfolio.preRebalanceDiversification =
+                        widget.portfolio.diversificationScore;
+                    widget.portfolio.preRebalanceRisk =
+                        widget.portfolio.riskScore;
+                    widget.portfolio.rebalanced = true;
+                    _simulator.rebalancePortfolio(widget.portfolio, newAllocations);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9BAD50)),
+                  child: const Text('Apply', style: TextStyle(color: Color(0xFF022E17))),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
   void _navigateToResults() {
+    widget.portfolio.decisionsCount = _decisionsCount;
+    widget.portfolio.correctDecisions = _correctDecisions;
     final result = SimulationResult.calculate(widget.portfolio);
 
     Navigator.pushReplacement(
@@ -211,7 +408,10 @@ class _MarketExplorerSimulationScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Market Simulation'),
+        title: const Text('Market Simulation', style: TextStyle(color: Color(0xFF393027))),
+        backgroundColor: const Color(0xFFF6EDA3),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF393027)),
         actions: [
           if (_isSimulating)
             const Padding(
@@ -220,16 +420,14 @@ class _MarketExplorerSimulationScreenState
                 child: SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF393027))),
                 ),
               ),
             ),
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: DesignTokens.beigeGradient,
-        ),
+        color: const Color(0xFFFFFAE3),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -262,7 +460,11 @@ class _MarketExplorerSimulationScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppTheme.gradientPrimary,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF9BAD50), Color(0xFFB6CFE4)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppTheme.shadow3DMedium,
       ),
@@ -274,7 +476,7 @@ class _MarketExplorerSimulationScreenState
               Text(
                 'Year $_currentYear / ${widget.portfolio.simulationYears}',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: Colors.white,
+                      color: const Color(0xFF022E17),
                       fontWeight: FontWeight.bold,
                     ),
               ),
@@ -283,7 +485,7 @@ class _MarketExplorerSimulationScreenState
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: const Color(0xFF022E17).withAlpha((0.2 * 255).round()),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -294,14 +496,14 @@ class _MarketExplorerSimulationScreenState
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                              AlwaysStoppedAnimation<Color>(Color(0xFF022E17)),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'Simulating',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white,
+                              color: const Color(0xFF022E17),
                             ),
                       ),
                     ],
@@ -315,8 +517,8 @@ class _MarketExplorerSimulationScreenState
             child: LinearProgressIndicator(
               value: _currentYear / widget.portfolio.simulationYears,
               minHeight: 12,
-              backgroundColor: Colors.white.withOpacity(0.3),
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              backgroundColor: const Color(0xFF022E17).withAlpha((0.3 * 255).round()),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF022E17)),
             ),
           ),
         ],
@@ -333,7 +535,11 @@ class _MarketExplorerSimulationScreenState
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: AppTheme.gradientGold,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF393027), Color(0xFF022E17)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppTheme.shadow3DMedium,
       ),
@@ -342,14 +548,14 @@ class _MarketExplorerSimulationScreenState
           Text(
             'Portfolio Value',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: const Color(0xFFF6EDA3).withAlpha((0.9 * 255).round()),
                 ),
           ),
           const SizedBox(height: 8),
           Text(
             '₹${currentValue.toStringAsFixed(0)}',
             style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: Colors.white,
+                  color: const Color(0xFFF6EDA3),
                   fontWeight: FontWeight.w900,
                 ),
           ),
@@ -359,14 +565,14 @@ class _MarketExplorerSimulationScreenState
             children: [
               Icon(
                 isPositive ? Icons.trending_up : Icons.trending_down,
-                color: Colors.white,
+                color: isPositive ? const Color(0xFF9BAD50) : const Color(0xFFFFC3CC),
                 size: 20,
               ),
               const SizedBox(width: 8),
               Text(
                 '${isPositive ? '+' : ''}₹${returnAmount.toStringAsFixed(0)} (${returnPct.toStringAsFixed(1)}%)',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
+                      color: isPositive ? const Color(0xFF9BAD50) : const Color(0xFFFFC3CC),
                       fontWeight: FontWeight.bold,
                     ),
               ),
@@ -382,7 +588,7 @@ class _MarketExplorerSimulationScreenState
       return Container(
         height: 200,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: const Color(0xFFF6EDA3).withAlpha((0.7 * 255).round()),
           borderRadius: BorderRadius.circular(20),
           boxShadow: AppTheme.shadow3DSmall,
         ),
@@ -390,7 +596,7 @@ class _MarketExplorerSimulationScreenState
           child: Text(
             'Chart will appear as simulation progresses',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
+                  color: const Color(0xFF393027).withAlpha((0.7 * 255).round()),
                 ),
           ),
         ),
@@ -412,7 +618,7 @@ class _MarketExplorerSimulationScreenState
       height: 250,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: const Color(0xFFF6EDA3).withAlpha((0.7 * 255).round()),
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppTheme.shadow3DSmall,
       ),
@@ -421,7 +627,7 @@ class _MarketExplorerSimulationScreenState
         children: [
           Text(
             'Portfolio Growth',
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: const Color(0xFF393027)),
           ),
           const SizedBox(height: 16),
           Expanded(
@@ -444,7 +650,7 @@ class _MarketExplorerSimulationScreenState
                       getTitlesWidget: (value, meta) {
                         return Text(
                           'Y${value.toInt()}',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF393027)),
                         );
                       },
                     ),
@@ -457,13 +663,13 @@ class _MarketExplorerSimulationScreenState
                   LineChartBarData(
                     spots: spots,
                     isCurved: true,
-                    color: AppTheme.successColor,
+                    color: const Color(0xFF9BAD50),
                     barWidth: 4,
                     isStrokeCapRound: true,
                     dotData: FlDotData(show: true),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppTheme.successColor.withOpacity(0.1),
+                      color: const Color(0xFF9BAD50).withAlpha((0.1 * 255).round()),
                     ),
                   ),
                 ],
@@ -482,7 +688,7 @@ class _MarketExplorerSimulationScreenState
         Text(
           'Asset Performance',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: DesignTokens.textDarkPrimary,
+                color: const Color(0xFF393027),
               ),
         ),
         const SizedBox(height: 16),
@@ -495,10 +701,10 @@ class _MarketExplorerSimulationScreenState
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: const Color(0xFFF6EDA3).withAlpha((0.7 * 255).round()),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _getAssetColor(asset.type).withOpacity(0.3),
+                color: _getAssetColor(asset.type).withAlpha((0.3 * 255).round()),
                 width: 2,
               ),
             ),
@@ -512,12 +718,12 @@ class _MarketExplorerSimulationScreenState
                     children: [
                       Text(
                         asset.type.name,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: const Color(0xFF393027)),
                       ),
                       Text(
                         '₹${asset.currentValue.toStringAsFixed(0)}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.textSecondary,
+                              color: const Color(0xFF393027).withAlpha((0.7 * 255).round()),
                             ),
                       ),
                     ],
@@ -531,8 +737,8 @@ class _MarketExplorerSimulationScreenState
                         Icon(
                           isPositive ? Icons.arrow_upward : Icons.arrow_downward,
                           color: isPositive
-                              ? AppTheme.successColor
-                              : AppTheme.errorColor,
+                              ? const Color(0xFF9BAD50)
+                              : const Color(0xFFFFC3CC),
                           size: 16,
                         ),
                         const SizedBox(width: 4),
@@ -541,8 +747,8 @@ class _MarketExplorerSimulationScreenState
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     color: isPositive
-                                        ? AppTheme.successColor
-                                        : AppTheme.errorColor,
+                                        ? const Color(0xFF9BAD50)
+                                        : const Color(0xFFFFC3CC),
                                     fontWeight: FontWeight.bold,
                                   ),
                         ),
@@ -551,7 +757,7 @@ class _MarketExplorerSimulationScreenState
                     Text(
                       '${isPositive ? '+' : ''}₹${asset.totalReturn.toStringAsFixed(0)}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textSecondary,
+                            color: const Color(0xFF393027).withAlpha((0.7 * 255).round()),
                           ),
                     ),
                   ],
@@ -566,14 +772,16 @@ class _MarketExplorerSimulationScreenState
 
   Color _getAssetColor(AssetType type) {
     switch (type) {
+      case AssetType.cash:
+        return const Color(0xFFB6CFE4);
       case AssetType.fixedDeposit:
-        return AppTheme.successColor;
+        return const Color(0xFFB6CFE4);
       case AssetType.sip:
-        return AppTheme.gamesColor;
+        return const Color(0xFF9BAD50);
       case AssetType.stocks:
-        return AppTheme.quizColor;
+        return const Color(0xFFFFC3CC);
       case AssetType.crypto:
-        return AppTheme.streakColor;
+        return const Color(0xFF393027);
     }
   }
 }

@@ -29,13 +29,11 @@ class _CategoryCardState extends State<CategoryCard> {
         setState(() => _isPressed = true);
         HapticFeedback.mediumImpact();
       },
-      onTapUp: (_) {
+      onTapUp: (_) async {
         setState(() => _isPressed = false);
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (mounted) {
-            context.push(widget.route);
-          }
-        });
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (!context.mounted) return;
+        context.push(widget.route);
       },
       onTapCancel: () {
         setState(() => _isPressed = false);

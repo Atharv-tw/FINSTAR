@@ -2,10 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../shared/widgets/nature_background.dart'; // Add this import
+import '../../shared/widgets/nature_background.dart';
 
 const Color brownVanDyke = Color(0xFF393027);
 
@@ -47,19 +48,12 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Background Gradient (Deep Atmospheric Teal)
+          // Calm Nature Background (match Home)
+          const NatureBackground(),
+          // Subtle grid overlay (match Play Game energy)
           Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    DesignTokens.primaryStart, // Green from home screen
-                    DesignTokens.primaryEnd, // Green from home screen
-                  ],
-                ),
-              ),
+            child: CustomPaint(
+              painter: _LeaderboardGridPainter(),
             ),
           ),
           SafeArea(
@@ -90,16 +84,48 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
         alignment: Alignment.center,
         children: [
           // Centered Title
-          const Text(
-            'Leaderboard',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Helvetica',
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: brownVanDyke,
-              letterSpacing: 0.5,
-            ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'LEADERBOARD',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.openSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: DesignTokens.textPrimary,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: DesignTokens.surfaceCard.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: DesignTokens.textDisabled.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                      boxShadow: DesignTokens.elevation1(),
+                    ),
+                    child: Text(
+                      'THIS MONTH',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: DesignTokens.textPrimary,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
 
           // Left and Right Buttons
@@ -114,21 +140,25 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                     data: (rank) => Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        gradient: DesignTokens.primaryGradient,
+                        color: DesignTokens.surfaceCard.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: DesignTokens.textDisabled.withValues(alpha: 0.35),
+                          width: 1,
+                        ),
+                        boxShadow: DesignTokens.elevation1(),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.emoji_events, color: Colors.white, size: 12),
+                          const Icon(Icons.emoji_events, color: DesignTokens.primaryEnd, size: 12),
                           const SizedBox(width: 4),
                           Text(
                             '#${rank ?? "?"}',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
+                            style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: brownVanDyke,
+                              color: DesignTokens.primaryEnd,
                             ),
                           ),
                         ],
@@ -137,23 +167,31 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                     loading: () => Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        gradient: DesignTokens.primaryGradient,
+                        color: DesignTokens.surfaceCard.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: DesignTokens.textDisabled.withValues(alpha: 0.35),
+                          width: 1,
+                        ),
+                        boxShadow: DesignTokens.elevation1(),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.emoji_events, color: Colors.white, size: 12),
+                          Icon(Icons.emoji_events, color: DesignTokens.primaryEnd, size: 12),
                           SizedBox(width: 4),
                           SizedBox(
                             width: 12,
                             height: 12,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: brownVanDyke),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: DesignTokens.primaryEnd,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    error: (_, __) => const SizedBox(),
+                    error: (error, stack) => const SizedBox(),
                   );
                 },
               ),
@@ -164,14 +202,19 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                 child: Container(
                   padding: const EdgeInsets.all(8), // Adjusted padding for circle
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: DesignTokens.surfaceCard.withValues(alpha: 0.7),
                     shape: BoxShape.circle, // Make it a circle
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                      color: DesignTokens.textDisabled.withValues(alpha: 0.35),
                       width: 1,
                     ),
+                    boxShadow: DesignTokens.elevation1(),
                   ),
-                  child: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 20),
+                  child: const Icon(
+                    Icons.person_add_alt_1,
+                    color: DesignTokens.primaryEnd,
+                    size: 20,
+                  ),
                 ),
               ),
             ],
@@ -250,9 +293,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   Widget _buildPodiumCard(
       LeaderboardEntry entry, int rank, double height, double animValue) {
     final colors = {
-      1: [const Color(0xFFFFD700), const Color(0xFFFFA500)], // Gold
-      2: [const Color(0xFFC0C0C0), const Color(0xFF808080)], // Silver
-      3: [const Color(0xFFCD7F32), const Color(0xFF8B4513)], // Bronze
+      1: [const Color(0xFFFFE7A3), const Color(0xFFFFD277)], // Pastel gold
+      2: [const Color(0xFFE7EEF6), const Color(0xFFD5DEE8)], // Pastel silver
+      3: [const Color(0xFFF2D2B6), const Color(0xFFE3B892)], // Pastel bronze
     };
 
     return Expanded(
@@ -263,8 +306,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: 68,
+                height: 68,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
@@ -274,8 +317,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: colors[rank]![0].withValues(alpha: 0.4),
-                      blurRadius: 16,
+                      color: colors[rank]![0].withValues(alpha: 0.55),
+                      blurRadius: 22,
                       spreadRadius: 2,
                     ),
                   ],
@@ -283,11 +326,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                 child: Center(
                   child: Text(
                     entry.displayName[0].toUpperCase(),
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
+                    style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: brownVanDyke,
+                      color: DesignTokens.textPrimary,
                     ),
                   ),
                 ),
@@ -296,20 +338,19 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                 bottom: -4,
                 right: -4,
                 child: Container(
-                  width: 24,
-                  height: 24,
+                  width: 26,
+                  height: 26,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(colors: colors[rank]!),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.black, width: 2),
+                    border: Border.all(color: Colors.white, width: 2),
                   ),
                   child: Center(
                     child: Text(
                       '$rank',
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
+                      style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: brownVanDyke,
+                        color: DesignTokens.textPrimary,
                       ),
                     ),
                   ),
@@ -323,11 +364,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
           // Username
           Text(
             entry.displayName,
-            style: const TextStyle(
-              fontFamily: 'Poppins',
+            style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: brownVanDyke,
+              color: DesignTokens.textPrimary,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -337,32 +377,55 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
           const SizedBox(height: 4),
 
           // Podium
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Container(
-              height: height * animValue,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: colors[rank]!,
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.stars, color: brownVanDyke, size: 20),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${entry.xp} XP',
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: brownVanDyke,
+          Align(
+            alignment: Alignment.topCenter,
+            child: FractionallySizedBox(
+              widthFactor: 0.83,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    height: height * animValue,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: colors[rank]!.map((c) => c.withValues(alpha: 0.9)).toList(),
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      border: Border(
+                        top: BorderSide(color: Colors.white.withValues(alpha: 0.4), width: 1),
+                      ),
+                      boxShadow: [
+                        ...DesignTokens.elevation2(),
+                        BoxShadow(
+                          color: colors[rank]![0].withValues(alpha: 0.4),
+                          blurRadius: 24,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.workspace_premium,
+                          color: DesignTokens.textPrimary,
+                          size: 26,
+                        ),
+                      ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -402,49 +465,52 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
 
         return SlideTransition(
           position: cardSlideAnimation,
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+          child: Transform.translate(
+            offset: Offset.zero,
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(8, 0, 8, 0),
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: DesignTokens.backgroundPrimary.withOpacity(0.7),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF93A840).withValues(alpha: 0.2),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                  border: Border.all(
+                    color: const Color(0xFF393027).withValues(alpha: 0.4),
                   ),
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(12, 20, 12, 100),
-                    itemCount: remainingEntries.length,
-                    itemBuilder: (context, index) {
-                      final entry = remainingEntries[index];
-                      final isCurrentUser = entry.userId == currentUserId;
-                      final delay = index * 0.05;
+                  boxShadow: DesignTokens.elevation4(),
+                ),
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.fromLTRB(12, 20, 12, 100),
+                  itemCount: remainingEntries.length,
+                  itemBuilder: (context, index) {
+                    final entry = remainingEntries[index];
+                    final isCurrentUser = entry.userId == currentUserId;
+                    final delay = index * 0.05;
 
-                      return AnimatedBuilder(
-                        animation: _animationController,
-                        builder: (context, child) {
-                          final staggerValue =
-                              (_animationController.value - delay).clamp(0.0, 1.0);
-                          return Transform.translate(
-                            offset: Offset(0, 20 * (1 - staggerValue)),
-                            child: Opacity(
-                              opacity: staggerValue,
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildLeaderboardCard(entry, isCurrentUser),
-                        ),
-                      );
-                    },
-                  ),
+                    return AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        final staggerValue =
+                            (_animationController.value - delay).clamp(0.0, 1.0);
+                        return Transform.translate(
+                          offset: Offset(0, 20 * (1 - staggerValue)),
+                          child: Opacity(
+                            opacity: staggerValue,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildLeaderboardCard(entry, isCurrentUser),
+                      ),
+                    );
+                  },
                 ),
               ),
+            ),
             ),
           ),
         );
@@ -469,40 +535,44 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
 
   Widget _buildLeaderboardCard(LeaderboardEntry entry, bool isCurrentUser) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isCurrentUser
-            ? DesignTokens.primarySolid.withValues(alpha: 0.3)
-            : const Color(0xFF4A90E2).withValues(alpha: 0.22),
-        borderRadius: BorderRadius.circular(16),
+            ? DesignTokens.primaryStart.withValues(alpha: 0.18)
+            : DesignTokens.surfaceCardLight.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isCurrentUser
-              ? DesignTokens.primarySolid.withValues(alpha: 0.6)
-              : Colors.white.withValues(alpha: 0.15),
+              ? DesignTokens.primaryEnd.withValues(alpha: 0.6)
+              : DesignTokens.textDisabled.withValues(alpha: 0.3),
           width: isCurrentUser ? 2 : 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: DesignTokens.elevation2(),
       ),
       child: Row(
             children: [
               // Rank
-              SizedBox(
-                width: 32,
-                child: Text(
-                  '#${entry.rank}',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isCurrentUser
-                        ? DesignTokens.primarySolid
-                        : brownVanDyke.withOpacity(0.5),
+              Container(
+                width: 36,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: DesignTokens.surfaceCard.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: DesignTokens.textDisabled.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '#${entry.rank}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isCurrentUser
+                          ? DesignTokens.primaryEnd
+                          : DesignTokens.textSecondary,
+                    ),
                   ),
                 ),
               ),
@@ -515,19 +585,21 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                 height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: isCurrentUser ? DesignTokens.primaryGradient : null,
-                  color: isCurrentUser
-                      ? null
-                      : Colors.white.withValues(alpha: 0.1),
+                  color: DesignTokens.surfaceCard.withValues(alpha: 0.85),
+                  border: Border.all(
+                    color: isCurrentUser
+                        ? DesignTokens.primaryEnd
+                        : DesignTokens.textDisabled.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
                 ),
                 child: Center(
                   child: Text(
                     entry.displayName[0].toUpperCase(),
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: brownVanDyke,
+                      color: DesignTokens.textPrimary,
                     ),
                   ),
                 ),
@@ -545,11 +617,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                         Flexible(
                           child: Text(
                             entry.displayName,
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: brownVanDyke,
+                              color: DesignTokens.textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -561,16 +632,15 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              gradient: DesignTokens.primaryGradient,
+                              color: DesignTokens.primaryStart,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
+                            child: Text(
                               'YOU',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
+                              style: GoogleFonts.poppins(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: brownVanDyke,
+                                color: Colors.white,
                               ),
                             ),
                           ),
@@ -582,10 +652,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                       children: [
                         Text(
                           'Level ${entry.level}',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
+                          style: GoogleFonts.poppins(
                             fontSize: 12,
-                            color: brownVanDyke.withOpacity(0.5),
+                            color: DesignTokens.textSecondary,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -594,7 +663,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                               child: Icon(
                                 Icons.verified,
                                 size: 14,
-                                color: DesignTokens.primarySolid
+                                color: DesignTokens.primaryEnd
                                     .withValues(alpha: 0.7),
                               ),
                             )),
@@ -610,19 +679,17 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                 children: [
                   Text(
                     '${entry.xp}',
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: brownVanDyke,
+                      color: DesignTokens.primaryEnd,
                     ),
                   ),
                   Text(
                     'XP',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
+                    style: GoogleFonts.poppins(
                       fontSize: 12,
-                      color: brownVanDyke.withOpacity(0.5),
+                      color: DesignTokens.textSecondary,
                     ),
                   ),
                 ],
@@ -631,4 +698,27 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
           ),
     );
   }
+}
+
+class _LeaderboardGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.04)
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    const spacing = 48.0;
+
+    for (double x = 0; x < size.width; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+
+    for (double y = 0; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

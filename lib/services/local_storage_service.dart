@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Service for handling local storage operations
 /// Stub implementation - can be enhanced with SharedPreferences or Hive later
 class LocalStorageService {
@@ -12,7 +14,7 @@ class LocalStorageService {
   /// Save game progress
   Future<void> saveGameProgress(String gameId, Map<String, dynamic> data) async {
     // TODO: Implement actual storage when ready
-    print('Saving game progress for $gameId');
+    debugPrint('Saving game progress for $gameId');
   }
 
   /// Load game progress
@@ -24,7 +26,7 @@ class LocalStorageService {
   /// Save game result/score
   Future<void> saveGameResult(String gameId, Map<String, dynamic> result) async {
     // TODO: Implement actual storage when ready
-    print('Saving game result for $gameId');
+    debugPrint('Saving game result for $gameId');
   }
 
   /// Get all game results
@@ -36,7 +38,7 @@ class LocalStorageService {
   /// Add reward (coins/XP) to user account
   Future<void> addReward({required int coins, required int xp}) async {
     // TODO: Implement actual storage when ready
-    print('Adding reward: $coins coins, $xp XP');
+    debugPrint('Adding reward: $coins coins, $xp XP');
   }
 
   /// Get game progress for a specific game
@@ -48,6 +50,6 @@ class LocalStorageService {
   /// Update game progress
   Future<void> updateGameProgress(dynamic progressModel) async {
     // TODO: Implement actual storage when ready
-    print('Updating game progress');
+    debugPrint('Updating game progress');
   }
 }

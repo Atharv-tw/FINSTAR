@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
-import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -194,7 +192,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             spreadRadius: 2,
             blurRadius: 7,
             offset: const Offset(0, 3),
@@ -241,10 +239,10 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isLocked ? const Color(0xFF757575) : const Color(0xFF4CAF50), 
-        border: Border.all(color: Colors.white.withOpacity(0.9), width: 3),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 3),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             spreadRadius: 3,
             blurRadius: 8,
             offset: const Offset(0, 4),
@@ -314,7 +312,7 @@ class _RoadPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.5)
+      ..color = Colors.black.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 60.0
       ..strokeCap = StrokeCap.round
@@ -334,7 +332,7 @@ class _RoadPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final dashedPaint = Paint()
-      ..color = const Color(0xFFBCAAA4).withOpacity(0.8) 
+      ..color = const Color(0xFFBCAAA4).withValues(alpha: 0.8) 
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 

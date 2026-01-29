@@ -157,7 +157,7 @@ service cloud.firestore {
     // STORE COLLECTION (Read-only)
     // ============================================
 
-    match /store/items/{itemId} {
+    match /store/items/items/{itemId} {
       // All authenticated users can browse store
       allow read: if isSignedIn();
 

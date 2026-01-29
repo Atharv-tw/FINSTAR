@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:finstar_app/features/games/budget_blitz/widgets/animated_game_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/design_tokens.dart';
-import '../../../../services/game_logic_service.dart';
 import '../../../../services/supabase_functions_service.dart';
 import '../models/expense.dart';
 
@@ -37,7 +35,6 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
   final Random _random = Random();
   List<Expense> _shuffledExpenses = [];
   int _expenseIndex = 0;
-  final GameLogicService _gameLogic = GameLogicService();
   final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   // Score thresholds for popups
@@ -91,7 +88,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
         });
       }
     } catch (e) {
-      print('Error loading high score: $e');
+      debugPrint('Error loading high score: $e');
     }
   }
 
@@ -101,29 +98,15 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
         _highScore = _score;
       }
 
-      Map<String, dynamic> result;
-
-      // Try Supabase Edge Functions first (server-side validation)
-      try {
-        result = await _supabaseService.submitGameWithAchievements(
-          gameType: 'budget_blitz',
-          gameData: {
-            'score': _score,
-            'level': _level,
-            'correctDecisions': _correctDecisions,
-            'totalDecisions': _totalDecisions,
-          },
-        );
-      } catch (e) {
-        print('Supabase submission failed, falling back to client-side: $e');
-        // Fallback to client-side logic if Supabase fails
-        result = await _gameLogic.submitBudgetBlitz(
-          score: _score,
-          level: _level,
-          correctDecisions: _correctDecisions,
-          totalDecisions: _totalDecisions,
-        );
-      }
+      final result = await _supabaseService.submitGameWithAchievements(
+        gameType: 'budget_blitz',
+        gameData: {
+          'score': _score,
+          'level': _level,
+          'correctDecisions': _correctDecisions,
+          'totalDecisions': _totalDecisions,
+        },
+      );
 
       if (result['success'] == true && mounted) {
         setState(() {
@@ -132,7 +115,8 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
         });
       }
     } catch (e) {
-      print('Error saving high score: $e');
+      debugPrint('Error saving score: $e');
+      // Score not saved but game still playable
     }
   }
 
@@ -343,9 +327,9 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                 offset: const Offset(0, -40),
                 child: Center(
                   child: Image.asset(
-                    'assets/images/Shopping_basket_for_supermarket_-removebg-preview.png',
-                    width: 300, // Adjusted size
-                    height: 300, // Adjusted size
+                    'assets/images/needsemovebg-preview.png',
+                    width: 306, // Adjusted size
+                    height: 306, // Adjusted size
                   ),
                 ),
               ),
@@ -441,37 +425,33 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
 
   Widget _buildGameScreen() {
     return Scaffold(
-      body: Stack(
-        children: [
-          const AnimatedGameBackground(),
-          SafeArea(
-            child: Column(
-              children: [
-                // Score header
-                _buildScoreHeader(),
+      backgroundColor: const Color(0xFFFFFAE3),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Score header
+            _buildScoreHeader(),
 
-                // Game area
-                Expanded(
-                  child: Stack(
-                    children: [
-                      // Falling expenses
-                      ..._fallingExpenses.map((fe) => _buildFallingExpenseWidget(fe)),
+            // Game area
+            Expanded(
+              child: Stack(
+                children: [
+                  // Falling expenses
+                  ..._fallingExpenses.map((fe) => _buildFallingExpenseWidget(fe)),
 
-                      // Milestone popup
-                      if (_showPopup)
-                        Center(
-                          child: _buildMilestonePopup(),
-                        ),
-                    ],
-                  ),
-                ),
-
-                // Buckets at the bottom
-                _buildBuckets(),
-              ],
+                  // Milestone popup
+                  if (_showPopup)
+                    Center(
+                      child: _buildMilestonePopup(),
+                    ),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            // Buckets at the bottom
+            _buildBuckets(),
+          ],
+        ),
       ),
     );
   }
@@ -496,17 +476,13 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
           ),
 
           // Score
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              const Text(
-                'Score',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  color: DesignTokens.textDarkSecondary,
-                ),
+              Tooltip(
+                message: 'Score',
+                child: const Icon(Icons.star, color: DesignTokens.primarySolid, size: 28),
               ),
+              const SizedBox(width: 8),
               Text(
                 '$_score',
                 style: const TextStyle(
@@ -520,17 +496,13 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
           ),
 
           // Level
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Row(
             children: [
-              const Text(
-                'Level',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  color: DesignTokens.textDarkSecondary,
-                ),
+              Tooltip(
+                message: 'Level',
+                child: const Icon(Icons.trending_up, color: DesignTokens.secondarySolid, size: 28),
               ),
+              const SizedBox(width: 8),
               Text(
                 '$_level',
                 style: const TextStyle(
@@ -551,7 +523,6 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
     return AnimatedBuilder(
       animation: fallingExpense.controller,
       builder: (context, child) {
-        final screenWidth = MediaQuery.of(context).size.width;
         // Use a constraint to limit chip width and center it properly
         return Positioned(
           left: 20,
@@ -616,17 +587,17 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
       padding: const EdgeInsets.all(12),
       child: Row(
         children: [
-          Expanded(child: _buildBucket('Needs', ExpenseCategory.needs, const Color(0xFFFF6B6B))),
+          Expanded(child: _buildBucket('Needs', ExpenseCategory.needs, DesignTokens.needsCustomGradient)),
           const SizedBox(width: 12),
-          Expanded(child: _buildBucket('Wants', ExpenseCategory.wants, const Color(0xFF63E6BE))),
+          Expanded(child: _buildBucket('Wants', ExpenseCategory.wants, DesignTokens.wantsCustomGradient)),
           const SizedBox(width: 12),
-          Expanded(child: _buildBucket('Savings', ExpenseCategory.savings, const Color(0xFF9775FA))),
+          Expanded(child: _buildBucket('Savings', ExpenseCategory.savings, DesignTokens.savingsCustomGradient)),
         ],
       ),
     );
   }
 
-  Widget _buildBucket(String label, ExpenseCategory category, Color color) {
+  Widget _buildBucket(String label, ExpenseCategory category, Gradient gradient) {
     return DragTarget<FallingExpense>(
       onWillAcceptWithDetails: (details) => true,
       onAcceptWithDetails: (details) {
@@ -639,14 +610,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
           duration: const Duration(milliseconds: 200),
           height: isHovering ? 140 : 120,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                color,
-                color.withValues(alpha: 0.7),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: gradient,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.3),
@@ -654,7 +618,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: 0.4),
+                color: (gradient as LinearGradient).colors.first.withValues(alpha: 0.4),
                 blurRadius: isHovering ? 24 : 16,
                 spreadRadius: isHovering ? 4 : 0,
               ),
@@ -691,11 +655,9 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
         );
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 18),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF63E6BE), Color(0xFF748FFC)],
-          ),
+          gradient: DesignTokens.tealPastelGradient,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.3),
@@ -703,7 +665,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
+              color: (DesignTokens.tealPastelGradient).colors.first.withValues(alpha: 0.4),
               blurRadius: 30,
             ),
           ],
@@ -725,7 +687,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
+          color: Color(0xFF9BAD50), // Changed from 0xFF0A360A
         ),
         child: SafeArea(
           child: Center(
@@ -763,7 +725,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: const Color(0xFFF6EDA3), // #f6eda3
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.2),
@@ -801,7 +763,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                           ),
                           if (_xpEarned > 0 || _coinsEarned > 0) ...[
                             const SizedBox(height: 16),
-                            const Divider(color: Colors.white24),
+                            const Divider(color: Colors.black12),
                             const SizedBox(height: 16),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -823,7 +785,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                                         fontFamily: 'Poppins',
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF63E6BE),
+                                        color: Color(0xFF355E3B), // Changed to #355E3B
                                       ),
                                     ),
                                   ],
@@ -846,7 +808,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                                         fontFamily: 'Poppins',
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFFFFD700),
+                                        color: Color(0xFF355E3B), // Changed to #355E3B
                                       ),
                                     ),
                                   ],
@@ -866,7 +828,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                       style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 16,
-                        color: DesignTokens.textDarkPrimary,
+                        color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -884,8 +846,8 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
-                            foregroundColor: Colors.white,
+                            backgroundColor: const Color(0xFFB0E0E6), // Powder blue
+                            foregroundColor: DesignTokens.textDarkPrimary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -907,7 +869,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                            backgroundColor: const Color(0xFFFF6B9D),
+                            backgroundColor: const Color(0xFF022E17), // #022e17
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),

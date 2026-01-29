@@ -1,13 +1,11 @@
 import 'dart:ui';
-import '../../shared/widgets/nature_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
 import '../../core/motion_tokens.dart';
-import '../../shared/widgets/xp_ring.dart';
-import '../../shared/widgets/coin_pill.dart';
+import '../../shared/widgets/game_coin_counter.dart';
 
 /// Play game screen with STACKED CARDS hero interface (Spec 2.1)
 class PlayGameScreen extends StatefulWidget {
@@ -27,7 +25,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   double _scrollOffset = 0;
 
   // Mock user data
-  final int _userLevel = 5;
   final int _currentXp = 750;
   final int _xpForNextLevel = 1000;
   final int _coins = 340;
@@ -89,20 +86,18 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     // Hero at constant 55% height
     final heroHeightPercent = 0.55;
     final heroHeight = (screenHeight * heroHeightPercent).clamp(100.0, 480.0);
-    final parallaxProgress = (_scrollOffset / 400).clamp(0.0, 1.0);
-    final mascotScale = 1.0 - (parallaxProgress * 0.6); // 1.0 → 0.4
-    final mascotBlur = parallaxProgress * 10; // 0 → 10px
-    final mascotTranslateY = -parallaxProgress * 120; // 0 → -120px
 
     return Scaffold(
       body: Stack(
         children: [
           // Custom Background Image
-          Opacity(
-            opacity: 0.5, // 50% opacity
-            child: Image.asset(
-              'assets/images/screenshot_2026_01_20_1_05_57_pm.png',
-              fit: BoxFit.cover, // Ensures the image covers the entire background
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.5, // 50% opacity
+              child: Image.asset(
+                'assets/images/screenshot_2026_01_20_1_05_57_pm.png',
+                fit: BoxFit.cover, // Ensures the image covers the entire background
+              ),
             ),
           ),
 
@@ -128,14 +123,8 @@ class _PlayGameScreenState extends State<PlayGameScreen>
               ),
 
               // Extra space to enable scrolling for card unfold animation
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 225,
-                  child: Image.asset(
-                    'assets/images/screenshot_2026_01_20_1_05_57_pm.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 225),
               ),
             ],
           ),
@@ -148,76 +137,81 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   }
 
   Widget _buildStickyHeader() {
-    final shouldBlur = _scrollOffset > 100;
-
+    final topInset = MediaQuery.of(context).padding.top;
+    const headerHeight = 52.0;
+    const counterScale = 0.9;
+    const shopIconSize = 38.0;
     return AnimatedContainer(
       duration: MotionTokens.medium,
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: BoxDecoration(
-        color: shouldBlur
-            ? const Color(0xFF0B0B0D).withOpacity(0.8)
-            : Colors.transparent,
+      height: topInset + headerHeight,
+      padding: EdgeInsets.only(left: 24, right: 24, top: topInset),
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-                        CoinPill(coins: _coins, height: 30), // Coin Pill on the left
-                        const Spacer(), // Pushes the next widget to the right
-                        // Shop icon button
-                        Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [DesignTokens.accentStart, DesignTokens.accentEnd],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: DesignTokens.accentStart.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              onTap: () {
-                                HapticFeedback.lightImpact();
-                                // TODO: Navigate to shop screen
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Shop coming soon!'),
-                                    duration: Duration(seconds: 1),
-                                  ),
-                                );
-                              },
-                              child: const Icon(
-                                Icons.shopping_bag_rounded,
-                                color: const Color(0xFF9BAD50),
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-          ],
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Gaming-style coin counter (left side)
+          Transform.scale(
+            scale: counterScale,
+            alignment: Alignment.centerLeft,
+            child: GameCoinCounter(
+              coins: _coins,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Coin shop coming soon!'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              },
+              showPlusButton: false,
+            ),
+          ),
+          // Shop icon button (right side)
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.push('/shop');
+            },
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: DesignTokens.primaryStart.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: SizedBox(
+                width: shopIconSize,
+                height: shopIconSize,
+                child: Image.asset(
+                  'assets/icons/shop_arcade.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(
+                      Icons.storefront_outlined,
+                      color: DesignTokens.primaryEnd,
+                      size: 22,
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildHeroSection(double height) {
     // Parallax: scale 1.0 → 0.4, blur 0 → 10px, translateY 0 → -120px
-    final parallaxProgress = (_scrollOffset / 400).clamp(0.0, 1.0);
-    final mascotScale = 1.0 - (parallaxProgress * 0.6); // 1.0 → 0.4
-    final mascotBlur = parallaxProgress * 10; // 0 → 10px
-    final mascotTranslateY = -parallaxProgress * 120; // 0 → -120px
 
     return SizedBox(
       height: height,
@@ -519,11 +513,13 @@ class _PlayGameScreenState extends State<PlayGameScreen>
             HapticFeedback.mediumImpact();
             if (card.title == 'LIFE SWIPE') {
               context.push('/game/life-swipe/tutorial');
+            } else if (card.title == 'MARKET EXPLORER') {
+              context.push('/game/market-explorer'); // Navigate to the splash screen
             } else {
               context.push(card.route);
             }
           },
-          child: Container(
+          child: SizedBox(
             height: screenHeight * 0.7, // Full card size (70% of screen height)
             child: ClipRRect(
               borderRadius: BorderRadius.circular(40), // Playing card style rounded edges
@@ -535,7 +531,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                     filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: card.gradientColors[0].withOpacity(0.7),
+                        color: card.gradientColors[0].withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -550,11 +546,10 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                       ),
                       boxShadow: [
                         // Only add outer glow if no image (images have their own visual weight)
-                        if (card.imagePath == null)
-                          BoxShadow(
-                            blurRadius: 24,
-                            color: card.gradientColors[0].withValues(alpha: glowOpacity),
-                          ),
+                        BoxShadow(
+                          blurRadius: 24,
+                          color: card.gradientColors[0].withValues(alpha: glowOpacity),
+                        ),
                       ],
                     ),
                   ),
@@ -654,7 +649,6 @@ class _CardData {
   final IconData icon;
   final List<Color> gradientColors;
   final String route;
-  final String? imagePath;
 
   _CardData({
     required this.title,
@@ -663,6 +657,5 @@ class _CardData {
     required this.icon,
     required this.gradientColors,
     required this.route,
-    this.imagePath,
   });
 }

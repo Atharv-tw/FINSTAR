@@ -18,7 +18,10 @@ import '../features/games/life_swipe/screens/life_swipe_game_screen.dart';
 import '../features/games/life_swipe/screens/life_swipe_result_screen.dart';
 import '../features/games/life_swipe/screens/life_swipe_tutorial_screen.dart';
 import '../features/games/quiz_battle/screens/quiz_battle_screen.dart';
+import '../features/games/quiz_battle/screens/quiz_result_screen.dart';
+import '../features/games/quiz_battle/models/quiz_question.dart';
 import '../features/games/market_explorer/screens/market_explorer_allocation_screen.dart';
+import '../features/games/market_explorer/screens/market_explorer_splash_screen.dart';
 import '../features/games/budget_blitz/screens/budget_blitz_game_screen.dart';
 import '../features/shop/shop_screen.dart';
 import '../features/challenges/daily_challenges_screen.dart';
@@ -56,7 +59,7 @@ class AppRouter {
       final isAuthenticated = authState.when(
         data: (user) => user != null,
         loading: () => false,
-        error: (_, __) => false,
+        error: (error, stack) => false,
       );
 
       final isLoggingIn = state.matchedLocation == '/login' ||
@@ -206,9 +209,36 @@ class AppRouter {
         builder: (context, state) => const QuizBattleScreen(),
       ),
       GoRoute(
+        path: '/game/quiz-battle-result',
+        name: 'quiz-battle-result',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return QuizResultScreen(
+            totalQuestions: extra['totalQuestions'] as int,
+            correctAnswers: extra['correctAnswers'] as int,
+            wrongAnswers: extra['wrongAnswers'] as int,
+            unansweredAnswers: extra['unansweredAnswers'] as int,
+            score: extra['score'] as int,
+            maxStreak: extra['maxStreak'] as int,
+            answerHistory: extra['answerHistory'] as List<AnswerOutcome>,
+          );
+        },
+      ),
+      GoRoute(
         path: '/game/market-explorer',
         name: 'market-explorer',
-        builder: (context, state) => const MarketExplorerAllocationScreen(),
+        builder: (context, state) => const MarketExplorerSplashScreen(),
+      ),
+      GoRoute(
+        path: '/game/market-explorer/allocation',
+        name: 'market-explorer-allocation',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return MarketExplorerAllocationScreen(
+            difficulty: extra['difficulty'] as String,
+            initialInvestment: extra['initialInvestment'] as int,
+          );
+        },
       ),
       GoRoute(
         path: '/game/budget-blitz',

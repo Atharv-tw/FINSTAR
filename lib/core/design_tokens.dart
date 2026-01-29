@@ -142,6 +142,48 @@ class DesignTokens {
     end: Alignment.bottomCenter,
   );
 
+  static const LinearGradient needsCustomGradient = LinearGradient(
+    colors: [Color(0xFFA2C1DF), Color(0xFF8CAACF)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient wantsCustomGradient = LinearGradient(
+    colors: [Color(0xFFFE95A2), Color(0xFFE8818D)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient savingsCustomGradient = LinearGradient(
+    colors: [Color(0xFF8D9F37), Color(0xFF7D8F27)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient pastelOrangeGradient = LinearGradient(
+    colors: [Color(0xFFFFB5A7), Color(0xFFFFA08C)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient tealPastelGradient = LinearGradient(
+    colors: [Color(0xFF96C1C5), Color(0xFF86AAB1)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient softGreenGradient = LinearGradient(
+    colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient darkGreenGradient = LinearGradient(
+    colors: [Color(0xFF6B8E23), Color(0xFF556B2F)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
   // ===== SPACING =====
 
   static const double spacingXS = 4.0;
@@ -177,7 +219,7 @@ class DesignTokens {
           offset: const Offset(0, 2),
           blurRadius: 4,
           spreadRadius: 0,
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black.withValues(alpha: 0.1),
         ),
       ];
 
@@ -186,7 +228,7 @@ class DesignTokens {
           offset: const Offset(0, 4),
           blurRadius: 8,
           spreadRadius: 0,
-          color: Colors.black.withOpacity(0.15),
+          color: Colors.black.withValues(alpha: 0.15),
         ),
       ];
 
@@ -195,7 +237,7 @@ class DesignTokens {
           offset: const Offset(0, 8),
           blurRadius: 16,
           spreadRadius: 0,
-          color: Colors.black.withOpacity(0.2),
+          color: Colors.black.withValues(alpha: 0.2),
         ),
       ];
 
@@ -204,7 +246,7 @@ class DesignTokens {
           offset: const Offset(0, 12),
           blurRadius: 24,
           spreadRadius: 0,
-          color: Colors.black.withOpacity(0.25),
+          color: Colors.black.withValues(alpha: 0.25),
         ),
       ];
 
@@ -213,7 +255,7 @@ class DesignTokens {
           offset: const Offset(0, 16),
           blurRadius: 32,
           spreadRadius: 0,
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withValues(alpha: 0.3),
         ),
       ];
 
@@ -222,7 +264,7 @@ class DesignTokens {
           offset: const Offset(0, 24),
           blurRadius: 48,
           spreadRadius: 0,
-          color: Colors.black.withOpacity(0.4),
+          color: Colors.black.withValues(alpha: 0.4),
         ),
       ];
 
@@ -232,7 +274,7 @@ class DesignTokens {
           offset: Offset.zero,
           blurRadius: 24,
           spreadRadius: 0,
-          color: primaryStart.withOpacity(opacity),
+          color: primaryStart.withValues(alpha: opacity),
         ),
       ];
 
@@ -241,7 +283,7 @@ class DesignTokens {
           offset: Offset.zero,
           blurRadius: 24,
           spreadRadius: 0,
-          color: secondaryStart.withOpacity(opacity),
+          color: secondaryStart.withValues(alpha: opacity),
         ),
       ];
 
@@ -250,7 +292,7 @@ class DesignTokens {
           offset: Offset.zero,
           blurRadius: 24,
           spreadRadius: 0,
-          color: accentStart.withOpacity(opacity),
+          color: accentStart.withValues(alpha: opacity),
         ),
       ];
 
@@ -285,7 +327,7 @@ class DesignTokens {
         offset: Offset.zero,
         blurRadius: 24,
         spreadRadius: 0,
-        color: glowColor.withOpacity(glowOpacity),
+        color: glowColor.withValues(alpha: glowOpacity),
       ),
     ];
   }

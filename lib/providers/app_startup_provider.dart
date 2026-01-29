@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/supabase_functions_service.dart';
+import 'package:flutter/foundation.dart';
 
 /// Provider that handles app startup tasks when user is authenticated
 /// - Generates/fetches daily challenges
@@ -35,7 +36,7 @@ final appStartupProvider = FutureProvider.autoDispose<AppStartupResult>((ref) as
     );
   } catch (e) {
     // If Supabase fails, don't block the app - just log it
-    print('App startup tasks failed: $e');
+    debugPrint('App startup tasks failed: $e');
     return AppStartupResult(
       success: false,
       message: 'Startup tasks failed: $e',

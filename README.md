@@ -232,27 +232,27 @@ Contributions are welcome! Please follow these steps:
 ### Backend Tasks (Priority Order)
 
 #### P0 - Critical (Do First)
-- [ ] Set up Supabase/Cloudflare project
-- [ ] `submitLifeSwipe` - serverless function
-- [ ] `submitBudgetBlitz` - serverless function
-- [ ] `submitQuizBattle` - serverless function
-- [ ] `submitMarketExplorer` - serverless function
-- [ ] XP/Coins/Level calculation (server-side)
-- [ ] Score validation & anti-cheat logic
+- [x] Set up Supabase/Cloudflare project
+- [x] `submitLifeSwipe` - serverless function
+- [x] `submitBudgetBlitz` - serverless function
+- [x] `submitQuizBattle` - serverless function
+- [x] `submitMarketExplorer` - serverless function
+- [x] XP/Coins/Level calculation (server-side)
+- [x] Score validation & anti-cheat logic
 
 #### P1 - High Priority
-- [ ] Achievement unlock logic (server-side)
-- [ ] Leaderboard update on game completion
-- [ ] Daily challenges generation (scheduled task)
-- [ ] Streak reset check (scheduled task)
-- [ ] Connect Flutter app to serverless endpoints
+- [x] Achievement unlock logic (server-side)
+- [x] Leaderboard update on game completion
+- [x] Daily challenges generation (scheduled task)
+- [x] Streak reset check (scheduled task)
+- [x] Connect Flutter app to serverless endpoints
 
 #### P2 - Medium Priority
-- [ ] Push notifications (FCM/OneSignal)
+- [x] Push notifications (FCM/OneSignal)
 - [ ] Streak reminder notifications
 - [ ] Daily challenge reminder notifications
-- [ ] User search for adding friends
-- [ ] Multiplayer quiz matchmaking
+- [x] User search for adding friends
+- [x] Multiplayer quiz matchmaking
 
 #### P3 - Low Priority (Future)
 - [ ] Offline support with sync queue
