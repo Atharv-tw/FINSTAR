@@ -85,7 +85,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
 
                           _buildAchievementsSection(),
 
-                          const SizedBox(height: 24), // Bottom spacing
+                          const SizedBox(height: 60), // Bottom spacing
                         ],
                       ),
                     ),
@@ -335,15 +335,11 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
             .where((a) => a.title.trim().isNotEmpty)
             .toList();
         final unlocked = visibleAchievements.where((a) => a.unlocked).toList();
-        final streaks = visibleAchievements
-            .where((a) => a.type == AchievementType.streak)
-            .toList();
-        final inProgress =
-            visibleAchievements.where((a) => !a.unlocked).toList();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Heading remains separate
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -378,33 +374,90 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildAchievementRail(
-              title: 'Badges',
-              subtitle: 'Unlocked moments',
-              emptyText: 'Unlock your first badge to start the collection.',
-              items: unlocked,
-              itemHeight: 118,
-              itemBuilder: _buildBadgeChip,
-            ),
-            const SizedBox(height: 16),
-            _buildAchievementRail(
-              title: 'Streaks',
-              subtitle: 'Daily momentum',
-              emptyText: 'No streak badges yet.',
-              items: streaks,
-              itemHeight: 112,
-              itemBuilder: _buildStreakChip,
-            ),
-            const SizedBox(height: 16),
-            _buildAchievementRail(
-              title: 'In Progress',
-              subtitle: 'Next goals',
-              emptyText: 'You are all caught up!',
-              items: inProgress,
-              itemHeight: 128,
-              itemBuilder: _buildProgressCard,
-            ),
-            const SizedBox(height: 60),
+
+            // Single box for all achievements
+            Container(
+              constraints: const BoxConstraints(minHeight: 200), // Smaller height
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white, // Reverted color
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: DesignTokens.textDarkPrimary.withValues(alpha: 0.12),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.amber.withOpacity(0.2),
+                    blurRadius: 20,
+                    spreadRadius: -5,
+                  ),
+                  BoxShadow(
+                    color: DesignTokens.surfaceCardLight,
+                    blurRadius: 10,
+                    spreadRadius: -2,
+                  ),
+                ],
+              ),
+              child: Column( // Changed from Stack to Column
+                mainAxisAlignment: MainAxisAlignment.center, // Center trophy and chips vertically
+                crossAxisAlignment: CrossAxisAlignment.center, // Center trophy and chips horizontally
+                children: [
+                  // Background trophy icon with glow
+                  Stack( // Keep trophy in a Stack for glow effect
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        Icons.emoji_events_outlined,
+                        size: 120,
+                        color: Colors.amber.withOpacity(0.1),
+                      ),
+                      Icon(
+                        Icons.emoji_events_outlined,
+                        size: 100,
+                        color: Colors.amber.withOpacity(0.2),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16), // Space between trophy and chips
+
+                  // Grid of all achievements
+                  if (visibleAchievements.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24.0),
+                      child: Text(
+                        'Your achievements will appear here. Keep playing!',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          color: DesignTokens.textDarkSecondary,
+                        ),
+                      ),
+                    )
+                  else
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      alignment: WrapAlignment.center,
+                      children: visibleAchievements.map((achievement) {
+                        switch (achievement.type) {
+                          case AchievementType.streak:
+                            return _buildStreakChip(achievement);
+                          case AchievementType.games:
+                          case AchievementType.learning:
+                          case AchievementType.firstSteps:
+                          default:
+                            if (achievement.unlocked) {
+                              return _buildBadgeChip(achievement);
+                            } else {
+                              return _buildProgressCard(achievement);
+                            }
+                        }
+                      }).toList(),
+                    ),
+                ],
+              ),
+            )
           ],
         );
       },
@@ -435,87 +488,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
     );
   }
 
-  Widget _buildAchievementRail({
-    required String title,
-    required String subtitle,
-    required String emptyText,
-    required List<Achievement> items,
-    required double itemHeight,
-    required Widget Function(Achievement achievement) itemBuilder,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: DesignTokens.textDarkPrimary,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 11,
-                    color: DesignTokens.textDarkSecondary,
-                  ),
-                ),
-              ],
-            ),
-            if (items.isNotEmpty)
-              Text(
-                '${items.length}',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: DesignTokens.textDarkSecondary,
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (items.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: DesignTokens.surfaceCardLight,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: DesignTokens.textDarkDisabled.withValues(alpha: 0.25),
-              ),
-            ),
-            child: Text(
-              emptyText,
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 12,
-                color: DesignTokens.textDarkSecondary,
-              ),
-            ),
-          )
-        else
-          SizedBox(
-            height: itemHeight,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) => itemBuilder(items[index]),
-            ),
-          ),
-      ],
-    );
-  }
+  // _buildAchievementRail is now removed
 
   Widget _buildBadgeChip(Achievement achievement) {
     final baseColor = achievement.color;
