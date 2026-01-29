@@ -25,7 +25,9 @@ class FirebaseServiceFree {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseDatabase _rtdb = FirebaseDatabase.instance;
+  // Use explicit initialize() to pass serverClientId where required.
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  bool _googleSignInInitialized = false;
 
   // Game logic service (client-side)
   final GameLogicService _gameLogic = GameLogicService();
@@ -48,6 +50,12 @@ class FirebaseServiceFree {
       _rtdb.setPersistenceCacheSizeBytes(10000000); // 10MB cache
     }
 
+    await _googleSignIn.initialize(
+      serverClientId:
+          '479746642557-0u721aiehm5hcfjen542u156jnqstijq.apps.googleusercontent.com',
+    );
+    _googleSignInInitialized = true;
+
     debugPrint('Firebase initialized with offline persistence (Free tier)');
   }
 
@@ -64,6 +72,14 @@ class FirebaseServiceFree {
   /// Sign in with Google
   Future<UserCredential> signInWithGoogle() async {
     try {
+      if (!_googleSignInInitialized) {
+        await _googleSignIn.initialize(
+          serverClientId:
+              '479746642557-0u721aiehm5hcfjen542u156jnqstijq.apps.googleusercontent.com',
+        );
+        _googleSignInInitialized = true;
+      }
+
       // Trigger Google Sign-In flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
 
