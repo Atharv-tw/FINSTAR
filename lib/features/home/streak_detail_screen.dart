@@ -306,7 +306,7 @@ class StreakDetailScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ...allLevels.map((level) => _buildLevelCard(level)).toList(),
+        ...allLevels.map((level) => _buildLevelCard(level)),
       ],
     );
   }

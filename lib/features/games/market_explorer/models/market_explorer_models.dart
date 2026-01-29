@@ -2,6 +2,7 @@ import 'dart:math';
 
 /// Represents different asset types available for investment
 enum AssetType {
+  cash,
   fixedDeposit,
   sip,
   stocks,
@@ -11,6 +12,8 @@ enum AssetType {
 extension AssetTypeExtension on AssetType {
   String get name {
     switch (this) {
+      case AssetType.cash:
+        return 'Cash';
       case AssetType.fixedDeposit:
         return 'Fixed Deposit';
       case AssetType.sip:
@@ -24,6 +27,8 @@ extension AssetTypeExtension on AssetType {
 
   String get emoji {
     switch (this) {
+      case AssetType.cash:
+        return '\u{1F4B5}';
       case AssetType.fixedDeposit:
         return '🏦';
       case AssetType.sip:
@@ -37,6 +42,8 @@ extension AssetTypeExtension on AssetType {
 
   String get description {
     switch (this) {
+      case AssetType.cash:
+        return 'Safe and liquid, but loses value to inflation.';
       case AssetType.fixedDeposit:
         return 'Low risk, stable returns. Best for safety.';
       case AssetType.sip:
@@ -51,6 +58,8 @@ extension AssetTypeExtension on AssetType {
   // Base annual return rates (will be modified by market conditions)
   double get baseReturnRate {
     switch (this) {
+      case AssetType.cash:
+        return 0.03; // 3%
       case AssetType.fixedDeposit:
         return 0.07; // 7%
       case AssetType.sip:
@@ -65,6 +74,8 @@ extension AssetTypeExtension on AssetType {
   // Volatility factor (how much returns can vary)
   double get volatility {
     switch (this) {
+      case AssetType.cash:
+        return 0.01; // +/-1%
       case AssetType.fixedDeposit:
         return 0.02; // ±2%
       case AssetType.sip:
@@ -73,6 +84,22 @@ extension AssetTypeExtension on AssetType {
         return 0.25; // ±25%
       case AssetType.crypto:
         return 0.50; // ±50%
+    }
+  }
+
+  // Correlation with market-wide moves (0 = independent, 1 = fully correlated)
+  double get marketCorrelation {
+    switch (this) {
+      case AssetType.cash:
+        return 0.1;
+      case AssetType.fixedDeposit:
+        return 0.2;
+      case AssetType.sip:
+        return 0.6;
+      case AssetType.stocks:
+        return 0.9;
+      case AssetType.crypto:
+        return 0.95;
     }
   }
 }
@@ -119,6 +146,42 @@ extension DifficultyLevelExtension on DifficultyLevel {
     }
   }
 
+  // Multiplier for overall volatility
+  double get volatilityMultiplier {
+    switch (this) {
+      case DifficultyLevel.easy:
+        return 0.8;
+      case DifficultyLevel.medium:
+        return 1.0;
+      case DifficultyLevel.hard:
+        return 1.25;
+    }
+  }
+
+  // Inflation rate affecting cash each year
+  double get inflationRate {
+    switch (this) {
+      case DifficultyLevel.easy:
+        return 0.025;
+      case DifficultyLevel.medium:
+        return 0.035;
+      case DifficultyLevel.hard:
+        return 0.045;
+    }
+  }
+
+  // Rebalance opportunity year (1-indexed)
+  int get rebalanceYear {
+    switch (this) {
+      case DifficultyLevel.easy:
+        return 2;
+      case DifficultyLevel.medium:
+        return 3;
+      case DifficultyLevel.hard:
+        return 4;
+    }
+  }
+
   // Initial capital
   int get startingCapital {
     switch (this) {
@@ -130,6 +193,30 @@ extension DifficultyLevelExtension on DifficultyLevel {
         return 8000;
     }
   }
+
+  static DifficultyLevel fromString(String name) {
+    switch (name) {
+      case 'Easy':
+        return DifficultyLevel.easy;
+      case 'Medium':
+        return DifficultyLevel.medium;
+      case 'Hard':
+        return DifficultyLevel.hard;
+      default:
+        throw ArgumentError('Unknown difficulty level: $name');
+    }
+  }
+}
+
+/// Active market event with remaining duration
+class ActiveMarketEvent {
+  final MarketEvent event;
+  int remainingYears;
+
+  ActiveMarketEvent({
+    required this.event,
+    required this.remainingYears,
+  });
 }
 
 /// Market events that can occur during simulation
@@ -322,6 +409,12 @@ class Portfolio {
   int currentYear;
   final DifficultyLevel difficulty;
   final List<MarketEvent> eventsOccurred;
+  final List<ActiveMarketEvent> activeEvents;
+  int decisionsCount;
+  int correctDecisions;
+  bool rebalanced;
+  double? preRebalanceDiversification;
+  double? preRebalanceRisk;
   final List<double> totalValueHistory;
 
   Portfolio({
@@ -332,6 +425,10 @@ class Portfolio {
   })  : assets = {},
         currentYear = 0,
         eventsOccurred = [],
+        activeEvents = [],
+        decisionsCount = 0,
+        correctDecisions = 0,
+        rebalanced = false,
         totalValueHistory = [totalCapital.toDouble()] {
     // Initialize assets with allocations
     if (initialAllocations != null) {
@@ -343,6 +440,15 @@ class Portfolio {
           );
         }
       }
+    }
+
+    final unallocated = totalCapital.toDouble() -
+        assets.values.fold(0.0, (sum, asset) => sum + asset.allocatedAmount);
+    if (unallocated > 0) {
+      assets[AssetType.cash] = Asset(
+        type: AssetType.cash,
+        allocatedAmount: unallocated,
+      );
     }
   }
 
@@ -357,7 +463,11 @@ class Portfolio {
   double get allocatedAmount =>
       assets.values.fold(0.0, (sum, asset) => sum + asset.allocatedAmount);
 
-  double get unallocatedAmount => totalCapital - allocatedAmount;
+  double get unallocatedAmount {
+    final cashAsset = assets[AssetType.cash];
+    if (cashAsset == null) return totalCapital - allocatedAmount;
+    return cashAsset.currentValue;
+  }
 
   // Calculate risk score (0-100, higher = riskier)
   double get riskScore {
@@ -386,8 +496,15 @@ class Portfolio {
       }
     }
 
-    // Normalize to 0-100 (max entropy for 4 assets is 2)
-    return (entropy / 2) * 100;
+    // Normalize to 0-100 based on number of assets
+    final maxEntropy = log(assets.length) / ln2;
+    return maxEntropy > 0 ? (entropy / maxEntropy) * 100 : 0;
+  }
+
+  double get cashBufferPercent {
+    final cashAsset = assets[AssetType.cash];
+    if (cashAsset == null || totalValue == 0) return 0;
+    return (cashAsset.currentValue / totalValue) * 100;
   }
 
   Map<String, dynamic> toJson() {
@@ -398,6 +515,13 @@ class Portfolio {
       'difficulty': difficulty.toString(),
       'assets': assets.map((key, value) => MapEntry(key.toString(), value.toJson())),
       'eventsOccurred': eventsOccurred.map((e) => e.id).toList(),
+      'activeEvents': activeEvents.map((e) => {
+            'id': e.event.id,
+            'remainingYears': e.remainingYears,
+          }).toList(),
+      'decisionsCount': decisionsCount,
+      'correctDecisions': correctDecisions,
+      'rebalanced': rebalanced,
       'totalValueHistory': totalValueHistory,
     };
   }
@@ -411,6 +535,9 @@ class SimulationResult {
   final int xpEarned;
   final String performanceRating; // 'Excellent', 'Good', 'Average', 'Poor'
   final List<String> insights;
+  final int decisionsCount;
+  final int correctDecisions;
+  final bool rebalanced;
 
   SimulationResult({
     required this.portfolio,
@@ -419,12 +546,18 @@ class SimulationResult {
     required this.xpEarned,
     required this.performanceRating,
     required this.insights,
+    required this.decisionsCount,
+    required this.correctDecisions,
+    required this.rebalanced,
   });
 
   factory SimulationResult.calculate(Portfolio portfolio) {
     final returnPct = portfolio.returnPercentage;
     final riskScore = portfolio.riskScore;
     final diversification = portfolio.diversificationScore;
+    final cashBuffer = portfolio.cashBufferPercent;
+    final decisionsCount = portfolio.decisionsCount;
+    final correctDecisions = portfolio.correctDecisions;
 
     // Calculate score (0-100)
     int score = 0;
@@ -453,6 +586,36 @@ class SimulationResult {
       score += 15;
     } else {
       score += 5;
+    }
+
+    // Cash buffer component (0-10 points)
+    if (cashBuffer >= 5 && cashBuffer <= 20) {
+      score += 10;
+    } else if (cashBuffer > 0 && cashBuffer < 5) {
+      score += 5;
+    } else if (cashBuffer == 0) {
+      score -= 5;
+    }
+
+    // Decision accuracy component (0-10 points)
+    if (decisionsCount > 0) {
+      final accuracy = correctDecisions / decisionsCount;
+      score += (accuracy * 10).round();
+    }
+
+    // Rebalance impact (0-5 points)
+    if (portfolio.rebalanced &&
+        portfolio.preRebalanceDiversification != null &&
+        portfolio.preRebalanceRisk != null) {
+      final diversificationGain =
+          diversification - portfolio.preRebalanceDiversification!;
+      final riskImprovement =
+          portfolio.preRebalanceRisk! - riskScore;
+      if (diversificationGain >= 5 || riskImprovement >= 5) {
+        score += 5;
+      } else {
+        score += 2;
+      }
     }
 
     score = score.clamp(0, 100);
@@ -492,10 +655,35 @@ class SimulationResult {
       insights.add('Poor diversification. Spread investments across assets.');
     }
 
+    if (cashBuffer >= 5 && cashBuffer <= 20) {
+      insights.add('Healthy cash buffer helped manage volatility.');
+    } else if (cashBuffer == 0) {
+      insights.add('No cash buffer. Consider keeping some liquidity.');
+    }
+
     if (riskScore > 60) {
       insights.add('Very risky portfolio! Consider safer investments.');
     } else if (riskScore < 15) {
       insights.add('Too conservative. Some risk can boost returns.');
+    }
+
+    if (decisionsCount > 0) {
+      final accuracy = (correctDecisions / decisionsCount * 100).round();
+      insights.add('Event decisions accuracy: $accuracy%.');
+    }
+
+    if (portfolio.rebalanced &&
+        portfolio.preRebalanceDiversification != null &&
+        portfolio.preRebalanceRisk != null) {
+      final diversificationGain =
+          diversification - portfolio.preRebalanceDiversification!;
+      final riskImprovement =
+          portfolio.preRebalanceRisk! - riskScore;
+      if (diversificationGain >= 5 || riskImprovement >= 5) {
+        insights.add('Rebalancing improved your portfolio balance.');
+      } else {
+        insights.add('Rebalancing made only minor changes this time.');
+      }
     }
 
     if (portfolio.eventsOccurred.isNotEmpty) {
@@ -509,6 +697,9 @@ class SimulationResult {
       xpEarned: xpEarned,
       performanceRating: rating,
       insights: insights,
+      decisionsCount: decisionsCount,
+      correctDecisions: correctDecisions,
+      rebalanced: portfolio.rebalanced,
     );
   }
 }

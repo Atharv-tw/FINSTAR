@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_provider.dart';
+import 'package:flutter/foundation.dart';
 
 /// Shop item model
 class ShopItem {
@@ -171,11 +172,13 @@ final defaultShopItems = [
 
 /// Provider for all shop items
 final shopItemsProvider = StreamProvider<List<ShopItem>>((ref) {
-  // For global shop catalog, read from a 'shop' collection
+  // Global shop catalog stored at /store/items/{itemId}
   final firestore = FirebaseFirestore.instance;
 
   return firestore
-      .collection('shop')
+      .collection('store')
+      .doc('items')
+      .collection('items')
       .snapshots()
       .map((snapshot) {
     return snapshot.docs
@@ -214,9 +217,10 @@ final purchaseItemProvider = Provider((ref) {
     if (userId == null) throw Exception('User not authenticated');
 
     final firestore = FirebaseFirestore.instance;
+    final itemsRef = firestore.collection('store').doc('items').collection('items');
 
     // Get item details
-    final itemDoc = await firestore.collection('shop').doc(itemId).get();
+    final itemDoc = await itemsRef.doc(itemId).get();
     if (!itemDoc.exists) {
       throw Exception('Item not found');
     }
@@ -275,7 +279,7 @@ final purchaseItemProvider = Provider((ref) {
     });
 
     await batch.commit();
-    print('Item purchased: $itemId for ${item.price} coins');
+    debugPrint('Item purchased: $itemId for ${item.price} coins');
   };
 });
 
@@ -283,11 +287,10 @@ final purchaseItemProvider = Provider((ref) {
 Future<void> initializeShopItems() async {
   final firestore = FirebaseFirestore.instance;
   final batch = firestore.batch();
+  final itemsRef = firestore.collection('store').doc('items').collection('items');
 
   for (var itemData in defaultShopItems) {
-    final docRef = firestore
-        .collection('shop')
-        .doc(itemData['id'] as String);
+    final docRef = itemsRef.doc(itemData['id'] as String);
 
     batch.set(docRef, {
       'name': itemData['name'],
@@ -300,7 +303,7 @@ Future<void> initializeShopItems() async {
   }
 
   await batch.commit();
-  print('Initialized ${defaultShopItems.length} shop items');
+  debugPrint('Initialized ${defaultShopItems.length} shop items');
 }
 
 /// Provider for checking if item is owned
@@ -310,6 +313,6 @@ final isItemOwnedProvider = Provider.family<bool, String>((ref, itemId) {
   return ownedItems.when(
     data: (items) => items.any((item) => item.id == itemId),
     loading: () => false,
-    error: (_, __) => false,
+    error: (error, stack) => false,
   );
 });

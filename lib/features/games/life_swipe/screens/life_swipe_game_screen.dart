@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/design_tokens.dart';
 import '../models/spending_scenario.dart';
 
 class LifeSwipeGameScreen extends StatefulWidget {
@@ -253,7 +251,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       appBar: hasStarted
           ? null
           : AppBar(
-              title: const Text('Life Swipe', style: TextStyle(color: const Color(0xFF393027))), // Reverted to #393027
+              title: const Text('Life Swipe', style: TextStyle(color: Color(0xFF393027))), // Reverted to #393027
               centerTitle: true,
               backgroundColor: const Color(0xFFFFFAE3), // Header background color changed to #FFFAE3
               elevation: 0,
@@ -297,7 +295,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF9BAD50).withOpacity(0.4), // Shadow color with new base
+                            color: const Color(0xFF9BAD50).withValues(alpha: 0.4), // Shadow color with new base
                             blurRadius: 30, // Increased blur
                             offset: const Offset(0, 15), // Increased offset
                           ),
@@ -324,7 +322,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                           Text(
                             'Pocket money + internship earnings',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white.withOpacity(0.9), // White font color
+                                  color: Colors.white.withValues(alpha: 0.9), // White font color
                                 ),
                           ),
                         ],
@@ -345,7 +343,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.lightbulb_outline, color: const Color(0xFF73986f), size: 40), // Changed icon and color
+                      const Icon(Icons.lightbulb_outline, color: Color(0xFF73986f), size: 40), // Changed icon and color
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -432,7 +430,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF0DE).withOpacity(0.8), // Semi-transparent light background
+        color: const Color(0xFFFFF0DE).withValues(alpha: 0.8), // Semi-transparent light background
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: const Color(0xFF694A47), // Dark brown border
@@ -447,7 +445,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             height: 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [color, color.withOpacity(0.7)], // Icon background gradient (original color remains for icon)
+                colors: [color, color.withValues(alpha: 0.7)], // Icon background gradient (original color remains for icon)
               ),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -469,7 +467,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                 Text(
                   description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF393027).withOpacity(0.9), // Dark text for contrast
+                        color: const Color(0xFF393027).withValues(alpha: 0.9), // Dark text for contrast
                       ),
                 ),
               ],
@@ -523,7 +521,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF9BAD50).withOpacity(0.5),
+                            color: const Color(0xFF9BAD50).withValues(alpha: 0.5),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
@@ -559,9 +557,9 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
               height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 border: Border.all(
-                  color: const Color(0xFF28301C).withOpacity(0.2),
+                  color: const Color(0xFF28301C).withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
@@ -634,7 +632,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       height: 6,
       decoration: BoxDecoration(
-        color: const Color(0xFFB6CFE4).withOpacity(0.3),
+        color: const Color(0xFFB6CFE4).withValues(alpha: 0.3),
       ),
       child: FractionallySizedBox(
         alignment: Alignment.centerLeft,
@@ -679,9 +677,9 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -944,11 +942,11 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                       (dragDistance > 0
                               ? const Color(0xFF9BAD50)
                               : const Color(0xFFB6CFE4))
-                          .withOpacity(0.3),
+                          .withValues(alpha: 0.3),
                       (dragDistance > 0
                               ? const Color(0xFF9BAD50)
                               : const Color(0xFFB6CFE4))
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(32),
@@ -975,7 +973,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
                               color: (dragDistance > 0
                                       ? const Color(0xFF9BAD50)
                                       : const Color(0xFFB6CFE4))
-                                  .withOpacity(0.5),
+                                  .withValues(alpha: 0.5),
                               blurRadius: 20,
                               spreadRadius: 2,
                             ),

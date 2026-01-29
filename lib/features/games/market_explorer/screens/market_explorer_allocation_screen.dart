@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../../../config/theme.dart';
-import '../../../../core/design_tokens.dart';
+import 'dart:ui';
+
 import '../models/market_explorer_models.dart';
 import 'market_explorer_simulation_screen.dart';
 
 class MarketExplorerAllocationScreen extends StatefulWidget {
-  const MarketExplorerAllocationScreen({super.key});
+  final String difficulty;
+  final int initialInvestment;
+
+  const MarketExplorerAllocationScreen({
+    super.key,
+    required this.difficulty,
+    required this.initialInvestment,
+  });
 
   @override
   State<MarketExplorerAllocationScreen> createState() =>
@@ -14,83 +21,85 @@ class MarketExplorerAllocationScreen extends StatefulWidget {
 
 class _MarketExplorerAllocationScreenState
     extends State<MarketExplorerAllocationScreen>
-    with SingleTickerProviderStateMixin {
-  DifficultyLevel _selectedDifficulty = DifficultyLevel.medium;
-  late int _totalCapital;
-
+    with TickerProviderStateMixin {
+  late final DifficultyLevel _selectedDifficulty;
+  late final int _totalCapital;
   final Map<AssetType, double> _allocations = {
     AssetType.fixedDeposit: 0,
     AssetType.sip: 0,
     AssetType.stocks: 0,
     AssetType.crypto: 0,
   };
-
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
+  
+  AssetType? _selectedAsset;
+  bool _hasInteracted = false;
+  
+  late AnimationController _floatController;
+  late AnimationController _controlsController;
 
   @override
   void initState() {
     super.initState();
-    _totalCapital = _selectedDifficulty.startingCapital;
-
-    _animationController = AnimationController(
+    _selectedDifficulty = DifficultyLevelExtension.fromString(widget.difficulty);
+    _totalCapital = widget.initialInvestment;
+    
+    _floatController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+    
+    _controlsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
     );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-
-    _animationController.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _floatController.dispose();
+    _controlsController.dispose();
     super.dispose();
   }
 
-  double get _allocatedAmount =>
-      _allocations.values.fold(0.0, (sum, amount) => sum + amount);
-
+  double get _allocatedAmount => _allocations.values.fold(0.0, (sum, amount) => sum + amount);
   double get _remainingAmount => _totalCapital - _allocatedAmount;
+  bool get _canStart => _allocatedAmount > 0 && _remainingAmount >= 0;
 
-  bool get _canStart =>
-      _allocatedAmount > 0 && _remainingAmount >= 0;
-
-  void _updateDifficulty(DifficultyLevel difficulty) {
+  void _updateAllocation(AssetType type, double value) {
     setState(() {
-      _selectedDifficulty = difficulty;
-      _totalCapital = difficulty.startingCapital;
-      // Reset allocations if they exceed new capital
-      if (_allocatedAmount > _totalCapital) {
-        _allocations.updateAll((key, value) => 0);
+      final currentAllocation = _allocations[type]!;
+      final otherAllocations = _allocatedAmount - currentAllocation;
+      final newValue = value.roundToDouble();
+      
+      if (otherAllocations + newValue <= _totalCapital) {
+        _allocations[type] = newValue;
+      } else {
+        _allocations[type] = _totalCapital - otherAllocations;
       }
     });
   }
 
-  void _updateAllocation(AssetType type, double value) {
+  void _selectAsset(AssetType? assetType) {
     setState(() {
-      final newTotal = _allocatedAmount - _allocations[type]! + value;
-      if (newTotal <= _totalCapital) {
-        _allocations[type] = value;
+      _hasInteracted = true;
+      if (_selectedAsset == assetType) {
+        _selectedAsset = null;
+        _controlsController.reverse();
+      } else {
+        _selectedAsset = assetType;
+        _controlsController.forward(from: 0.0);
       }
     });
   }
 
   void _startSimulation() {
     if (!_canStart) return;
-
-    // Create portfolio with allocations
     final portfolio = Portfolio(
       totalCapital: _totalCapital,
       simulationYears: 5,
       difficulty: _selectedDifficulty,
       initialAllocations: _allocations,
     );
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -104,409 +113,223 @@ class _MarketExplorerAllocationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Market Explorer'),
+        title: const Text('Explore the Market', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, shadows: [Shadow(color: Colors.black38, blurRadius: 10)])),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Container(
         decoration: const BoxDecoration(
-          gradient: DesignTokens.beigeGradient,
-        ),
-        child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                // Header
-                _buildHeader(),
-                const SizedBox(height: 24),
-
-                // Difficulty Selection
-                _buildDifficultySelector(),
-                const SizedBox(height: 24),
-
-                // Capital Display
-                _buildCapitalDisplay(),
-                const SizedBox(height: 32),
-
-                // Asset Allocation Cards
-                Text(
-                  'Choose Your Islands',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: DesignTokens.textDarkPrimary,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Allocate your capital across different investment islands',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: DesignTokens.textDarkSecondary,
-                      ),
-                ),
-                const SizedBox(height: 20),
-
-                ...AssetType.values.map((type) => _buildAssetCard(type)),
-
-                const SizedBox(height: 32),
-
-                  // Start Button
-                  _buildStartButton(),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
+          gradient: LinearGradient(
+            colors: [Color(0xFF8DB5D6), Color(0xFF7CAFD9)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.gamesColor,
-            AppTheme.gamesColor.withOpacity(0.8),
+        child: Stack(
+          children: [
+            _buildFloatingIsland(AssetType.fixedDeposit, -0.6, -0.8, 0),
+            _buildFloatingIsland(AssetType.sip, 0.6, -0.3, 1),
+            _buildFloatingIsland(AssetType.stocks, -0.6, 0.2, 2),
+            _buildFloatingIsland(AssetType.crypto, 0.6, 0.7, 3),
+            _buildCapitalDisplay(),
+            _buildInstructionText(),
+            if (_selectedAsset != null) _buildContextualControls(),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.shadow3DMedium,
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Text('🏝️', style: TextStyle(fontSize: 40)),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Explore Markets',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Invest wisely and watch your portfolio grow over 5 years',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildDifficultySelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Select Difficulty',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: DesignTokens.textDarkPrimary,
-              ),
+  Widget _buildInstructionText() {
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        opacity: _hasInteracted ? 0.0 : 1.0,
+        duration: const Duration(milliseconds: 500),
+        child: const Align(
+          alignment: Alignment(0, 0.95),
+          child: Text(
+            'Tap an island to invest!',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              shadows: [Shadow(color: Colors.black54, blurRadius: 10)]
+            ),
+          ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: DifficultyLevel.values.map((difficulty) {
-            final isSelected = _selectedDifficulty == difficulty;
-            return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: InkWell(
-                  onTap: () => _updateDifficulty(difficulty),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppTheme.gamesColor
-                          : Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppTheme.gamesColor
-                            : AppTheme.dividerColor,
-                        width: 2,
-                      ),
-                      boxShadow: isSelected ? AppTheme.shadow3DSmall : null,
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          difficulty.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppTheme.textPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '₹${difficulty.startingCapital}',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: isSelected
-                                        ? Colors.white.withOpacity(0.9)
-                                        : AppTheme.textSecondary,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _selectedDifficulty.description,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: DesignTokens.textDarkSecondary,
-              ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+      ),
     );
   }
+  
+  Widget _buildFloatingIsland(AssetType type, double alignX, double alignY, int index) {
+    final allocation = _allocations[type]!;
+    final fillPercent = _totalCapital > 0 ? (allocation / _totalCapital).clamp(0.0, 1.0) : 0.0;
+    final isSelected = _selectedAsset == type;
+    final floatAnimation = Tween<double>(begin: -8.0, end: 8.0).animate(
+      CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
+    );
 
-  Widget _buildCapitalDisplay() {
-    final progress = _totalCapital > 0 ? _allocatedAmount / _totalCapital : 0.0;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: AppTheme.gradientGold,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.shadow3DMedium,
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return AnimatedBuilder(
+      animation: floatAnimation,
+      builder: (context, child) {
+        final offset = index.isEven ? floatAnimation.value : -floatAnimation.value;
+        return Align(
+          alignment: Alignment(alignX, alignY),
+          child: Transform.translate(
+            offset: Offset(0, offset),
+            child: child,
+          ),
+        );
+      },
+      child: GestureDetector(
+        onTap: () => _selectAsset(type),
+        child: SizedBox(
+          width: 160,
+          height: 160,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Total Capital',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                  ),
-                  Text(
-                    '₹${_totalCapital.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                ],
+              // Outer glow
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: isSelected ? Colors.yellow.withAlpha(150) : Colors.black.withAlpha(50),
+                      blurRadius: 25,
+                      spreadRadius: 5,
+                    )
+                  ]
+                ),
               ),
+              // Main circle with fill effect
+              ClipOval(
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    // Empty state background
+                    Container(
+                      color: Colors.black.withAlpha(30),
+                    ),
+                    // Filled portion
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                      height: 160 * fillPercent,
+                      decoration: BoxDecoration(
+                        color: _getAssetColor(type),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Border
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withAlpha(150), width: 2),
+                ),
+              ),
+              // Content
               Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Icon(_getAssetIcon(type), color: Colors.white, size: 40, shadows: const [Shadow(color: Colors.black87, blurRadius: 15, offset: Offset(0,2))]),
+                  const SizedBox(height: 8),
                   Text(
-                    'Remaining',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                  ),
-                  Text(
-                    '₹${_remainingAmount.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: _remainingAmount < 0
-                              ? Colors.red.shade200
-                              : Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    type.name,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20, shadows: [Shadow(color: Colors.black87, blurRadius: 15)]),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress.clamp(0.0, 1.0),
-              minHeight: 12,
-              backgroundColor: Colors.white.withOpacity(0.3),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _remainingAmount < 0 ? Colors.red : Colors.white,
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildContextualControls() {
+    final assetType = _selectedAsset!;
+    final allocation = _allocations[assetType]!;
+    
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: SlideTransition(
+        position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(
+          CurvedAnimation(parent: _controlsController, curve: Curves.easeOutCubic)
+        ),
+        child: ClipPath(
+          clipper: WaveClipper(),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(30, 40, 30, 40),
+              decoration: BoxDecoration(
+                color: Colors.black.withAlpha(50),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Icon(_getAssetIcon(assetType), color: Colors.white, size: 28),
+                      const SizedBox(width: 12),
+                      Text(assetType.name, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                        onPressed: () => _selectAsset(null),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Slider(
+                    value: allocation,
+                    min: 0,
+                    max: _totalCapital.toDouble(),
+                    activeColor: Colors.white,
+                    inactiveColor: Colors.white.withAlpha(80),
+                    onChanged: (value) => _updateAllocation(assetType, value),
+                  ),
+                  const SizedBox(height: 15),
+                  _buildStartButton(),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            '${(progress * 100).toStringAsFixed(1)}% Allocated',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
-                ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildAssetCard(AssetType type) {
-    final allocation = _allocations[type]!;
-    final maxAllocation = _totalCapital - (_allocatedAmount - allocation);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: _getAssetColor(type).withOpacity(0.3),
-          width: 2,
-        ),
-        boxShadow: AppTheme.shadow3DSmall,
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          dividerColor: Colors.transparent,
-        ),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          childrenPadding:
-              const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-          leading: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _getAssetColor(type).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              type.emoji,
-              style: const TextStyle(fontSize: 28),
-            ),
-          ),
-          title: Text(
-            type.name,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          subtitle: allocation > 0
-              ? Text(
-                  '₹${allocation.toStringAsFixed(0)} allocated',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: _getAssetColor(type),
-                        fontWeight: FontWeight.w600,
-                      ),
-                )
-              : null,
+  Widget _buildCapitalDisplay() {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text('Remaining', style: TextStyle(color: Colors.white70, fontSize: 14)),
             Text(
-              type.description,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Expected Return',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      Text(
-                        '${(type.baseReturnRate * 100).toStringAsFixed(1)}% /year',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.successColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Risk Level',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      Text(
-                        '${(type.volatility * 100).toStringAsFixed(0)}%',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: _getRiskColor(type.volatility),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Slider(
-                    value: allocation,
-                    min: 0,
-                    max: maxAllocation,
-                    divisions: maxAllocation > 0 ? (maxAllocation / 100).ceil() : 1,
-                    activeColor: _getAssetColor(type),
-                    onChanged: (value) {
-                      _updateAllocation(type, value.roundToDouble());
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 80,
-                  child: Text(
-                    '₹${allocation.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: _getAssetColor(type),
-                          fontWeight: FontWeight.bold,
-                        ),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-              ],
+              '₹${_remainingAmount.toStringAsFixed(0)}',
+              style: TextStyle(
+                  color: _remainingAmount < 0 ? Colors.red.shade200 : Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  shadows: const [Shadow(color: Colors.black45, blurRadius: 10)]),
             ),
           ],
         ),
       ),
     );
   }
-
+  
   Widget _buildStartButton() {
     return SizedBox(
       width: double.infinity,
@@ -514,28 +337,17 @@ class _MarketExplorerAllocationScreenState
       child: ElevatedButton(
         onPressed: _canStart ? _startSimulation : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.gamesColor,
-          disabledBackgroundColor: AppTheme.cardSunken,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: _canStart ? 4 : 0,
+          backgroundColor: Colors.white,
+          disabledBackgroundColor: Colors.white.withAlpha(100),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.play_arrow_rounded, size: 28),
-            const SizedBox(width: 8),
-            Text(
-              _canStart
-                  ? 'Start 5-Year Simulation'
-                  : 'Allocate Money to Start',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: _canStart ? Colors.white : AppTheme.textSecondary,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ],
+        child: Text(
+          _canStart ? 'Start 5-Year Simulation' : 'Allocate Money to Start',
+          style: TextStyle(
+            color: _canStart ? const Color(0xFF0052D4) : Colors.black.withAlpha(100),
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
       ),
     );
@@ -543,20 +355,45 @@ class _MarketExplorerAllocationScreenState
 
   Color _getAssetColor(AssetType type) {
     switch (type) {
-      case AssetType.fixedDeposit:
-        return AppTheme.successColor;
-      case AssetType.sip:
-        return AppTheme.gamesColor;
-      case AssetType.stocks:
-        return AppTheme.quizColor;
-      case AssetType.crypto:
-        return AppTheme.streakColor;
+      case AssetType.cash: return const Color(0xFFB6CFE4);
+      case AssetType.fixedDeposit: return const Color(0xFF6FB1FC);
+      case AssetType.sip: return const Color(0xFF9BAD50);
+      case AssetType.stocks: return const Color(0xFFFFC3CC);
+      case AssetType.crypto: return const Color(0xFFF4A261);
     }
   }
 
-  Color _getRiskColor(double volatility) {
-    if (volatility < 0.1) return AppTheme.successColor;
-    if (volatility < 0.3) return AppTheme.warningColor;
-    return AppTheme.errorColor;
+  IconData _getAssetIcon(AssetType type) {
+    switch (type) {
+      case AssetType.cash: return Icons.account_balance_wallet;
+      case AssetType.fixedDeposit: return Icons.account_balance_wallet;
+      case AssetType.sip: return Icons.spa;
+      case AssetType.stocks: return Icons.show_chart;
+      case AssetType.crypto: return Icons.currency_bitcoin;
+    }
   }
+}
+
+class WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    var path = Path();
+    path.lineTo(0, 20); // Start 20px down
+    
+    var firstControlPoint = Offset(size.width / 4, 0);
+    var firstEndPoint = Offset(size.width / 2.25, 30.0);
+    path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy, firstEndPoint.dx, firstEndPoint.dy);
+
+    var secondControlPoint = Offset(size.width - (size.width / 3.25), 65);
+    var secondEndPoint = Offset(size.width, 10.0);
+    path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy, secondEndPoint.dx, secondEndPoint.dy);
+
+    path.lineTo(size.width, size.height);
+    path.lineTo(0.0, size.height);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

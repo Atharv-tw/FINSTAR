@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import '../config/supabase_config.dart';
+import 'package:flutter/foundation.dart';
 
 /// Service for calling Supabase Edge Functions
 ///
@@ -47,38 +48,38 @@ class SupabaseFunctionsService {
 
   /// Simple connectivity test - call this to debug connection issues
   Future<Map<String, dynamic>> testConnectivity() async {
-    print('=== SUPABASE CONNECTIVITY TEST ===');
+    debugPrint('=== SUPABASE CONNECTIVITY TEST ===');
     final results = <String, dynamic>{};
 
     // Test 1: Simple GET to base URL (should work without auth)
-    print('Test 1: Simple HTTP GET to Supabase base URL...');
+    debugPrint('Test 1: Simple HTTP GET to Supabase base URL...');
     try {
       final response = await http.get(
         Uri.parse('${SupabaseConfig.projectUrl}/rest/v1/'),
         headers: {'apikey': 'test'}, // Dummy key just to test connectivity
       ).timeout(const Duration(seconds: 10));
       results['simpleGet'] = 'Status: ${response.statusCode}';
-      print('Test 1 result: ${response.statusCode}');
+      debugPrint('Test 1 result: ${response.statusCode}');
     } catch (e) {
       results['simpleGet'] = 'Error: $e';
-      print('Test 1 error: $e');
+      debugPrint('Test 1 error: $e');
     }
 
     // Test 2: GET to functions URL (should return error but proves connectivity)
-    print('Test 2: HTTP GET to functions endpoint...');
+    debugPrint('Test 2: HTTP GET to functions endpoint...');
     try {
       final response = await http.get(
         Uri.parse('${SupabaseConfig.functionsUrl}/generate-daily-challenges'),
       ).timeout(const Duration(seconds: 10));
       results['functionsGet'] = 'Status: ${response.statusCode}, Body: ${response.body.substring(0, response.body.length.clamp(0, 200))}';
-      print('Test 2 result: ${response.statusCode}');
+      debugPrint('Test 2 result: ${response.statusCode}');
     } catch (e) {
       results['functionsGet'] = 'Error: $e';
-      print('Test 2 error: $e');
+      debugPrint('Test 2 error: $e');
     }
 
     // Test 3: POST to functions URL without auth (should return 401)
-    print('Test 3: HTTP POST without auth...');
+    debugPrint('Test 3: HTTP POST without auth...');
     try {
       final response = await http.post(
         Uri.parse('${SupabaseConfig.functionsUrl}/generate-daily-challenges'),
@@ -86,14 +87,14 @@ class SupabaseFunctionsService {
         body: '{}',
       ).timeout(const Duration(seconds: 10));
       results['functionsPostNoAuth'] = 'Status: ${response.statusCode}, Body: ${response.body.substring(0, response.body.length.clamp(0, 200))}';
-      print('Test 3 result: ${response.statusCode} - ${response.body}');
+      debugPrint('Test 3 result: ${response.statusCode} - ${response.body}');
     } catch (e) {
       results['functionsPostNoAuth'] = 'Error: $e';
-      print('Test 3 error: $e');
+      debugPrint('Test 3 error: $e');
     }
 
     // Test 4: POST with auth using basic http client (not IOClient)
-    print('Test 4: HTTP POST with auth using basic http client...');
+    debugPrint('Test 4: HTTP POST with auth using basic http client...');
     try {
       final token = await _getAuthToken();
       if (token != null) {
@@ -106,35 +107,35 @@ class SupabaseFunctionsService {
           body: '{"forceRegenerate": false}',
         ).timeout(const Duration(seconds: 15));
         results['functionsPostWithAuth'] = 'Status: ${response.statusCode}, Body: ${response.body.substring(0, response.body.length.clamp(0, 200))}';
-        print('Test 4 result: ${response.statusCode} - ${response.body}');
+        debugPrint('Test 4 result: ${response.statusCode} - ${response.body}');
       } else {
         results['functionsPostWithAuth'] = 'No auth token available';
-        print('Test 4: No auth token');
+        debugPrint('Test 4: No auth token');
       }
     } catch (e) {
       results['functionsPostWithAuth'] = 'Error: $e';
-      print('Test 4 error: $e');
+      debugPrint('Test 4 error: $e');
     }
 
-    print('=== CONNECTIVITY TEST COMPLETE ===');
-    print('Results: $results');
+    debugPrint('=== CONNECTIVITY TEST COMPLETE ===');
+    debugPrint('Results: $results');
     return results;
   }
 
   /// Test auth verification with minimal function (no Firebase imports)
   Future<Map<String, dynamic>> testAuthOnly() async {
-    print('=== TEST AUTH ONLY ===');
+    debugPrint('=== TEST AUTH ONLY ===');
     final stopwatch = Stopwatch()..start();
 
     try {
       final token = await _getAuthToken();
-      print('Test auth: [${stopwatch.elapsedMilliseconds}ms] Got token: ${token != null}');
+      debugPrint('Test auth: [${stopwatch.elapsedMilliseconds}ms] Got token: ${token != null}');
 
       if (token == null) {
         return {'success': false, 'error': 'No auth token'};
       }
 
-      print('Test auth: [${stopwatch.elapsedMilliseconds}ms] Making request...');
+      debugPrint('Test auth: [${stopwatch.elapsedMilliseconds}ms] Making request...');
       final response = await http.post(
         Uri.parse('${SupabaseConfig.functionsUrl}/test-auth'),
         headers: {
@@ -144,12 +145,12 @@ class SupabaseFunctionsService {
         body: '{}',
       ).timeout(const Duration(seconds: 15));
 
-      print('Test auth: [${stopwatch.elapsedMilliseconds}ms] Response: ${response.statusCode}');
-      print('Test auth: Body: ${response.body}');
+      debugPrint('Test auth: [${stopwatch.elapsedMilliseconds}ms] Response: ${response.statusCode}');
+      debugPrint('Test auth: Body: ${response.body}');
 
       return jsonDecode(response.body) as Map<String, dynamic>;
     } catch (e) {
-      print('Test auth: [${stopwatch.elapsedMilliseconds}ms] Error: $e');
+      debugPrint('Test auth: [${stopwatch.elapsedMilliseconds}ms] Error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -160,28 +161,28 @@ class SupabaseFunctionsService {
     Map<String, dynamic> data,
   ) async {
     final stopwatch = Stopwatch()..start();
-    print('Supabase: Starting call to $functionName');
+    debugPrint('Supabase: Starting call to $functionName');
 
     // Step 1: Get auth token
-    print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Getting auth token...');
+    debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] Getting auth token...');
     final token = await _getAuthToken();
-    print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Got auth token: ${token != null ? "yes (${token.length} chars)" : "null"}');
+    debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] Got auth token: ${token != null ? "yes (${token.length} chars)" : "null"}');
 
     if (token == null) {
-      print('Supabase: User not authenticated');
+      debugPrint('Supabase: User not authenticated');
       return {'success': false, 'error': 'User not authenticated'};
     }
 
     final url = '$_supabaseUrl/$functionName';
-    print('Supabase: [${stopwatch.elapsedMilliseconds}ms] URL: $url');
+    debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] URL: $url');
 
     // Step 2: Make POST request
-    print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Using ${useBasicHttpClient ? "basic http" : "IOClient"}...');
+    debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] Using ${useBasicHttpClient ? "basic http" : "IOClient"}...');
 
     try {
-      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Starting POST request...');
+      debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] Starting POST request...');
       final requestBody = jsonEncode(data);
-      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Request body: $requestBody');
+      debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] Request body: $requestBody');
 
       http.Response response;
       if (useBasicHttpClient) {
@@ -211,8 +212,8 @@ class SupabaseFunctionsService {
         }
       }
 
-      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Response received: ${response.statusCode}');
-      print('Supabase: Response body: ${response.body.substring(0, response.body.length.clamp(0, 500))}');
+      debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] Response received: ${response.statusCode}');
+      debugPrint('Supabase: Response body: ${response.body.substring(0, response.body.length.clamp(0, 500))}');
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
@@ -228,21 +229,21 @@ class SupabaseFunctionsService {
         };
       }
     } on SocketException catch (e) {
-      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] SocketException: $e');
+      debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] SocketException: $e');
       return {'success': false, 'error': 'Network error: ${e.message}'};
     } on TimeoutException catch (e) {
-      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Timeout: $e');
+      debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] Timeout: $e');
       return {'success': false, 'error': 'Request timed out'};
     } on HandshakeException catch (e) {
-      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] TLS Handshake failed: $e');
+      debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] TLS Handshake failed: $e');
       return {'success': false, 'error': 'TLS error: ${e.message}'};
     } catch (e, stackTrace) {
-      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Error calling $functionName: $e');
-      print('Supabase: Stack trace: $stackTrace');
+      debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] Error calling $functionName: $e');
+      debugPrint('Supabase: Stack trace: $stackTrace');
       return {'success': false, 'error': e.toString()};
     } finally {
       stopwatch.stop();
-      print('Supabase: [${stopwatch.elapsedMilliseconds}ms] Request completed/failed');
+      debugPrint('Supabase: [${stopwatch.elapsedMilliseconds}ms] Request completed/failed');
     }
   }
 
@@ -357,7 +358,7 @@ class SupabaseFunctionsService {
 
     // Check if there's a pending call - return the same future
     if (_pendingCalls.containsKey(cacheKey)) {
-      print('Supabase: [$functionName] Returning pending call (dedup)');
+      debugPrint('Supabase: [$functionName] Returning pending call (dedup)');
       return await _pendingCalls[cacheKey]!;
     }
 
@@ -365,7 +366,7 @@ class SupabaseFunctionsService {
     final lastCall = _lastCallTimes[cacheKey];
     if (lastCall != null &&
         DateTime.now().difference(lastCall) < _deduplicationWindow) {
-      print('Supabase: [$functionName] Skipped - called ${DateTime.now().difference(lastCall).inMilliseconds}ms ago (dedup)');
+      debugPrint('Supabase: [$functionName] Skipped - called ${DateTime.now().difference(lastCall).inMilliseconds}ms ago (dedup)');
       return {'success': true, 'deduplicated': true, 'message': 'Already called recently'};
     }
 
@@ -508,7 +509,7 @@ class SupabaseFunctionsService {
 
     // Check if there's a pending call - return the same future
     if (_pendingCalls.containsKey(cacheKey)) {
-      print('Supabase: [dailyCheckInWithChallenges] Returning pending call (dedup)');
+      debugPrint('Supabase: [dailyCheckInWithChallenges] Returning pending call (dedup)');
       return await _pendingCalls[cacheKey]!;
     }
 
@@ -516,7 +517,7 @@ class SupabaseFunctionsService {
     final lastCall = _lastCallTimes[cacheKey];
     if (lastCall != null &&
         DateTime.now().difference(lastCall) < _deduplicationWindow) {
-      print('Supabase: [dailyCheckInWithChallenges] Skipped - called ${DateTime.now().difference(lastCall).inMilliseconds}ms ago (dedup)');
+      debugPrint('Supabase: [dailyCheckInWithChallenges] Skipped - called ${DateTime.now().difference(lastCall).inMilliseconds}ms ago (dedup)');
       return {'success': true, 'deduplicated': true, 'message': 'Already called recently'};
     }
 

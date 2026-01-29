@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -160,7 +159,7 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF393027).withOpacity(0.1),
+                                  color: const Color(0xFF393027).withValues(alpha: 0.1),
                                   blurRadius: 8,
                                   spreadRadius: 2,
                                 ),
@@ -203,9 +202,9 @@ class _StreakTitleBarState extends State<StreakTitleBar>
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      color: const Color(0xFF93A840).withOpacity(0.2), // Green with 20% opacity
+                      color: const Color(0xFF93A840).withValues(alpha: 0.2), // Green with 20% opacity
                       border: Border.all(
-                        color: const Color(0xFF393027).withOpacity(0.4), // Brown border with opacity
+                        color: const Color(0xFF393027).withValues(alpha: 0.4), // Brown border with opacity
                         width: 1.0,
                       ),
                     ),

@@ -25,7 +25,7 @@ class FirebaseServiceFree {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseDatabase _rtdb = FirebaseDatabase.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   // Game logic service (client-side)
   final GameLogicService _gameLogic = GameLogicService();
@@ -48,7 +48,7 @@ class FirebaseServiceFree {
       _rtdb.setPersistenceCacheSizeBytes(10000000); // 10MB cache
     }
 
-    print('Firebase initialized with offline persistence (Free tier)');
+    debugPrint('Firebase initialized with offline persistence (Free tier)');
   }
 
   // ============================================
@@ -65,19 +65,14 @@ class FirebaseServiceFree {
   Future<UserCredential> signInWithGoogle() async {
     try {
       // Trigger Google Sign-In flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      if (googleUser == null) {
-        throw Exception('Google sign-in cancelled');
-      }
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
       // Obtain auth details
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
       // Create credential
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
+        accessToken: null, // accessToken is no longer available in this flow
         idToken: googleAuth.idToken,
       );
 
@@ -90,10 +85,10 @@ class FirebaseServiceFree {
       // Save FCM token for push notifications
       await NotificationService().saveTokenAfterLogin();
 
-      print('Google sign-in successful: ${userCredential.user?.uid}');
+      debugPrint('Google sign-in successful: ${userCredential.user?.uid}');
       return userCredential;
     } catch (e) {
-      print('Google sign-in error: $e');
+      debugPrint('Google sign-in error: $e');
       rethrow;
     }
   }

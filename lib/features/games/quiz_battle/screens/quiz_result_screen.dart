@@ -2,22 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../core/design_tokens.dart';
-import '../../../../services/game_logic_service.dart';
 import '../../../../services/supabase_functions_service.dart';
+import '../models/quiz_question.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final int totalQuestions;
   final int correctAnswers;
   final int wrongAnswers;
+  final int unansweredAnswers;
   final int score;
   final int maxStreak;
-  final List<bool> answerHistory;
+  final List<AnswerOutcome> answerHistory;
 
   const QuizResultScreen({
     super.key,
     required this.totalQuestions,
     required this.correctAnswers,
     required this.wrongAnswers,
+    required this.unansweredAnswers,
     required this.score,
     required this.maxStreak,
     required this.answerHistory,
@@ -33,7 +35,6 @@ class _QuizResultScreenState extends State<QuizResultScreen>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
-  final GameLogicService _gameLogic = GameLogicService();
   final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   int _xpEarned = 0;
@@ -66,28 +67,15 @@ class _QuizResultScreenState extends State<QuizResultScreen>
       final timeBonus = widget.maxStreak * 5;
       final isPerfect = widget.correctAnswers == widget.totalQuestions;
 
-      Map<String, dynamic> result;
-
-      // Try Supabase Edge Functions first (server-side validation)
-      try {
-        result = await _supabaseService.submitGameWithAchievements(
-          gameType: 'quiz_battle',
-          gameData: {
-            'correctAnswers': widget.correctAnswers,
-            'totalQuestions': widget.totalQuestions,
-            'timeBonus': timeBonus,
-            'isWinner': isPerfect, // Solo quiz - perfect score is a "win"
-          },
-        );
-      } catch (e) {
-        print('Supabase submission failed, falling back to client-side: $e');
-        // Fallback to client-side logic if Supabase fails
-        result = await _gameLogic.submitQuizBattle(
-          correctAnswers: widget.correctAnswers,
-          totalQuestions: widget.totalQuestions,
-          timeBonus: timeBonus,
-        );
-      }
+      final result = await _supabaseService.submitGameWithAchievements(
+        gameType: 'quiz_battle',
+        gameData: {
+          'correctAnswers': widget.correctAnswers,
+          'totalQuestions': widget.totalQuestions,
+          'timeBonus': timeBonus,
+          'isWinner': isPerfect, // Solo quiz - perfect score is a "win"
+        },
+      );
 
       if (result['success'] == true && mounted) {
         setState(() {
@@ -96,7 +84,7 @@ class _QuizResultScreenState extends State<QuizResultScreen>
         });
       }
     } catch (e) {
-      print('Error saving quiz results: $e');
+      debugPrint('Error saving quiz results: $e');
     }
   }
 
@@ -337,10 +325,10 @@ class _QuizResultScreenState extends State<QuizResultScreen>
             children: [
               Expanded(
                 child: _buildStatCard(
-                  icon: Icons.percent,
-                  label: 'Accuracy',
-                  value: '${accuracy.toStringAsFixed(0)}%',
-                  color: AppTheme.primaryColor,
+                  icon: Icons.skip_next,
+                  label: 'Unanswered',
+                  value: '${widget.unansweredAnswers}',
+                  color: AppTheme.warningColor,
                 ),
               ),
               const SizedBox(width: 12),
@@ -353,6 +341,13 @@ class _QuizResultScreenState extends State<QuizResultScreen>
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          _buildStatCard(
+            icon: Icons.percent,
+            label: 'Accuracy',
+            value: '${accuracy.toStringAsFixed(0)}%',
+            color: AppTheme.primaryColor,
           ),
         ],
       ),
@@ -430,18 +425,29 @@ class _QuizResultScreenState extends State<QuizResultScreen>
             children: List.generate(
               widget.answerHistory.length,
               (index) {
-                final isCorrect = widget.answerHistory[index];
+                final outcome = widget.answerHistory[index];
+                final isCorrect = outcome == AnswerOutcome.correct;
+                final isSkipped = outcome == AnswerOutcome.skipped;
+                final isTimeout = outcome == AnswerOutcome.timeout;
                 return Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
                     color: isCorrect
                         ? AppTheme.successColor.withValues(alpha: 0.1)
-                        : AppTheme.errorColor.withValues(alpha: 0.1),
+                        : isSkipped
+                            ? AppTheme.warningColor.withValues(alpha: 0.1)
+                            : isTimeout
+                                ? AppTheme.warningColor.withValues(alpha: 0.1)
+                                : AppTheme.errorColor.withValues(alpha: 0.1),
                     border: Border.all(
                       color: isCorrect
                           ? AppTheme.successColor
-                          : AppTheme.errorColor,
+                          : isSkipped
+                              ? AppTheme.warningColor
+                              : isTimeout
+                                  ? AppTheme.warningColor
+                                  : AppTheme.errorColor,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(8),
@@ -452,7 +458,11 @@ class _QuizResultScreenState extends State<QuizResultScreen>
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: isCorrect
                                 ? AppTheme.successColor
-                                : AppTheme.errorColor,
+                                : isSkipped
+                                    ? AppTheme.warningColor
+                                    : isTimeout
+                                        ? AppTheme.warningColor
+                                        : AppTheme.errorColor,
                             fontWeight: FontWeight.bold,
                           ),
                     ),
