@@ -65,14 +65,19 @@ class FirebaseServiceFree {
   Future<UserCredential> signInWithGoogle() async {
     try {
       // Trigger Google Sign-In flow
-      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
+
+      if (googleUser == null) {
+        // The user canceled the sign-in
+        throw FirebaseAuthException(code: 'sign-in-canceled', message: 'Google sign-in was cancelled');
+      }
 
       // Obtain auth details
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
       // Create credential
       final credential = GoogleAuthProvider.credential(
-        accessToken: null, // accessToken is no longer available in this flow
+        accessToken: null, // accessToken is not available for web in this flow
         idToken: googleAuth.idToken,
       );
 
