@@ -319,45 +319,48 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Quiz format
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: darkColor.withValues(alpha: 153),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: primaryColor.withValues(alpha: 128),
-                      width: 1.5,
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: darkColor.withValues(alpha: 153),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: primaryColor.withValues(alpha: 128),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 51),
+                          offset: const Offset(0, 6),
+                        ),
+                        BoxShadow(
+                          color: primaryColor.withValues(alpha: 64),
+                          blurRadius: 20,
+                          spreadRadius: -2,
+                        ),
+                      ],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 51),                        offset: const Offset(0, 6),
-                      ),
-                      BoxShadow(
-                        color: primaryColor.withValues(alpha: 64),
-                        blurRadius: 20,
-                        spreadRadius: -2,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(Icons.quiz, size: 60, color: primaryColor),
-                      const SizedBox(height: 16),
-                      Text(
-                        '10 Questions',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '15 seconds per question',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withValues(alpha: 217),
-                            ),
-                      ),
-                    ],
+                    child: Column(
+                      children: [
+                        Icon(Icons.quiz, size: 60, color: primaryColor),
+                        const SizedBox(height: 16),
+                        Text(
+                          '10 Questions',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '15 seconds per question',
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: Colors.white,
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -403,10 +406,6 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                   decoration: BoxDecoration(
                     color: darkColor.withValues(alpha: 153),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 38),
-                      width: 1.5,
-                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 51),
@@ -543,7 +542,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
           child: Text(
             'x$count',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: primaryColor,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
           ),
