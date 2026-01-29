@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../config/theme.dart';
-import '../../../../core/design_tokens.dart';
 import '../../../../services/supabase_functions_service.dart';
 import '../models/quiz_question.dart';
 
@@ -118,9 +116,9 @@ class _QuizResultScreenState extends State<QuizResultScreen>
 
   Color _getGradeColor() {
     final percent = (widget.correctAnswers / widget.totalQuestions) * 100;
-    if (percent >= 80) return AppTheme.successColor;
-    if (percent >= 60) return AppTheme.warningColor;
-    return AppTheme.errorColor;
+    if (percent >= 80) return const Color(0xFF9BAD50);
+    if (percent >= 60) return const Color(0xFFB6CFE4);
+    return const Color(0xFFF2C1DE);
   }
 
   @override
@@ -128,7 +126,7 @@ class _QuizResultScreenState extends State<QuizResultScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: DesignTokens.beigeGradient,
+          color: Color(0xFFFFFAE3),
         ),
         child: SafeArea(
           child: FadeTransition(
@@ -164,158 +162,722 @@ class _QuizResultScreenState extends State<QuizResultScreen>
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppTheme.secondaryColor, AppTheme.primaryColor],
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Quiz Complete!',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+    Widget _buildHeader() {
+
+      const Color primaryColor = Color(0xFF9BAD50);
+
+      const Color darkColor = Color(0xFF393027);
+
+  
+
+      return Container(
+
+        padding: const EdgeInsets.all(20),
+
+        decoration: BoxDecoration(
+
+          gradient: LinearGradient(
+
+            colors: [darkColor, primaryColor],
+
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
+
+        ),
+
+        child: Row(
+
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+          children: [
+
+            Text(
+
+              'Quiz Complete!',
+
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+
+                    color: Colors.white,
+
+                    fontWeight: FontWeight.bold,
+
+                  ),
+
             ),
-            child: Row(
+
+            Container(
+
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+
+              decoration: BoxDecoration(
+
+                color: Colors.white.withAlpha(51),
+
+                borderRadius: BorderRadius.circular(20),
+
+              ),
+
+              child: Row(
+
+                children: [
+
+                  Icon(Icons.stars, color: Colors.white, size: 16),
+
+                  const SizedBox(width: 4),
+
+                  Text(
+
+                    '${widget.score} pts',
+
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+
+                          color: Colors.white,
+
+                          fontWeight: FontWeight.bold,
+
+                        ),
+
+                  ),
+
+                ],
+
+              ),
+
+            ),
+
+          ],
+
+        ),
+
+      );
+
+    }
+
+  
+
+    Widget _buildGradeCard() {
+
+      final grade = _getPerformanceGrade();
+
+      final message = _getPerformanceMessage();
+
+      final color = _getGradeColor();
+
+      final darkColor = const Color(0xFF393027);
+
+  
+
+      return Container(
+
+        padding: const EdgeInsets.all(32),
+
+        decoration: BoxDecoration(
+
+          gradient: LinearGradient(
+
+            colors: [color, color.withAlpha(204)],
+
+            begin: Alignment.topLeft,
+
+            end: Alignment.bottomRight,
+
+          ),
+
+          borderRadius: BorderRadius.circular(24),
+
+          boxShadow: [
+
+            BoxShadow(
+
+              color: color.withAlpha(77),
+
+              blurRadius: 20,
+
+              offset: const Offset(0, 10),
+
+            ),
+
+          ],
+
+        ),
+
+        child: Column(
+
+          children: [
+
+            Text(
+
+              'Your Grade',
+
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+
+                    color: darkColor.withAlpha(230),
+
+                  ),
+
+            ),
+
+            const SizedBox(height: 16),
+
+            Text(
+
+              grade,
+
+              style: Theme.of(context).textTheme.displayLarge?.copyWith(
+
+                    color: darkColor,
+
+                    fontWeight: FontWeight.bold,
+
+                    fontSize: 100,
+
+                  ),
+
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+
+              '${widget.correctAnswers}/${widget.totalQuestions} Correct',
+
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+
+                    color: darkColor.withAlpha(230),
+
+                  ),
+
+            ),
+
+            const SizedBox(height: 16),
+
+            Text(
+
+              message,
+
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+
+                    color: darkColor,
+
+                    height: 1.5,
+
+                  ),
+
+              textAlign: TextAlign.center,
+
+            ),
+
+          ],
+
+        ),
+
+      );
+
+    }
+
+  
+
+    Widget _buildStatsGrid() {
+
+      final accuracy = (widget.correctAnswers / widget.totalQuestions) * 100;
+
+      const Color primaryColor = Color(0xFF9BAD50);
+
+      const Color accentColor = Color(0xFFF2C1DE);
+
+      const Color lightColor = Color(0xFFB6CFE4);
+
+  
+
+      return Container(
+
+        padding: const EdgeInsets.all(20),
+
+        decoration: BoxDecoration(
+
+          color: lightColor,
+
+          borderRadius: BorderRadius.circular(20),
+
+          boxShadow: [
+
+            BoxShadow(
+
+              color: Colors.black.withAlpha(13),
+
+              blurRadius: 10,
+
+              offset: const Offset(0, 5),
+
+            ),
+
+          ],
+
+        ),
+
+        child: Column(
+
+          crossAxisAlignment: CrossAxisAlignment.start,
+
+          children: [
+
+            Row(
+
               children: [
-                Icon(Icons.stars, color: Colors.white, size: 16),
-                const SizedBox(width: 4),
+
+                Icon(Icons.bar_chart, color: primaryColor),
+
+                const SizedBox(width: 8),
+
                 Text(
-                  '${widget.score} pts',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
+
+                  'Performance Stats',
+
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+
                         fontWeight: FontWeight.bold,
+
                       ),
+
                 ),
+
               ],
+
             ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildGradeCard() {
-    final grade = _getPerformanceGrade();
-    final message = _getPerformanceMessage();
-    final color = _getGradeColor();
+            const SizedBox(height: 20),
 
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color, color.withValues(alpha: 0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+            Row(
+
+              children: [
+
+                Expanded(
+
+                  child: _buildStatCard(
+
+                    icon: Icons.check_circle,
+
+                    label: 'Correct',
+
+                    value: '${widget.correctAnswers}',
+
+                    color: primaryColor,
+
+                  ),
+
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+
+                  child: _buildStatCard(
+
+                    icon: Icons.cancel,
+
+                    label: 'Wrong',
+
+                    value: '${widget.wrongAnswers}',
+
+                    color: accentColor,
+
+                  ),
+
+                ),
+
+              ],
+
+            ),
+
+            const SizedBox(height: 12),
+
+            Row(
+
+              children: [
+
+                Expanded(
+
+                  child: _buildStatCard(
+
+                    icon: Icons.percent,
+
+                    label: 'Accuracy',
+
+                    value: '${accuracy.toStringAsFixed(0)}%',
+
+                    color: primaryColor,
+
+                  ),
+
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+
+                  child: _buildStatCard(
+
+                    icon: Icons.whatshot,
+
+                    label: 'Max Streak',
+
+                    value: '${widget.maxStreak}',
+
+                    color: primaryColor,
+
+                  ),
+
+                ),
+
+              ],
+
+            ),
+
+          ],
+
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Your Grade',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.9),
-                ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            grade,
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 100,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${widget.correctAnswers}/${widget.totalQuestions} Correct',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.9),
-                ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white,
-                  height: 1.5,
-                ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildStatsGrid() {
-    final accuracy = (widget.correctAnswers / widget.totalQuestions) * 100;
+      );
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.bar_chart, color: AppTheme.primaryColor),
-              const SizedBox(width: 8),
-              Text(
-                'Performance Stats',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+    }
+
+  
+
+    Widget _buildStatCard({
+
+      required IconData icon,
+
+      required String label,
+
+      required String value,
+
+      required Color color,
+
+    }) {
+
+      return Container(
+
+        padding: const EdgeInsets.all(16),
+
+        decoration: BoxDecoration(
+
+          color: color.withAlpha(26),
+
+          borderRadius: BorderRadius.circular(16),
+
+        ),
+
+        child: Column(
+
+          children: [
+
+            Icon(icon, color: color, size: 32),
+
+            const SizedBox(height: 8),
+
+            Text(
+
+              value,
+
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+
+                    color: color,
+
+                    fontWeight: FontWeight.bold,
+
+                  ),
+
+            ),
+
+            const SizedBox(height: 4),
+
+            Text(
+
+              label,
+
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+
+                    color: const Color(0xFF393027),
+
+                  ),
+
+            ),
+
+          ],
+
+        ),
+
+      );
+
+    }
+
+  
+
+    Widget _buildAnswerHistory() {
+
+      const Color primaryColor = Color(0xFF9BAD50);
+
+      const Color accentColor = Color(0xFFF2C1DE);
+
+      const Color lightColor = Color(0xFFB6CFE4);
+
+  
+
+      return Container(
+
+        padding: const EdgeInsets.all(20),
+
+        decoration: BoxDecoration(
+
+          color: lightColor,
+
+          borderRadius: BorderRadius.circular(20),
+
+          boxShadow: [
+
+            BoxShadow(
+
+              color: Colors.black.withAlpha(13),
+
+              blurRadius: 10,
+
+              offset: const Offset(0, 5),
+
+            ),
+
+          ],
+
+        ),
+
+        child: Column(
+
+          crossAxisAlignment: CrossAxisAlignment.start,
+
+          children: [
+
+            Row(
+
+              children: [
+
+                Icon(Icons.history, color: primaryColor),
+
+                const SizedBox(width: 8),
+
+                Text(
+
+                  'Answer Timeline',
+
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+
+                        fontWeight: FontWeight.bold,
+
+                      ),
+
+                ),
+
+              ],
+
+            ),
+
+            const SizedBox(height: 16),
+
+            Wrap(
+
+              spacing: 8,
+
+              runSpacing: 8,
+
+              children: List.generate(
+
+                widget.answerHistory.length,
+
+                (index) {
+
+                  final isCorrect = widget.answerHistory[index];
+
+                  return Container(
+
+                    width: 40,
+
+                    height: 40,
+
+                    decoration: BoxDecoration(
+
+                      color: isCorrect
+
+                          ? primaryColor.withAlpha(26)
+
+                          : accentColor.withAlpha(26),
+
+                      border: Border.all(
+
+                        color: isCorrect
+
+                            ? primaryColor
+
+                            : accentColor,
+
+                        width: 2,
+
+                      ),
+
+                      borderRadius: BorderRadius.circular(8),
+
                     ),
+
+                    child: Center(
+
+                      child: Text(
+
+                        '${index + 1}',
+
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+
+                              color: isCorrect
+
+                                  ? primaryColor
+
+                                  : accentColor,
+
+                              fontWeight: FontWeight.bold,
+
+                            ),
+
+                      ),
+
+                    ),
+
+                  );
+
+                },
+
               ),
+
+            ),
+
+          ],
+
+        ),
+
+      );
+
+    }
+
+  
+
+    Widget _buildRewardsCard() {
+
+      final isPerfect = widget.correctAnswers == widget.totalQuestions;
+
+      // Use server-returned values if available, otherwise use calculated fallback
+
+      final coinsToShow = _coinsEarned > 0 ? _coinsEarned : (widget.score ~/ 10 + (isPerfect ? 50 : 0));
+
+      final xpToShow = _xpEarned > 0 ? _xpEarned : (widget.score ~/ 5 + (isPerfect ? 100 : 0));
+
+      const Color primaryColor = Color(0xFF9BAD50);
+
+      const Color lightColor = Color(0xFFB6CFE4);
+
+  
+
+      return Container(
+
+        padding: const EdgeInsets.all(20),
+
+        decoration: BoxDecoration(
+
+          gradient: LinearGradient(
+
+            colors: [
+
+              primaryColor.withAlpha(51),
+
+              lightColor.withAlpha(51),
+
             ],
+
           ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.check_circle,
-                  label: 'Correct',
-                  value: '${widget.correctAnswers}',
-                  color: AppTheme.successColor,
+
+          borderRadius: BorderRadius.circular(20),
+
+          border: Border.all(
+
+            color: primaryColor.withAlpha(128),
+
+            width: 2,
+
+          ),
+
+        ),
+
+        child: Column(
+
+          children: [
+
+            Row(
+
+              children: [
+
+                Icon(Icons.card_giftcard, color: primaryColor),
+
+                const SizedBox(width: 8),
+
+                Text(
+
+                  'Rewards Earned',
+
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+
+                        fontWeight: FontWeight.bold,
+
+                      ),
+
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.cancel,
-                  label: 'Wrong',
-                  value: '${widget.wrongAnswers}',
-                  color: AppTheme.errorColor,
+
+              ],
+
+            ),
+
+            const SizedBox(height: 20),
+
+            Row(
+
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+              children: [
+
+                _buildRewardItem(
+
+                  icon: Icons.monetization_on,
+
+                  label: 'Coins',
+
+                  value: '+$coinsToShow',
+
+                  color: primaryColor,
+
+                ),
+
+                Container(
+
+                  width: 1,
+
+                  height: 40,
+
+                  color: const Color(0xFF393027).withAlpha(77),
+
+                ),
+
+                _buildRewardItem(
+
+                  icon: Icons.stars,
+
+                  label: 'XP',
+
+                  value: '+$xpToShow',
+
+                  color: primaryColor,
+
                 ),
               ),
             ],
@@ -330,16 +892,37 @@ class _QuizResultScreenState extends State<QuizResultScreen>
                   value: '${widget.unansweredAnswers}',
                   color: AppTheme.warningColor,
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.whatshot,
-                  label: 'Max Streak',
-                  value: '${widget.maxStreak}',
-                  color: AppTheme.accentYellow,
+
+                child: Row(
+
+                  mainAxisAlignment: MainAxisAlignment.center,
+
+                  children: [
+
+                    Icon(Icons.emoji_events, color: primaryColor),
+
+                    const SizedBox(width: 8),
+
+                    Text(
+
+                      'Perfect Score Bonus!',
+
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+
+                            color: primaryColor,
+
+                            fontWeight: FontWeight.bold,
+
+                          ),
+
+                    ),
+
+                  ],
+
                 ),
+
               ),
+
             ],
           ),
           const SizedBox(height: 12),
@@ -354,53 +937,62 @@ class _QuizResultScreenState extends State<QuizResultScreen>
     );
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
 
-  Widget _buildAnswerHistory() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+        ),
+
+      );
+
+    }
+
+    
+
+    Widget _buildRewardItem({
+
+      required IconData icon,
+
+      required String label,
+
+      required String value,
+
+      required Color color,
+
+    }) {
+
+      return Column(
+
+        children: [
+
+          Icon(icon, color: color, size: 40),
+
+          const SizedBox(height: 8),
+
+          Text(
+
+            value,
+
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+
+                  color: color,
+
+                  fontWeight: FontWeight.bold,
+
+                ),
+
           ),
+
+          Text(
+
+            label,
+
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+
+                  color: const Color(0xFF393027),
+
+                ),
+
+          ),
+
         ],
       ),
       child: Column(
@@ -464,191 +1056,77 @@ class _QuizResultScreenState extends State<QuizResultScreen>
                                         ? AppTheme.warningColor
                                         : AppTheme.errorColor,
                             fontWeight: FontWeight.bold,
+
                           ),
+
                     ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildRewardsCard() {
-    final isPerfect = widget.correctAnswers == widget.totalQuestions;
-    // Use server-returned values if available, otherwise use calculated fallback
-    final coinsToShow = _coinsEarned > 0 ? _coinsEarned : (widget.score ~/ 10 + (isPerfect ? 50 : 0));
-    final xpToShow = _xpEarned > 0 ? _xpEarned : (widget.score ~/ 5 + (isPerfect ? 100 : 0));
+                    const SizedBox(width: 8),
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.accentYellow.withValues(alpha: 0.2),
-            AppTheme.warningColor.withValues(alpha: 0.2),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.accentYellow.withValues(alpha: 0.5),
-          width: 2,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Icon(Icons.card_giftcard, color: AppTheme.accentYellow),
-              const SizedBox(width: 8),
-              Text(
-                'Rewards Earned',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildRewardItem(
-                icon: Icons.monetization_on,
-                label: 'Coins',
-                value: '+$coinsToShow',
-                color: AppTheme.accentYellow,
-              ),
-              Container(
-                width: 1,
-                height: 40,
-                color: AppTheme.textSecondary.withValues(alpha: 0.3),
-              ),
-              _buildRewardItem(
-                icon: Icons.stars,
-                label: 'XP',
-                value: '+$xpToShow',
-                color: AppTheme.primaryColor,
-              ),
-            ],
-          ),
-          if (isPerfect) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.successColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.emoji_events, color: AppTheme.successColor),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Perfect Score Bonus!',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.successColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+                    Icon(Icons.refresh, color: darkColor),
 
-  Widget _buildRewardItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 40),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-        ),
-      ],
-    );
-  }
+                  ],
 
-  Widget _buildActionButtons() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: () {
-                context.go('/game/quiz-battle');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.secondaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
                 ),
+
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Play Again',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+
+            ),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+
+              width: double.infinity,
+
+              height: 56,
+
+              child: OutlinedButton(
+
+                onPressed: () {
+
+                  context.go('/');
+
+                },
+
+                style: OutlinedButton.styleFrom(
+
+                  side: BorderSide(color: primaryColor),
+
+                  shape: RoundedRectangleBorder(
+
+                    borderRadius: BorderRadius.circular(16),
+
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.refresh, color: Colors.white),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: OutlinedButton(
-              onPressed: () {
-                context.go('/');
-              },
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppTheme.secondaryColor),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+
                 ),
+
+                child: Text(
+
+                  'Back to Home',
+
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+
+                        color: primaryColor,
+
+                        fontWeight: FontWeight.bold,
+
+                      ),
+
+                ),
+
               ),
-              child: Text(
-                'Back to Home',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppTheme.secondaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
+
             ),
-          ),
-        ],
-      ),
-    );
+
+          ],
+
+        ),
+
+      );
+
+    }
+
   }
-}
+
+  
