@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../config/theme.dart';
-import '../../../../core/design_tokens.dart';
 import '../models/quiz_question.dart';
 import 'quiz_result_screen.dart';
 import '../../../../services/mascot_service.dart';
+import '../../../../core/extensions.dart';
 
 class QuizBattleScreen extends StatefulWidget {
   const QuizBattleScreen({super.key});
@@ -253,7 +252,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: DesignTokens.vibrantBackgroundGradient,
+          color: Color(0xFFFFFAE3),
         ),
         child: SafeArea(
           child: hasStarted ? _buildQuizScreen() : _buildInstructionsScreen(),
@@ -263,6 +262,10 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   }
 
   Widget _buildInstructionsScreen() {
+    const Color primaryColor = Color(0xFF9BAD50);
+    const Color darkColor = Color(0xFF393027);
+    const Color lightColor = Color(0xFFB6CFE4);
+    const Color accentColor = Color(0xFFF2C1DE);
     return Column(
       children: [
         // Header - Blackened top strip with centered heading
@@ -270,10 +273,10 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
           height: 72,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
-            color: const Color(0xFF0B0B0D).withValues(alpha: 0.85),
+            color: darkColor.withValues(alpha: 217),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
+                color: Colors.black.withValues(alpha: 51),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -319,20 +322,18 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B0B0D).withValues(alpha: 0.6),
+                    color: darkColor.withValues(alpha: 153),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: DesignTokens.primaryStart.withValues(alpha: 0.5),
+                      color: primaryColor.withValues(alpha: 128),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
+                                        color: Colors.black.withValues(alpha: 51),                        offset: const Offset(0, 6),
                       ),
                       BoxShadow(
-                        color: DesignTokens.primaryStart.withValues(alpha: 0.25),
+                        color: primaryColor.withValues(alpha: 64),
                         blurRadius: 20,
                         spreadRadius: -2,
                       ),
@@ -340,7 +341,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                   ),
                   child: Column(
                     children: [
-                      Icon(Icons.quiz, size: 60, color: DesignTokens.primaryStart),
+                      Icon(Icons.quiz, size: 60, color: primaryColor),
                       const SizedBox(height: 16),
                       Text(
                         '10 Questions',
@@ -353,7 +354,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                       Text(
                         '15 seconds per question',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.85),
+                              color: Colors.white.withValues(alpha: 217),
                             ),
                       ),
                     ],
@@ -366,7 +367,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                   'How to Play',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: darkColor,
                       ),
                 ),
                 const SizedBox(height: 16),
@@ -375,21 +376,21 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                   icon: Icons.timer,
                   title: 'Beat the Clock',
                   description: 'Answer before time runs out. Faster = more points!',
-                  color: AppTheme.warningColor,
+                  color: accentColor,
                 ),
                 const SizedBox(height: 12),
                 _buildRuleItem(
                   icon: Icons.whatshot,
                   title: 'Build Streaks',
                   description: 'Consecutive correct answers give bonus points.',
-                  color: AppTheme.accentYellow,
+                  color: primaryColor,
                 ),
                 const SizedBox(height: 12),
                 _buildRuleItem(
                   icon: Icons.flash_on,
                   title: 'Use Power-Ups',
                   description: '50-50, Skip, Freeze Time - use them wisely!',
-                  color: AppTheme.successColor,
+                  color: lightColor,
                 ),
                 const SizedBox(height: 24),
 
@@ -397,15 +398,15 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B0B0D).withValues(alpha: 0.6),
+                    color: darkColor.withValues(alpha: 153),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.15),
+                      color: Colors.white.withValues(alpha: 38),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
+                        color: Colors.black.withValues(alpha: 51),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -416,7 +417,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.stars, color: AppTheme.accentYellow),
+                          Icon(Icons.stars, color: primaryColor),
                           const SizedBox(width: 8),
                           Text(
                             'Power-Ups Available',
@@ -450,7 +451,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
             child: ElevatedButton(
               onPressed: _startGame,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.secondaryColor,
+                backgroundColor: primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -461,12 +462,12 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                   Text(
                     'Start Quiz',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
+                          color: darkColor,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(Icons.play_arrow, color: Colors.white, size: 28),
+                  Icon(Icons.play_arrow, color: darkColor, size: 28),
                 ],
               ),
             ),
@@ -489,10 +490,10 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.2),
+            color: color.withValues(alpha: 51),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: color.withValues(alpha: 0.4),
+              color: color.withValues(alpha: 102),
               width: 1.5,
             ),
           ),
@@ -514,7 +515,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: Colors.white.withValues(alpha: 217),
                     ),
               ),
             ],
@@ -525,21 +526,20 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   }
 
   Widget _buildPowerUpInfo(String name, String description, int count) {
+    const Color primaryColor = Color(0xFF9BAD50);
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: AppTheme.accentYellow.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(8),
+                          color: primaryColor.withValues(alpha: 51),            borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: AppTheme.accentYellow.withValues(alpha: 0.4),
-            ),
+                              color: primaryColor.withValues(alpha: 102),            ),
           ),
           child: Text(
             'x$count',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.accentYellow,
+                  color: primaryColor,
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -559,7 +559,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                 TextSpan(
                   text: description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: Colors.white.withValues(alpha: 217),
                       ),
                 ),
               ],
@@ -600,13 +600,16 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   }
 
   Widget _buildQuizHeader() {
+    const Color primaryColor = Color(0xFF9BAD50);
+    const Color darkColor = Color(0xFF393027);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B0B0D).withValues(alpha: 0.85),
+        color: darkColor.withValues(alpha: 217),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withValues(alpha: 51),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -622,14 +625,14 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
               Text(
                 'Score',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: Colors.white.withValues(alpha: 179),
                     ),
               ),
               Text(
                 '$score',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: DesignTokens.primaryStart,
+                      color: primaryColor,
                     ),
               ),
             ],
@@ -639,10 +642,10 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: DesignTokens.primaryStart.withValues(alpha: 0.2),
+              color: primaryColor.withValues(alpha: 51),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: DesignTokens.primaryStart.withValues(alpha: 0.4),
+                color: primaryColor.withValues(alpha: 102),
               ),
             ),
             child: Text(
@@ -663,13 +666,13 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                   Icon(Icons.whatshot,
                       size: 16,
                       color: streak > 0
-                          ? AppTheme.accentYellow
-                          : Colors.white.withValues(alpha: 0.5)),
+                          ? primaryColor
+                          : Colors.white.withValues(alpha: 128)),
                   const SizedBox(width: 4),
                   Text(
                     'Streak',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.7),
+                          color: Colors.white.withValues(alpha: 179),
                         ),
                   ),
                 ],
@@ -679,8 +682,8 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: streak > 0
-                          ? AppTheme.accentYellow
-                          : Colors.white.withValues(alpha: 0.5),
+                          ? primaryColor
+                          : Colors.white.withValues(alpha: 128),
                     ),
               ),
             ],
@@ -692,13 +695,16 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
 
   Widget _buildTimerBar() {
     final progress = timeLeft / 15;
+    const Color primaryColor = Color(0xFF9BAD50);
+    const Color accentColor = Color(0xFFF2C1DE);
+
     Color timerColor;
     if (timeLeft > 10) {
-      timerColor = AppTheme.successColor;
+      timerColor = primaryColor;
     } else if (timeLeft > 5) {
-      timerColor = AppTheme.warningColor;
+      timerColor = accentColor;
     } else {
-      timerColor = AppTheme.errorColor;
+      timerColor = Colors.red;
     }
 
     return Container(
@@ -710,7 +716,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [timerColor, timerColor.withValues(alpha: 0.7)],
+              colors: [timerColor, timerColor.withValues(alpha: 179)],
             ),
           ),
         ),
@@ -719,6 +725,11 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   }
 
   Widget _buildQuestionCard(QuizQuestion question) {
+    const Color darkColor = Color(0xFF393027);
+    const Color lightColor = Color(0xFFB6CFE4);
+    const Color primaryColor = Color(0xFF9BAD50);
+    const Color accentColor = Color(0xFFF2C1DE);
+    
     return AnimatedBuilder(
       animation: _shakeAnimation,
       builder: (context, child) {
@@ -730,11 +741,11 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: lightColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: darkColor.withValues(alpha: 26),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -747,13 +758,13 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: _getCategoryColor(question.category).withValues(alpha: 0.1),
+                color: primaryColor,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 _getCategoryName(question.category),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: _getCategoryColor(question.category),
+                      color: darkColor,
                       fontWeight: FontWeight.bold,
                     ),
               ),
@@ -766,7 +777,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     height: 1.4,
-                    color: Colors.black87,
+                    color: darkColor,
                   ),
             ),
 
@@ -777,9 +788,9 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: (selectedAnswerIndex == question.correctAnswerIndex
-                          ? AppTheme.successColor
-                          : AppTheme.errorColor)
-                      .withValues(alpha: 0.1),
+                          ? primaryColor
+                          : lightColor)
+                      .withValues(alpha: 51),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -789,15 +800,15 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                           ? Icons.check_circle
                           : Icons.cancel,
                       color: selectedAnswerIndex == question.correctAnswerIndex
-                          ? AppTheme.successColor
-                          : AppTheme.errorColor,
+                          ? primaryColor
+                          : darkColor,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         question.explanation,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.black87,
+                              color: darkColor,
                             ),
                       ),
                     ),
@@ -812,6 +823,8 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   }
 
   Widget _buildPowerUps() {
+    const Color primaryColor = Color(0xFF9BAD50);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -821,6 +834,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
           count: fiftyFiftyCount,
           onPressed: _useFiftyFifty,
           enabled: !hasAnswered && !usedFiftyFifty,
+          activeColor: primaryColor,
         ),
         _buildPowerUpButton(
           icon: Icons.skip_next,
@@ -828,6 +842,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
           count: skipCount,
           onPressed: _useSkip,
           enabled: !hasAnswered,
+          activeColor: primaryColor,
         ),
         _buildPowerUpButton(
           icon: Icons.ac_unit,
@@ -835,6 +850,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
           count: freezeTimeCount,
           onPressed: _useFreezeTime,
           enabled: !hasAnswered,
+          activeColor: primaryColor,
         ),
       ],
     );
@@ -846,6 +862,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
     required int count,
     required VoidCallback onPressed,
     required bool enabled,
+    required Color activeColor,
   }) {
     final isActive = count > 0 && enabled;
 
@@ -858,12 +875,12 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: isActive
-                ? AppTheme.accentYellow.withValues(alpha: 0.1)
+                ? activeColor.withValues(alpha: 26)
                 : Colors.grey[200],
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isActive
-                  ? AppTheme.accentYellow.withValues(alpha: 0.3)
+                  ? activeColor.withValues(alpha: 77)
                   : Colors.grey[300]!,
             ),
           ),
@@ -871,7 +888,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
             children: [
               Icon(
                 icon,
-                color: isActive ? AppTheme.accentYellow : Colors.grey,
+                color: isActive ? activeColor : Colors.grey,
                 size: 24,
               ),
               const SizedBox(height: 4),
@@ -879,13 +896,13 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: isActive ? AppTheme.textPrimary : Colors.grey,
+                      color: isActive ? const Color(0xFF393027) : Colors.grey,
                     ),
               ),
               Text(
                 'x$count',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isActive ? AppTheme.accentYellow : Colors.grey,
+                      color: isActive ? activeColor : Colors.grey,
                       fontWeight: FontWeight.bold,
                     ),
               ),
@@ -920,22 +937,27 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
     final isCorrect = index == question.correctAnswerIndex;
     final showResult = hasAnswered;
 
+    const Color primaryColor = Color(0xFF9BAD50);
+    const Color darkColor = Color(0xFF393027);
+    const Color lightColor = Color(0xFFB6CFE4);
+    const Color accentColor = Color(0xFFF2C1DE);
+
     Color backgroundColor;
     Color borderColor;
     Color textColor;
-
     Color circleColor;
+
     if (showResult) {
       if (isCorrect) {
-        backgroundColor = AppTheme.successColor.withValues(alpha: 0.1);
-        borderColor = AppTheme.successColor;
-        textColor = AppTheme.successColor;
-        circleColor = AppTheme.successColor;
+        backgroundColor = primaryColor.withAlpha(51);
+        borderColor = primaryColor;
+        textColor = darkColor;
+        circleColor = primaryColor;
       } else if (isSelected) {
-        backgroundColor = AppTheme.errorColor.withValues(alpha: 0.1);
-        borderColor = AppTheme.errorColor;
-        textColor = AppTheme.errorColor;
-        circleColor = AppTheme.errorColor;
+        backgroundColor = Colors.red.withValues(alpha: 51);
+        borderColor = Colors.red;
+        textColor = darkColor;
+        circleColor = Colors.red;
       } else {
         backgroundColor = Colors.grey[100]!;
         borderColor = Colors.grey[300]!;
@@ -943,10 +965,10 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
         circleColor = Colors.grey[400]!;
       }
     } else {
-      backgroundColor = Colors.white;
-      borderColor = AppTheme.primaryColor.withValues(alpha: 0.3);
-      textColor = Colors.black87;
-      circleColor = AppTheme.primaryColor;
+      backgroundColor = lightColor;
+      borderColor = primaryColor.withAlpha(77);
+      textColor = darkColor;
+      circleColor = primaryColor;
     }
 
     return InkWell(
@@ -989,34 +1011,13 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
               ),
             ),
             if (showResult && isCorrect)
-              Icon(Icons.check_circle, color: AppTheme.successColor),
+              Icon(Icons.check_circle, color: primaryColor),
             if (showResult && isSelected && !isCorrect)
-              Icon(Icons.cancel, color: AppTheme.errorColor),
+              Icon(Icons.cancel, color: Colors.red),
           ],
         ),
       ),
     );
-  }
-
-  Color _getCategoryColor(QuizCategory category) {
-    switch (category) {
-      case QuizCategory.budgeting:
-        return const Color(0xFF3498DB);
-      case QuizCategory.saving:
-        return const Color(0xFF5F8724);
-      case QuizCategory.investing:
-        return const Color(0xFF9B59B6);
-      case QuizCategory.banking:
-        return const Color(0xFF1ABC9C);
-      case QuizCategory.taxes:
-        return const Color(0xFFE74C3C);
-      case QuizCategory.credit:
-        return const Color(0xFFE67E22);
-      case QuizCategory.insurance:
-        return const Color(0xFFF39C12);
-      case QuizCategory.general:
-        return const Color(0xFF34495E);
-    }
   }
 
   String _getCategoryName(QuizCategory category) {
