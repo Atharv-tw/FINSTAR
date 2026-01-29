@@ -93,8 +93,8 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
 
               return Positioned(
                 top: position.dy - 55, // Center vertically
-                left: 0, // Take full width for positioning
-                right: 0, // Take full width for positioning
+                left: 0, // Span full width of screen
+                right: 0,
                 child: GestureDetector(
                   onTap: () {
                     if (!isLocked) {
@@ -102,37 +102,39 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
                       context.push('/lesson/${widget.module.id}/${lesson.id}');
                     }
                   },
-                  child: Container(
-                    height: 110, // Fixed height for the lesson row
+                  child: Container( // Outer container spans full width
+                    height: 110,
+                    // color: Colors.blue.withOpacity(0.1), // Debugging
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         if (!isLeft) ...[ // Icon on left, text on right
-                          const SizedBox(width: 20), // Padding from left edge
+                          SizedBox(width: math.max(20, position.dx - 30 - 15 - (60 + 5))), // Empty space on left, ensure min 20
                           lessonIcon,
-                          const SizedBox(width: 15), // Spacing between icon and text
-                          Expanded(
+                          const SizedBox(width: 15), // Spacing
+                          Expanded( // Text will be in this expanded area
                             child: Align(
-                              alignment: Alignment.centerLeft, // Center text within its expanded area
-                              child: lessonText,
+                              alignment: Alignment.center, // Center the text within this remaining space
+                              child: lessonText, // lessonText is shrink-wrapped
                             ),
                           ),
                         ] else ...[ // Text on left, icon on right
-                          Expanded(
+                          Expanded( // Text will be in this expanded area
                             child: Align(
-                              alignment: Alignment.centerRight, // Center text within its expanded area
-                              child: lessonText,
+                              alignment: Alignment.center, // Center the text within this remaining space
+                              child: lessonText, // lessonText is shrink-wrapped
                             ),
                           ),
-                          const SizedBox(width: 15), // Spacing between text and icon
+                          const SizedBox(width: 15), // Spacing
                           lessonIcon,
-                          const SizedBox(width: 20), // Padding from right edge
+                          SizedBox(width: math.max(20, constraints.maxWidth - (position.dx + 30 + 15 + (60 + 5)))), // Empty space on right, ensure min 20
                         ]
                       ],
                     ),
                   ),
                 ),
               );
+
             }),
           ],
         );
@@ -182,6 +184,12 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
     final words = title.split(' ');
     if (words.length <= 2) return title;
     if (words.length == 3 && words[2].length <= 2) return title;
+
+    // Special handling for "Set & Smash Financial Goals"
+    if (title == "Set & Smash Financial Goals") {
+      return "Set & Smash\nFinancial Goals";
+    }
+
     final firstLine = words.sublist(0, 2).join(' ');
     final secondLine = words.sublist(2).join(' ');
     return '$firstLine\n$secondLine';
