@@ -146,16 +146,12 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
         answerHistory.add(true);
         _celebrationController.forward(from: 0);
 
-        // Show mascot celebration
-        MascotService().showQuizFeedback(context, true);
       } else {
         wrongAnswers++;
         streak = 0;
         answerHistory.add(false);
         _shakeController.forward(from: 0);
 
-        // Show mascot sad reaction
-        MascotService().showQuizFeedback(context, false);
       }
     });
 
@@ -732,6 +728,8 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
     const Color lightColor = Color(0xFFB6CFE4);
     const Color primaryColor = Color(0xFF9BAD50);
     const Color accentColor = Color(0xFFF2C1DE);
+
+    final bool isWrong = hasAnswered && selectedAnswerIndex != question.correctAnswerIndex;
     
     return AnimatedBuilder(
       animation: _shakeAnimation,
@@ -790,10 +788,9 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: (selectedAnswerIndex == question.correctAnswerIndex
+                  color: selectedAnswerIndex == question.correctAnswerIndex
                           ? primaryColor
-                          : lightColor)
-                      .withValues(alpha: 51),
+                          : accentColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
