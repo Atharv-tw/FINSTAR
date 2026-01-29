@@ -47,6 +47,30 @@ class QuizQuestion {
 
   String get correctAnswer => options[correctAnswerIndex];
 
+  QuizQuestion shuffledOptions({Random? rng}) {
+    final random = rng ?? Random();
+    final indexed = List.generate(
+      options.length,
+      (index) => MapEntry(index, options[index]),
+    );
+    indexed.shuffle(random);
+
+    final newOptions = indexed.map((e) => e.value).toList();
+    final newCorrectIndex =
+        indexed.indexWhere((e) => e.key == correctAnswerIndex);
+
+    return QuizQuestion(
+      id: id,
+      question: question,
+      options: newOptions,
+      correctAnswerIndex: newCorrectIndex,
+      difficulty: difficulty,
+      category: category,
+      explanation: explanation,
+      points: points,
+    );
+  }
+
   static List<QuizQuestion> getAllQuestions() {
     return [
       // BUDGETING - Easy
@@ -578,6 +602,7 @@ class QuizQuestion {
     QuizDifficulty? difficulty,
     QuizCategory? category,
   }) {
+    final random = Random();
     var questions = getAllQuestions();
 
     // Filter by difficulty if specified
@@ -591,13 +616,17 @@ class QuizQuestion {
     }
 
     // Shuffle and take requested count
-    questions.shuffle(Random());
-    return questions.take(count).toList();
+    questions.shuffle(random);
+    return questions
+        .take(count)
+        .map((q) => q.shuffledOptions(rng: random))
+        .toList();
   }
 
   static List<QuizQuestion> getMixedDifficultyQuiz({int count = 10}) {
+    final random = Random();
     var questions = getAllQuestions();
-    questions.shuffle(Random());
+    questions.shuffle(random);
 
     // Avoid immediate repeats if possible
     final filtered = questions.where((q) => !_recentQuestionIds.contains(q.id)).toList();
@@ -615,9 +644,18 @@ class QuizQuestion {
       easyCount = count - hardCount;
     }
 
-    final easy = questions.where((q) => q.difficulty == QuizDifficulty.easy).toList()..shuffle(Random());
-    final medium = questions.where((q) => q.difficulty == QuizDifficulty.medium).toList()..shuffle(Random());
-    final hard = questions.where((q) => q.difficulty == QuizDifficulty.hard).toList()..shuffle(Random());
+    final easy = questions
+      .where((q) => q.difficulty == QuizDifficulty.easy)
+      .toList()
+      ..shuffle(random);
+    final medium = questions
+      .where((q) => q.difficulty == QuizDifficulty.medium)
+      .toList()
+      ..shuffle(random);
+    final hard = questions
+      .where((q) => q.difficulty == QuizDifficulty.hard)
+      .toList()
+      ..shuffle(random);
 
     final mixed = [
       ...easy.take(easyCount),
@@ -627,7 +665,10 @@ class QuizQuestion {
 
     // Progression: easy -> medium -> hard
     final ordered = [...mixed];
-    final result = ordered.take(count).toList();
+    final result = ordered
+        .take(count)
+        .map((q) => q.shuffledOptions(rng: random))
+        .toList();
 
     _recentQuestionIds.addAll(result.map((q) => q.id));
     if (_recentQuestionIds.length > 20) {
