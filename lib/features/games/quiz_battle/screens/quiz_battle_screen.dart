@@ -807,18 +807,18 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.warningColor.withValues(alpha: 0.1),
+                    color: accentColor.withAlpha(26),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.timer_off, color: AppTheme.warningColor),
+                      Icon(Icons.timer_off, color: accentColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'Time\'s up!',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppTheme.warningColor,
+                                color: accentColor,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
