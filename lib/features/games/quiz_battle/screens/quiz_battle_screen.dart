@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../core/design_tokens.dart';
 import '../models/quiz_question.dart';
-import 'quiz_result_screen.dart';
 import '../../../../services/mascot_service.dart';
 
 class QuizBattleScreen extends StatefulWidget {
@@ -26,12 +25,14 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   int score = 0;
   int correctAnswers = 0;
   int wrongAnswers = 0;
+  int unansweredAnswers = 0;
   int streak = 0;
   int maxStreak = 0;
-  List<bool> answerHistory = [];
+  List<AnswerOutcome> answerHistory = [];
 
   // Timer
   int timeLeft = 15; // seconds per question
+  int _maxTimePerQuestion = 15;
   Timer? questionTimer;
   late AnimationController _timerController;
 
@@ -46,6 +47,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
   late AnimationController _celebrationController;
+  bool _timedOut = false;
 
   @override
   void initState() {
@@ -87,6 +89,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
       score = 0;
       correctAnswers = 0;
       wrongAnswers = 0;
+      unansweredAnswers = 0;
       streak = 0;
       maxStreak = 0;
       answerHistory.clear();
@@ -95,7 +98,9 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   }
 
   void _startQuestionTimer() {
-    timeLeft = 15;
+    _maxTimePerQuestion = 15;
+    timeLeft = _maxTimePerQuestion;
+    _timerController.duration = Duration(seconds: _maxTimePerQuestion);
     _timerController.forward(from: 0);
 
     questionTimer?.cancel();
@@ -113,13 +118,17 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   void _handleTimeout() {
     questionTimer?.cancel();
     setState(() {
+      _timedOut = true;
       hasAnswered = true;
-      wrongAnswers++;
+      unansweredAnswers++;
       streak = 0;
-      answerHistory.add(false);
+      answerHistory.add(AnswerOutcome.timeout);
     });
     _shakeController.forward(from: 0);
-    Future.delayed(const Duration(seconds: 2), _nextQuestion);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      _nextQuestion();
+    });
   }
 
   void _handleAnswer(int selectedIndex) {
@@ -144,7 +153,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
         int timeBonus = (timeLeft * 2).toInt(); // +2 per second left
         score += points + streakBonus + timeBonus;
 
-        answerHistory.add(true);
+        answerHistory.add(AnswerOutcome.correct);
         _celebrationController.forward(from: 0);
 
         // Show mascot celebration
@@ -152,7 +161,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
       } else {
         wrongAnswers++;
         streak = 0;
-        answerHistory.add(false);
+        answerHistory.add(AnswerOutcome.wrong);
         _shakeController.forward(from: 0);
 
         // Show mascot sad reaction
@@ -160,39 +169,43 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
       }
     });
 
-    Future.delayed(const Duration(seconds: 2), _nextQuestion);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      _nextQuestion();
+    });
   }
 
   void _nextQuestion() {
+    final isLastQuestion = currentQuestionIndex + 1 >= questions.length;
     setState(() {
       currentQuestionIndex++;
       selectedAnswerIndex = null;
       hasAnswered = false;
       usedFiftyFifty = false;
       removedOptions.clear();
-
-      if (currentQuestionIndex >= questions.length) {
-        _finishQuiz();
-      } else {
-        _startQuestionTimer();
-      }
+      _timedOut = false;
     });
+    if (isLastQuestion) {
+      _finishQuiz();
+    } else {
+      _startQuestionTimer();
+    }
   }
 
   void _finishQuiz() {
     questionTimer?.cancel();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => QuizResultScreen(
-          totalQuestions: questions.length,
-          correctAnswers: correctAnswers,
-          wrongAnswers: wrongAnswers,
-          score: score,
-          maxStreak: maxStreak,
-          answerHistory: answerHistory,
-        ),
-      ),
+    if (!mounted) return;
+    context.go(
+      '/game/quiz-battle-result',
+      extra: {
+        'totalQuestions': questions.length,
+        'correctAnswers': correctAnswers,
+        'wrongAnswers': wrongAnswers,
+        'unansweredAnswers': unansweredAnswers,
+        'score': score,
+        'maxStreak': maxStreak,
+        'answerHistory': answerHistory,
+      },
     );
   }
 
@@ -220,9 +233,11 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
     setState(() {
       skipCount--;
       questionTimer?.cancel();
-      answerHistory.add(false);
-      _nextQuestion();
+      unansweredAnswers++;
+      streak = 0;
+      answerHistory.add(AnswerOutcome.skipped);
     });
+    _nextQuestion();
   }
 
   void _useFreezeTime() {
@@ -233,7 +248,10 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
       questionTimer?.cancel();
 
       // Add 10 seconds
+      _maxTimePerQuestion += 10;
       timeLeft += 10;
+      _timerController.duration = Duration(seconds: _maxTimePerQuestion);
+      _timerController.value = 1 - (timeLeft / _maxTimePerQuestion);
 
       // Restart timer
       questionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -691,7 +709,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   }
 
   Widget _buildTimerBar() {
-    final progress = timeLeft / 15;
+    final progress = timeLeft / _maxTimePerQuestion;
     Color timerColor;
     if (timeLeft > 10) {
       timerColor = AppTheme.successColor;
@@ -773,6 +791,30 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
             // Show explanation after answer
             if (hasAnswered) ...[
               const SizedBox(height: 16),
+              if (_timedOut)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.warningColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.timer_off, color: AppTheme.warningColor),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Time\'s up!',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppTheme.warningColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (_timedOut) const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
