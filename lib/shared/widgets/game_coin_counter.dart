@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -87,7 +86,7 @@ class _GameCoinCounterState extends State<GameCoinCounter>
         padding: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           // Soft olive/sage green to match app's earthy palette
-          color: const Color(0xFF5C6B4A).withOpacity(0.9),
+          color: const Color(0xFF5C6B4A).withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
@@ -179,7 +178,7 @@ class _GameCoinCounterState extends State<GameCoinCounter>
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4CAF50).withOpacity(0.4),
+            color: const Color(0xFF4CAF50).withValues(alpha: 0.4),
             blurRadius: 4,
             spreadRadius: 0,
           ),

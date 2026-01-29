@@ -57,7 +57,7 @@ class AppRouter {
       final isAuthenticated = authState.when(
         data: (user) => user != null,
         loading: () => false,
-        error: (_, __) => false,
+        error: (error, stack) => false,
       );
 
       final isLoggingIn = state.matchedLocation == '/login' ||

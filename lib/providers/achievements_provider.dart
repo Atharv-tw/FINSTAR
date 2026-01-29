@@ -271,7 +271,7 @@ final unlockAchievementProvider = Provider((ref) {
     });
 
     await batch.commit();
-    print('Achievement unlocked: $achievementId - +${achievement.xpReward} XP, +${achievement.coinsReward} coins');
+    debugPrint('Achievement unlocked: $achievementId - +${achievement.xpReward} XP, +${achievement.coinsReward} coins');
   };
 });
 
@@ -347,5 +347,5 @@ Future<void> initializeAchievementsForUser(String userId) async {
   }
 
   await batch.commit();
-  print('Initialized ${defaultAchievements.length} achievements for user $userId');
+  debugPrint('Initialized ${defaultAchievements.length} achievements for user $userId');
 }

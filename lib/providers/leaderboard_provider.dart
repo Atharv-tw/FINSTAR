@@ -94,6 +94,6 @@ final userLeaderboardPositionProvider = Provider<int?>((ref) {
       return index >= 0 ? index : null;
     },
     loading: () => null,
-    error: (_, __) => null,
+    error: (error, stack) => null,
   );
 });

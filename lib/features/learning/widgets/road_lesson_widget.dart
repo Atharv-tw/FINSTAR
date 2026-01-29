@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
-import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -166,7 +164,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             spreadRadius: 2,
             blurRadius: 7,
             offset: const Offset(0, 3),
@@ -182,7 +180,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       alignment: Alignment.center,
       children: [
         CustomPaint(
-          painter: _TextBackgroundPainter(color: color.withOpacity(0.8)),
+          painter: _TextBackgroundPainter(color: color.withValues(alpha: 0.8)),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -213,10 +211,10 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isLocked ? const Color(0xFF757575) : const Color(0xFF4CAF50), 
-        border: Border.all(color: Colors.white.withOpacity(0.9), width: 3),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 3),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             spreadRadius: 3,
             blurRadius: 8,
             offset: const Offset(0, 4),
@@ -240,7 +238,7 @@ class _TextBackgroundPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
 
     Path path = Path();
@@ -251,7 +249,10 @@ class _TextBackgroundPainter extends CustomPainter {
     path.quadraticBezierTo(size.width * 0.8, size.height * -0.1, size.width * 0.4, size.height * 0.1);
     path.close();
 
-    final matrix = Matrix4.identity()..translate(size.width / 2, size.height / 2)..rotateZ(0.1)..translate(-size.width/2, -size.height/2);
+    final matrix = Matrix4.identity()
+      ..multiply(Matrix4.translationValues(size.width / 2, size.height / 2, 0))
+      ..multiply(Matrix4.rotationZ(0.1))
+      ..multiply(Matrix4.translationValues(-size.width / 2, -size.height / 2, 0));
     final finalPath = path.transform(matrix.storage);
     
     final shadowPath = finalPath.shift(const Offset(4, 4));
@@ -273,7 +274,7 @@ class _RoadPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.5)
+      ..color = Colors.black.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 60.0
       ..strokeCap = StrokeCap.round
@@ -293,7 +294,7 @@ class _RoadPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final dashedPaint = Paint()
-      ..color = const Color(0xFFBCAAA4).withOpacity(0.8) 
+      ..color = const Color(0xFFBCAAA4).withValues(alpha: 0.8) 
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 

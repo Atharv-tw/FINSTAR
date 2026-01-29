@@ -19,7 +19,7 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
   return authState.when(
     data: (user) => user != null,
     loading: () => false,
-    error: (_, __) => false,
+    error: (error, stack) => false,
   );
 });
 
@@ -29,6 +29,6 @@ final currentUserIdProvider = Provider<String?>((ref) {
   return authState.when(
     data: (user) => user?.uid,
     loading: () => null,
-    error: (_, __) => null,
+    error: (error, stack) => null,
   );
 });

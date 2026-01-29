@@ -126,7 +126,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
                 ),
               ),
             ),
-            error: (_, __) => const SizedBox(),
+            error: (error, stack) => const SizedBox(),
           ),
         ],
       ),
@@ -222,7 +222,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
         final ownedIds = ownedItemsAsync.when(
           data: (owned) => owned.map((e) => e.id).toSet(),
           loading: () => <String>{},
-          error: (_, __) => <String>{},
+          error: (error, stack) => <String>{},
         );
 
         return GridView.builder(
@@ -549,7 +549,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen>
     final userCoins = userAsync.when(
       data: (user) => user?.coins ?? 0,
       loading: () => 0,
-      error: (_, __) => 0,
+      error: (error, stack) => 0,
     );
 
     final canAfford = userCoins >= item.price;

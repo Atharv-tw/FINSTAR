@@ -1,6 +1,7 @@
 /// Supabase Configuration
 ///
 /// Configure your Supabase project settings here
+library;
 
 class SupabaseConfig {
   /// Supabase project URL

@@ -1,7 +1,6 @@
 import 'package:finstar_app/features/learning/widgets/road_lesson_widget.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
 import '../../models/learning_module.dart';
@@ -37,8 +36,8 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
       module = LearningModulesData.getModuleById(widget.moduleId);
     } catch (e) {
       errorMessage = 'Module "${widget.moduleId}" not found';
-      print('Error loading module: ${widget.moduleId}');
-      print('Available modules: ${LearningModulesData.allModules.map((m) => m.id).join(", ")}');
+      debugPrint('Error loading module: ${widget.moduleId}');
+      debugPrint('Available modules: ${LearningModulesData.allModules.map((m) => m.id).join(", ")}');
     }
 
     _animationController = AnimationController(
@@ -131,7 +130,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                             fontFamily: 'Poppins',
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
-                            color: Colors.white.withOpacity(0.85),
+                            color: Colors.white.withValues(alpha: 0.85),
                             height: 1.5,
                           ),
                         ),
@@ -182,10 +181,10 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
         height: 72,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B0B0D).withOpacity(0.85),
+          color: const Color(0xFF0B0B0D).withValues(alpha: 0.85),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -283,7 +282,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: module!.gradientColors[0].withOpacity(0.4),
+              color: module!.gradientColors[0].withValues(alpha: 0.4),
               blurRadius: 24,
               spreadRadius: 4,
             ),
@@ -316,15 +315,15 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFF0B0B0D).withOpacity(0.6),
+            color: const Color(0xFF0B0B0D).withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -341,7 +340,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                       fontFamily: 'Poppins',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                   Text(
@@ -350,7 +349,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                       fontFamily: 'Poppins',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -367,7 +366,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                       fontFamily: 'Poppins',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                   Text(
@@ -392,7 +391,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
     return Container(
       height: 10,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(5),
       ),
       child: ClipRRect(
@@ -412,7 +411,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: module!.gradientColors[0].withOpacity(0.4),
+                      color: module!.gradientColors[0].withValues(alpha: 0.4),
                       blurRadius: 12,
                     ),
                   ],

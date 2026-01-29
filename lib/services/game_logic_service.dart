@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 /// Client-Side Game Logic Service
 ///
@@ -48,14 +49,12 @@ class GameLogicService {
 
         final currentXP = (userDoc.data()?['xp'] ?? 0) as int;
         final currentCoins = (userDoc.data()?['coins'] ?? 0) as int;
-        final currentLevel = (userDoc.data()?['level'] ?? 1) as int;
 
         final newXP = currentXP + xpReward;
         final newCoins = currentCoins + coinsReward;
 
         // Level up logic (every 1000 XP)
         final newLevel = (newXP / 1000).floor() + 1;
-        final leveledUp = newLevel > currentLevel;
 
         // Update user profile
         transaction.update(userRef, {
@@ -99,7 +98,7 @@ class GameLogicService {
         'message': 'Game saved successfully!',
       };
     } catch (e) {
-      print('submitLifeSwipe error: $e');
+      debugPrint('submitLifeSwipe error: $e');
       return {
         'success': false,
         'error': e.toString(),
@@ -128,7 +127,6 @@ class GameLogicService {
 
         final currentXP = (userDoc.data()?['xp'] ?? 0) as int;
         final currentCoins = (userDoc.data()?['coins'] ?? 0) as int;
-        final currentLevel = (userDoc.data()?['level'] ?? 1) as int;
 
         final newXP = currentXP + xpReward;
         final newCoins = currentCoins + coinsReward;
@@ -164,7 +162,7 @@ class GameLogicService {
         'coinsEarned': coinsReward,
       };
     } catch (e) {
-      print('submitBudgetBlitz error: $e');
+      debugPrint('submitBudgetBlitz error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -196,7 +194,6 @@ class GameLogicService {
 
         final currentXP = (userDoc.data()?['xp'] ?? 0) as int;
         final currentCoins = (userDoc.data()?['coins'] ?? 0) as int;
-        final currentLevel = (userDoc.data()?['level'] ?? 1) as int;
 
         final newXP = currentXP + xpReward + bonusXp;
         final newCoins = currentCoins + coinsReward + bonusCoins;
@@ -232,7 +229,7 @@ class GameLogicService {
         'coinsEarned': coinsReward + bonusCoins,
       };
     } catch (e) {
-      print('submitQuizBattle error: $e');
+      debugPrint('submitQuizBattle error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -276,7 +273,6 @@ class GameLogicService {
 
         final currentXP = (userDoc.data()?['xp'] ?? 0) as int;
         final currentCoins = (userDoc.data()?['coins'] ?? 0) as int;
-        final currentLevel = (userDoc.data()?['level'] ?? 1) as int;
 
         final newXP = currentXP + xpReward;
         final newCoins = currentCoins + coinsReward;
@@ -311,7 +307,7 @@ class GameLogicService {
         'coinsEarned': coinsReward,
       };
     } catch (e) {
-      print('submitMarketExplorer error: $e');
+      debugPrint('submitMarketExplorer error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -334,7 +330,6 @@ class GameLogicService {
 
         final currentXP = (userDoc.data()?['xp'] ?? 0) as int;
         final currentCoins = (userDoc.data()?['coins'] ?? 0) as int;
-        final currentLevel = (userDoc.data()?['level'] ?? 1) as int;
 
         final newXP = currentXP + xpReward;
         final newCoins = currentCoins + coinsReward;
@@ -366,7 +361,7 @@ class GameLogicService {
         'coinsEarned': coinsReward,
       };
     } catch (e) {
-      print('completeLesson error: $e');
+      debugPrint('completeLesson error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -410,7 +405,6 @@ class GameLogicService {
 
         final currentXP = (userDoc.data()?['xp'] ?? 0) as int;
         final currentCoins = (userDoc.data()?['coins'] ?? 0) as int;
-        final currentLevel = (userDoc.data()?['level'] ?? 1) as int;
 
         final newXP = currentXP + xpReward;
         final newCoins = currentCoins + coinsReward;
@@ -440,7 +434,7 @@ class GameLogicService {
 
       return result ?? {'success': false};
     } catch (e) {
-      print('dailyCheckIn error: $e');
+      debugPrint('dailyCheckIn error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -501,7 +495,7 @@ class GameLogicService {
 
       return result ?? {'success': false};
     } catch (e) {
-      print('purchaseItem error: $e');
+      debugPrint('purchaseItem error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -550,11 +544,11 @@ class GameLogicService {
             'achievementId': entry.key,
             'unlockedAt': FieldValue.serverTimestamp(),
           });
-          print('Achievement unlocked: ${entry.key}');
+          debugPrint('Achievement unlocked: ${entry.key}');
         }
       }
     } catch (e) {
-      print('checkAchievements error: $e');
+      debugPrint('checkAchievements error: $e');
     }
   }
 
@@ -589,7 +583,7 @@ class GameLogicService {
             'xp': FieldValue.increment(100),
             'coins': FieldValue.increment(50),
           });
-          print('Achievement unlocked: first_game');
+          debugPrint('Achievement unlocked: first_game');
         }
       }
 
@@ -606,7 +600,7 @@ class GameLogicService {
             'xp': FieldValue.increment(500),
             'coins': FieldValue.increment(200),
           });
-          print('Achievement unlocked: games_10');
+          debugPrint('Achievement unlocked: games_10');
         }
       }
 
@@ -631,13 +625,13 @@ class GameLogicService {
             'xp': FieldValue.increment(600),
             'coins': FieldValue.increment(250),
           });
-          print('Achievement unlocked: coins_1000');
+          debugPrint('Achievement unlocked: coins_1000');
         }
       }
 
       await batch.commit();
     } catch (e) {
-      print('_updateGameAchievements error: $e');
+      debugPrint('_updateGameAchievements error: $e');
     }
   }
 
@@ -666,7 +660,7 @@ class GameLogicService {
             'xp': FieldValue.increment(400),
             'coins': FieldValue.increment(150),
           });
-          print('Achievement unlocked: lessons_5');
+          debugPrint('Achievement unlocked: lessons_5');
         }
       }
 
@@ -680,7 +674,7 @@ class GameLogicService {
 
       await batch.commit();
     } catch (e) {
-      print('_updateLessonAchievements error: $e');
+      debugPrint('_updateLessonAchievements error: $e');
     }
   }
 
@@ -706,7 +700,7 @@ class GameLogicService {
             'xp': FieldValue.increment(150),
             'coins': FieldValue.increment(75),
           });
-          print('Achievement unlocked: streak_3');
+          debugPrint('Achievement unlocked: streak_3');
         }
       }
 
@@ -723,7 +717,7 @@ class GameLogicService {
             'xp': FieldValue.increment(300),
             'coins': FieldValue.increment(150),
           });
-          print('Achievement unlocked: streak_7');
+          debugPrint('Achievement unlocked: streak_7');
         }
       }
 
@@ -744,7 +738,7 @@ class GameLogicService {
 
       await batch.commit();
     } catch (e) {
-      print('_updateStreakAchievements error: $e');
+      debugPrint('_updateStreakAchievements error: $e');
     }
   }
 }
