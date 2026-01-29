@@ -28,6 +28,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
   int streak = 0;
   int maxStreak = 0;
   List<AnswerOutcome> answerHistory = [];
+  int? _quizSeed;
 
   // Timer
   int timeLeft = 15; // seconds per question
@@ -82,7 +83,11 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
 
   void _startGame() {
     setState(() {
-      questions = QuizQuestion.getMixedDifficultyQuiz(count: 10);
+      _quizSeed = DateTime.now().millisecondsSinceEpoch;
+      questions = QuizQuestion.getMixedDifficultyQuiz(
+        count: 10,
+        rng: Random(_quizSeed!),
+      );
       hasStarted = true;
       currentQuestionIndex = 0;
       score = 0;

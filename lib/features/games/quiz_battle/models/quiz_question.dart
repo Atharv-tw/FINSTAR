@@ -601,8 +601,9 @@ class QuizQuestion {
     int count = 10,
     QuizDifficulty? difficulty,
     QuizCategory? category,
+    Random? rng,
   }) {
-    final random = Random();
+    final random = rng ?? Random();
     var questions = getAllQuestions();
 
     // Filter by difficulty if specified
@@ -623,8 +624,11 @@ class QuizQuestion {
         .toList();
   }
 
-  static List<QuizQuestion> getMixedDifficultyQuiz({int count = 10}) {
-    final random = Random();
+  static List<QuizQuestion> getMixedDifficultyQuiz({
+    int count = 10,
+    Random? rng,
+  }) {
+    final random = rng ?? Random();
     var questions = getAllQuestions();
     questions.shuffle(random);
 
