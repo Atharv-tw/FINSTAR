@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_provider.dart';
+import 'package:flutter/foundation.dart';
 
 /// Friend model
 class Friend {
@@ -181,7 +182,7 @@ final sendFriendRequestProvider = Provider((ref) {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    print('Friend request sent to $friendId');
+    debugPrint('Friend request sent to $friendId');
   };
 });
 
@@ -249,7 +250,7 @@ final acceptFriendRequestProvider = Provider((ref) {
     batch.delete(requestRef);
 
     await batch.commit();
-    print('Friend request accepted: $friendId');
+    debugPrint('Friend request accepted: $friendId');
   };
 });
 
@@ -281,7 +282,7 @@ final removeFriendProvider = Provider((ref) {
     batch.delete(friendFriendRef);
 
     await batch.commit();
-    print('Friend removed: $friendId');
+    debugPrint('Friend removed: $friendId');
   };
 });
 

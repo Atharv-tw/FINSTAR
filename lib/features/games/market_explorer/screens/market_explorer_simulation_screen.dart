@@ -329,13 +329,17 @@ class _MarketExplorerSimulationScreenState
                     ...assetTypes.map((type) {
                       final otherTotal = nonCashTotal - (percentages[type] ?? 0);
                       final maxValue = (100 - otherTotal).clamp(0, 100).toDouble();
+                      final currentValue = (percentages[type] ?? 0).clamp(0.0, maxValue);
+                      if (currentValue != (percentages[type] ?? 0)) {
+                        percentages[type] = currentValue;
+                      }
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${type.name}: ${percentages[type]!.toStringAsFixed(1)}%',
+                          Text('${type.name}: ${currentValue.toStringAsFixed(1)}%',
                               style: const TextStyle(color: Color(0xFF393027))),
                           Slider(
-                            value: percentages[type]!,
+                            value: currentValue,
                             min: 0,
                             max: maxValue,
                             activeColor: const Color(0xFF9BAD50),

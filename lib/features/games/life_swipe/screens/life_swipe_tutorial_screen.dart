@@ -59,8 +59,8 @@ class _LifeSwipeTutorialScreenState extends State<LifeSwipeTutorialScreen>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              const Color(0xFF1E4D2B).withOpacity(0.6), // Dark Green
-              DesignTokens.primaryStart.withOpacity(0.6),
+              const Color(0xFF1E4D2B).withValues(alpha: 0.6), // Dark Green
+              DesignTokens.primaryStart.withValues(alpha: 0.6),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -178,7 +178,7 @@ class _LifeSwipeTutorialScreenState extends State<LifeSwipeTutorialScreen>
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 16,
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                 ),
               ),
             ],
@@ -241,7 +241,7 @@ class _SwipingIconState extends State<SwipingIcon>
             color: widget.swipeRight ? Colors.amber : Colors.red.shade400, // Changed color
             shadows: [
               Shadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )

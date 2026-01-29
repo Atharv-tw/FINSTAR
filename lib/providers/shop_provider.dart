@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_provider.dart';
+import 'package:flutter/foundation.dart';
 
 /// Shop item model
 class ShopItem {
@@ -278,7 +279,7 @@ final purchaseItemProvider = Provider((ref) {
     });
 
     await batch.commit();
-    print('Item purchased: $itemId for ${item.price} coins');
+    debugPrint('Item purchased: $itemId for ${item.price} coins');
   };
 });
 
@@ -302,7 +303,7 @@ Future<void> initializeShopItems() async {
   }
 
   await batch.commit();
-  print('Initialized ${defaultShopItems.length} shop items');
+  debugPrint('Initialized ${defaultShopItems.length} shop items');
 }
 
 /// Provider for checking if item is owned
@@ -312,6 +313,6 @@ final isItemOwnedProvider = Provider.family<bool, String>((ref, itemId) {
   return ownedItems.when(
     data: (items) => items.any((item) => item.id == itemId),
     loading: () => false,
-    error: (_, __) => false,
+    error: (error, stack) => false,
   );
 });

@@ -23,13 +23,9 @@ class BasicHomeScreen extends ConsumerStatefulWidget {
 class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
     with TickerProviderStateMixin {
   late ScrollController _scrollController;
-  late AnimationController _greetingController;
   late AnimationController _progressController;
   late AnimationController _pandaController;
   late AnimationController _breathingController;
-
-  late Animation<double> _greetingFadeAnimation;
-  late Animation<Offset> _greetingSlideAnimation;
   late Animation<double> _progressScaleAnimation;
   late Animation<double> _pandaSlideAnimation;
 
@@ -42,21 +38,6 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(appStartupProvider);
     });
-
-    // Greeting animation
-    _greetingController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _greetingFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _greetingController, curve: Curves.easeOut),
-    );
-    _greetingSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, -0.5),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _greetingController, curve: Curves.easeOutQuart),
-    );
 
     // Progress animation
     _progressController = AnimationController(
@@ -84,7 +65,6 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
 
     // Trigger animations sequentially
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _greetingController.forward();
       Future.delayed(const Duration(milliseconds: 200), () {
         if (mounted) _progressController.forward();
       });
@@ -97,7 +77,6 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
   @override
   void dispose() {
     _scrollController.dispose();
-    _greetingController.dispose();
     _progressController.dispose();
     _pandaController.dispose();
     _breathingController.dispose();
@@ -106,7 +85,6 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
     // Get real user data from Firebase
@@ -472,10 +450,4 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
     );
   }
 
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  }
 }

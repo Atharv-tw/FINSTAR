@@ -509,7 +509,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
               itemBuilder: (context, index) => itemBuilder(items[index]),
             ),
           ),

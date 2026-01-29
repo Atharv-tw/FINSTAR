@@ -87,12 +87,12 @@ class _ModuleCard extends StatelessWidget {
           border: Border.all(color: cardData['borderColor'], width: 3),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               blurRadius: 10,
               offset: const Offset(4, 4),
             ),
             BoxShadow(
-              color: cardData['background'].withOpacity(0.5),
+              color: cardData['background'].withValues(alpha: 0.5),
               blurRadius: 15,
               spreadRadius: -5,
               offset: const Offset(-4, -4),
@@ -144,24 +144,24 @@ class _ModuleCard extends StatelessWidget {
       case 0:
         return {
           'background': mossGreen,
-          'borderColor': Color.alphaBlend(Colors.white.withOpacity(0.3), mossGreen),
+          'borderColor': Color.alphaBlend(Colors.white.withValues(alpha: 0.3), mossGreen),
           'titleColor': forest,
-          'textColor': vanDyke.withOpacity(0.8),
+          'textColor': vanDyke.withValues(alpha: 0.8),
         };
       case 1:
         return {
           'background': powderBlue,
-          'borderColor': Color.alphaBlend(Colors.white.withOpacity(0.3), powderBlue),
+          'borderColor': Color.alphaBlend(Colors.white.withValues(alpha: 0.3), powderBlue),
           'titleColor': forest,
-          'textColor': vanDyke.withOpacity(0.8),
+          'textColor': vanDyke.withValues(alpha: 0.8),
         };
       case 2:
       default:
         return {
           'background': vanDyke,
-          'borderColor': Color.alphaBlend(Colors.white.withOpacity(0.2), vanDyke),
+          'borderColor': Color.alphaBlend(Colors.white.withValues(alpha: 0.2), vanDyke),
           'titleColor': offWhite,
-          'textColor': offWhite.withOpacity(0.7),
+          'textColor': offWhite.withValues(alpha: 0.7),
         };
     }
   }

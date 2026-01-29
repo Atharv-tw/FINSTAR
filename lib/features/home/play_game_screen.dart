@@ -25,7 +25,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   double _scrollOffset = 0;
 
   // Mock user data
-  final int _userLevel = 5;
   final int _currentXp = 750;
   final int _xpForNextLevel = 1000;
   final int _coins = 340;
@@ -87,10 +86,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     // Hero at constant 55% height
     final heroHeightPercent = 0.55;
     final heroHeight = (screenHeight * heroHeightPercent).clamp(100.0, 480.0);
-    final parallaxProgress = (_scrollOffset / 400).clamp(0.0, 1.0);
-    final mascotScale = 1.0 - (parallaxProgress * 0.6); // 1.0 → 0.4
-    final mascotBlur = parallaxProgress * 10; // 0 → 10px
-    final mascotTranslateY = -parallaxProgress * 120; // 0 → -120px
 
     return Scaffold(
       body: Stack(
@@ -217,10 +212,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
   Widget _buildHeroSection(double height) {
     // Parallax: scale 1.0 → 0.4, blur 0 → 10px, translateY 0 → -120px
-    final parallaxProgress = (_scrollOffset / 400).clamp(0.0, 1.0);
-    final mascotScale = 1.0 - (parallaxProgress * 0.6); // 1.0 → 0.4
-    final mascotBlur = parallaxProgress * 10; // 0 → 10px
-    final mascotTranslateY = -parallaxProgress * 120; // 0 → -120px
 
     return SizedBox(
       height: height,
@@ -528,7 +519,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
               context.push(card.route);
             }
           },
-          child: Container(
+          child: SizedBox(
             height: screenHeight * 0.7, // Full card size (70% of screen height)
             child: ClipRRect(
               borderRadius: BorderRadius.circular(40), // Playing card style rounded edges
@@ -540,7 +531,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                     filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: card.gradientColors[0].withOpacity(0.7),
+                        color: card.gradientColors[0].withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -555,11 +546,10 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                       ),
                       boxShadow: [
                         // Only add outer glow if no image (images have their own visual weight)
-                        if (card.imagePath == null)
-                          BoxShadow(
-                            blurRadius: 24,
-                            color: card.gradientColors[0].withValues(alpha: glowOpacity),
-                          ),
+                        BoxShadow(
+                          blurRadius: 24,
+                          color: card.gradientColors[0].withValues(alpha: glowOpacity),
+                        ),
                       ],
                     ),
                   ),
@@ -659,7 +649,6 @@ class _CardData {
   final IconData icon;
   final List<Color> gradientColors;
   final String route;
-  final String? imagePath;
 
   _CardData({
     required this.title,
@@ -668,6 +657,5 @@ class _CardData {
     required this.icon,
     required this.gradientColors,
     required this.route,
-    this.imagePath,
   });
 }

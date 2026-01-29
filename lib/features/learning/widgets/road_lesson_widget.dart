@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
-import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../models/learning_module.dart';
+import '../learning_theme.dart';
 
 class RoadLessonWidget extends StatefulWidget {
   final LearningModule module;
@@ -65,7 +64,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
               final bool isLocked = (index == 0) ? false : !widget.module.lessons[index - 1].isCompleted;
               
               final lessonIcon = _buildLessonIcon(lesson, isLocked);
-              final lessonText = _buildLessonText(lesson, widget.module.gradientColors[0]);
+              final lessonText = _buildLessonText(lesson, widget.module.gradientColors[0], isLeft);
 
               Widget lessonRow;
               if (isLeft) {
@@ -73,7 +72,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(child: lessonText),
+                    lessonText,
                     const SizedBox(width: 5),
                     lessonIcon,
                   ],
@@ -85,16 +84,15 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
                   children: [
                     lessonIcon,
                     const SizedBox(width: 5),
-                    Expanded(child: lessonText),
+                    lessonText,
                   ],
                 );
               }
 
               return Positioned(
-                top: position.dy - 55,
-                height: 110,
-                left: isLeft ? 0 : position.dx + 5,
-                right: isLeft ? constraints.maxWidth - position.dx - 5 : 0,
+                top: position.dy - 55, // Center vertically
+                left: 0, // Take full width for positioning
+                right: 0, // Take full width for positioning
                 child: GestureDetector(
                   onTap: () {
                     if (!isLocked) {
@@ -102,7 +100,35 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
                       context.push('/lesson/${widget.module.id}/${lesson.id}');
                     }
                   },
-                  child: lessonRow,
+                  child: Container(
+                    height: 110, // Fixed height for the lesson row
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (!isLeft) ...[ // Icon on left, text on right
+                          const SizedBox(width: 20), // Padding from left edge
+                          lessonIcon,
+                          const SizedBox(width: 15), // Spacing between icon and text
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerLeft, // Center text within its expanded area
+                              child: lessonText,
+                            ),
+                          ),
+                        ] else ...[ // Text on left, icon on right
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight, // Center text within its expanded area
+                              child: lessonText,
+                            ),
+                          ),
+                          const SizedBox(width: 15), // Spacing between text and icon
+                          lessonIcon,
+                          const SizedBox(width: 20), // Padding from right edge
+                        ]
+                      ],
+                    ),
+                  ),
                 ),
               );
             }),
@@ -166,7 +192,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             spreadRadius: 2,
             blurRadius: 7,
             offset: const Offset(0, 3),
@@ -177,32 +203,32 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
     );
   }
 
-  Widget _buildLessonText(Lesson lesson, Color color) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        CustomPaint(
-          painter: _TextBackgroundPainter(color: color.withOpacity(0.8)),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            _formatTitle(lesson.title),
-            textAlign: TextAlign.center,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              height: 1.2,
-              shadows: [
-                const Shadow(blurRadius: 10.0, color: Colors.black, offset: Offset(2, 2)),
-              ],
+  Widget _buildLessonText(Lesson lesson, Color color, bool isLeft) {
+    return ClipPath(
+      clipper: _LessonLabelClipper(isLeft: isLeft),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: LearningTheme.white.withOpacity(0.95),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
             ),
+          ],
+        ),
+        child: Text(
+          _formatTitle(lesson.title),
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            color: LearningTheme.vanDyke,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            height: 1.2,
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -213,10 +239,10 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isLocked ? const Color(0xFF757575) : const Color(0xFF4CAF50), 
-        border: Border.all(color: Colors.white.withOpacity(0.9), width: 3),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 3),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             spreadRadius: 3,
             blurRadius: 8,
             offset: const Offset(0, 4),
@@ -232,37 +258,50 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
   }
 }
 
-class _TextBackgroundPainter extends CustomPainter {
-  final Color color;
-  _TextBackgroundPainter({required this.color});
+class _LessonLabelClipper extends CustomClipper<Path> {
+  final bool isLeft;
+  _LessonLabelClipper({required this.isLeft});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color;
-    final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+  Path getClip(Size size) {
+    final path = Path();
+    const double radius = 15;
+    const double pointerSize = 10;
 
-    Path path = Path();
-    path.moveTo(size.width * 0.1, size.height * 0.2);
-    path.quadraticBezierTo(size.width * -0.1, size.height * 0.5, size.width * 0.15, size.height * 0.75);
-    path.quadraticBezierTo(size.width * 0.3, size.height * 1.1, size.width * 0.6, size.height * 0.9);
-    path.quadraticBezierTo(size.width * 1.1, size.height * 0.8, size.width * 0.9, size.height * 0.3);
-    path.quadraticBezierTo(size.width * 0.8, size.height * -0.1, size.width * 0.4, size.height * 0.1);
+    if (!isLeft) { // Points right
+      path.moveTo(radius, 0);
+      path.lineTo(size.width - radius - pointerSize, 0);
+      path.quadraticBezierTo(size.width - pointerSize, 0, size.width - pointerSize, radius);
+      path.lineTo(size.width - pointerSize, size.height / 2 - pointerSize / 2);
+      path.lineTo(size.width, size.height / 2);
+      path.lineTo(size.width - pointerSize, size.height / 2 + pointerSize / 2);
+      path.lineTo(size.width - pointerSize, size.height - radius);
+      path.quadraticBezierTo(size.width - pointerSize, size.height, size.width - radius - pointerSize, size.height);
+      path.lineTo(radius, size.height);
+      path.quadraticBezierTo(0, size.height, 0, size.height - radius);
+      path.lineTo(0, radius);
+      path.quadraticBezierTo(0, 0, radius, 0);
+    } else { // Points left
+      path.moveTo(pointerSize + radius, 0);
+      path.lineTo(size.width - radius, 0);
+      path.quadraticBezierTo(size.width, 0, size.width, radius);
+      path.lineTo(size.width, size.height - radius);
+      path.quadraticBezierTo(size.width, size.height, size.width - radius, size.height);
+      path.lineTo(pointerSize + radius, size.height);
+      path.quadraticBezierTo(pointerSize, size.height, pointerSize, size.height - radius);
+      path.lineTo(pointerSize, size.height / 2 + pointerSize / 2);
+      path.lineTo(0, size.height / 2);
+      path.lineTo(pointerSize, size.height / 2 - pointerSize / 2);
+      path.lineTo(pointerSize, radius);
+      path.quadraticBezierTo(pointerSize, 0, pointerSize + radius, 0);
+    }
+
     path.close();
-
-    final matrix = Matrix4.identity()..translate(size.width / 2, size.height / 2)..rotateZ(0.1)..translate(-size.width/2, -size.height/2);
-    final finalPath = path.transform(matrix.storage);
-    
-    final shadowPath = finalPath.shift(const Offset(4, 4));
-    canvas.drawPath(shadowPath, shadowPaint);
-    canvas.drawPath(finalPath, paint);
+    return path;
   }
 
   @override
-  bool shouldRepaint(covariant _TextBackgroundPainter oldDelegate) {
-    return oldDelegate.color != color;
-  }
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
 class _RoadPainter extends CustomPainter {
@@ -273,7 +312,7 @@ class _RoadPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.5)
+      ..color = Colors.black.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 60.0
       ..strokeCap = StrokeCap.round
@@ -293,7 +332,7 @@ class _RoadPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final dashedPaint = Paint()
-      ..color = const Color(0xFFBCAAA4).withOpacity(0.8) 
+      ..color = const Color(0xFFBCAAA4).withValues(alpha: 0.8) 
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 

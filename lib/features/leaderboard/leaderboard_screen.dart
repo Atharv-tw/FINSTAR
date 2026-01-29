@@ -191,7 +191,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                         ],
                       ),
                     ),
-                    error: (_, __) => const SizedBox(),
+                    error: (error, stack) => const SizedBox(),
                   );
                 },
               ),
