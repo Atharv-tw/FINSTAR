@@ -252,7 +252,7 @@ class _MarketExplorerResultScreenState
           _buildScoreRow(
             'Risk Management',
             100 - portfolio.riskScore,
-            const Color(0xFFFFC3CC),
+            const Color(0xFFE53935),
             suffix: '/100',
           ),
         ],
