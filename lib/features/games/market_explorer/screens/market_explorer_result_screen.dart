@@ -74,7 +74,10 @@ class _MarketExplorerResultScreenState
       for (var asset in portfolio.assets.values) {
         portfolioData[asset.type.name] = asset.currentValue;
       }
-      portfolioData['cash'] = portfolio.unallocatedAmount;
+      portfolioData.remove('Cash');
+      portfolioData['cash'] =
+          portfolio.assets[AssetType.cash]?.currentValue ??
+          portfolio.unallocatedAmount;
 
       final result = await _supabaseService.submitGameWithAchievements(
         gameType: 'market_explorer',
@@ -82,7 +85,7 @@ class _MarketExplorerResultScreenState
           'portfolioValue': portfolio.totalValue,
           'initialValue': portfolio.totalCapital,
           'portfolio': portfolioData,
-          'decisionsCount': portfolio.eventsOccurred.length,
+          'decisionsCount': widget.result.decisionsCount,
         },
       );
 

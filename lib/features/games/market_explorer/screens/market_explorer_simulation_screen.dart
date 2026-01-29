@@ -19,6 +19,10 @@ class MarketExplorerSimulationScreen extends StatefulWidget {
       _MarketExplorerSimulationScreenState();
 }
 
+enum EventDecision { stayCourse, shiftSafety, leanIn }
+
+enum EventSentiment { positive, negative, mixed }
+
 class _MarketExplorerSimulationScreenState
     extends State<MarketExplorerSimulationScreen>
     with TickerProviderStateMixin {
@@ -29,6 +33,8 @@ class _MarketExplorerSimulationScreenState
   final List<SimulationYearResult> _yearResults = [];
   int _currentYear = 0;
   bool _isSimulating = false;
+  int _decisionsCount = 0;
+  int _correctDecisions = 0;
 
   @override
   void initState() {
@@ -86,11 +92,14 @@ class _MarketExplorerSimulationScreenState
 
       // Show event if any
       if (yearResult.hasEvent) {
-        await _showEventDialog(yearResult.event!);
+        final decision = await _showEventDialog(yearResult.event!);
+        if (decision != null) {
+          _applyEventDecision(yearResult.event!, decision);
+        }
       }
 
-      // Allow rebalancing at year 3
-      if (year == 3) {
+      // Allow rebalancing based on difficulty
+      if (year == widget.portfolio.difficulty.rebalanceYear) {
         await _offerRebalancing();
       }
     }
@@ -104,8 +113,8 @@ class _MarketExplorerSimulationScreenState
     _navigateToResults();
   }
 
-  Future<void> _showEventDialog(MarketEvent event) async {
-    await showDialog(
+  Future<EventDecision?> _showEventDialog(MarketEvent event) async {
+    return showDialog<EventDecision>(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
@@ -123,16 +132,117 @@ class _MarketExplorerSimulationScreenState
             ),
           ],
         ),
-        content: Text(event.description, style: TextStyle(color: const Color(0xFF393027).withAlpha((0.8 * 255).round()))),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              event.description,
+              style: TextStyle(color: const Color(0xFF393027).withAlpha((0.8 * 255).round())),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'How will you react?',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: const Color(0xFF393027)),
+            ),
+          ],
+        ),
         actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, EventDecision.stayCourse),
+            child: const Text('Stay Course', style: TextStyle(color: Color(0xFF393027))),
+          ),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, EventDecision.shiftSafety),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF393027),
+              side: const BorderSide(color: Color(0xFF393027)),
+            ),
+            child: const Text('Shift to Safety'),
+          ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, EventDecision.leanIn),
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9BAD50)),
-            child: const Text('Continue', style: TextStyle(color: Color(0xFF022E17))),
+            child: const Text('Lean In', style: TextStyle(color: Color(0xFF022E17))),
           ),
         ],
       ),
     );
+  }
+
+  EventSentiment _getEventSentiment(MarketEvent event) {
+    double sum = 0;
+    int count = 0;
+    for (var multiplier in event.impactMultipliers.values) {
+      sum += multiplier;
+      count += 1;
+    }
+    final avg = count == 0 ? 1.0 : sum / count;
+    if (avg >= 1.1) return EventSentiment.positive;
+    if (avg <= 0.9) return EventSentiment.negative;
+    return EventSentiment.mixed;
+  }
+
+  EventDecision _getRecommendedDecision(EventSentiment sentiment) {
+    switch (sentiment) {
+      case EventSentiment.positive:
+        return EventDecision.leanIn;
+      case EventSentiment.negative:
+        return EventDecision.shiftSafety;
+      case EventSentiment.mixed:
+        return EventDecision.stayCourse;
+    }
+  }
+
+  void _applyEventDecision(MarketEvent event, EventDecision decision) {
+    _decisionsCount++;
+    final sentiment = _getEventSentiment(event);
+    final recommended = _getRecommendedDecision(sentiment);
+    if (decision == recommended) {
+      _correctDecisions++;
+    }
+
+    if (decision == EventDecision.stayCourse) {
+      return;
+    }
+
+    final totalValue = widget.portfolio.totalValue;
+    if (totalValue <= 0) return;
+
+    final currentPercentages = <AssetType, double>{};
+    for (var entry in widget.portfolio.assets.entries) {
+      currentPercentages[entry.key] =
+          (entry.value.currentValue / totalValue) * 100;
+    }
+
+    final target = Map<AssetType, double>.from(currentPercentages);
+    if (decision == EventDecision.shiftSafety) {
+      target[AssetType.fixedDeposit] =
+          (target[AssetType.fixedDeposit] ?? 0) + 8;
+      target[AssetType.sip] = (target[AssetType.sip] ?? 0) + 4;
+      target[AssetType.stocks] = (target[AssetType.stocks] ?? 0) - 6;
+      target[AssetType.crypto] = (target[AssetType.crypto] ?? 0) - 6;
+    } else if (decision == EventDecision.leanIn) {
+      target[AssetType.stocks] = (target[AssetType.stocks] ?? 0) + 6;
+      target[AssetType.crypto] = (target[AssetType.crypto] ?? 0) + 6;
+      target[AssetType.fixedDeposit] =
+          (target[AssetType.fixedDeposit] ?? 0) - 8;
+      target[AssetType.cash] = (target[AssetType.cash] ?? 0) - 4;
+    }
+
+    _normalizeAllocations(target);
+    _simulator.rebalancePortfolio(widget.portfolio, target);
+  }
+
+  void _normalizeAllocations(Map<AssetType, double> allocations) {
+    double total = 0;
+    allocations.forEach((key, value) {
+      allocations[key] = value.clamp(0, 100);
+      total += allocations[key]!;
+    });
+
+    if (total == 0) return;
+    allocations.updateAll((key, value) => (value / total) * 100);
   }
 
   Future<void> _offerRebalancing() async {
@@ -179,29 +289,107 @@ class _MarketExplorerSimulationScreenState
   }
 
   Future<void> _showRebalancingDialog() async {
-    // Show rebalancing UI (simplified version for now)
+    final totalValue = widget.portfolio.totalValue;
+    if (totalValue <= 0) return;
+
+    final assetTypes = [
+      AssetType.fixedDeposit,
+      AssetType.sip,
+      AssetType.stocks,
+      AssetType.crypto,
+    ];
+
+    final percentages = <AssetType, double>{};
+    for (var entry in widget.portfolio.assets.entries) {
+      percentages[entry.key] =
+          (entry.value.currentValue / totalValue) * 100;
+    }
+    percentages[AssetType.cash] = percentages[AssetType.cash] ?? 0;
+
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFF6EDA3),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Rebalancing', style: TextStyle(color: Color(0xFF393027))),
-        content: Text(
-          'Rebalancing interface would go here. For now, continuing with current allocation.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF393027).withAlpha((0.8 * 255).round())),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9BAD50)),
-            child: const Text('OK', style: TextStyle(color: Color(0xFF022E17))),
-          ),
-        ],
-      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            double nonCashTotal = 0;
+            for (var type in assetTypes) {
+              nonCashTotal += percentages[type] ?? 0;
+            }
+            final cashValue = (100 - nonCashTotal).clamp(0, 100);
+            percentages[AssetType.cash] = cashValue.toDouble();
+
+            return AlertDialog(
+              backgroundColor: const Color(0xFFF6EDA3),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('Rebalance Portfolio', style: TextStyle(color: Color(0xFF393027))),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ...assetTypes.map((type) {
+                      final otherTotal = nonCashTotal - (percentages[type] ?? 0);
+                      final maxValue = (100 - otherTotal).clamp(0, 100).toDouble();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${type.name}: ${percentages[type]!.toStringAsFixed(1)}%',
+                              style: const TextStyle(color: Color(0xFF393027))),
+                          Slider(
+                            value: percentages[type]!,
+                            min: 0,
+                            max: maxValue,
+                            activeColor: const Color(0xFF9BAD50),
+                            inactiveColor: const Color(0xFF393027).withAlpha((0.2 * 255).round()),
+                            onChanged: (value) {
+                              setState(() {
+                                percentages[type] = value;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      );
+                    }),
+                    const Divider(),
+                    Text('Cash: ${percentages[AssetType.cash]!.toStringAsFixed(1)}%',
+                        style: const TextStyle(color: Color(0xFF393027))),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Color(0xFF393027))),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final newAllocations = <AssetType, double>{};
+                    for (var entry in percentages.entries) {
+                      newAllocations[entry.key] = entry.value;
+                    }
+
+                    widget.portfolio.preRebalanceDiversification =
+                        widget.portfolio.diversificationScore;
+                    widget.portfolio.preRebalanceRisk =
+                        widget.portfolio.riskScore;
+                    widget.portfolio.rebalanced = true;
+                    _simulator.rebalancePortfolio(widget.portfolio, newAllocations);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9BAD50)),
+                  child: const Text('Apply', style: TextStyle(color: Color(0xFF022E17))),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
   void _navigateToResults() {
+    widget.portfolio.decisionsCount = _decisionsCount;
+    widget.portfolio.correctDecisions = _correctDecisions;
     final result = SimulationResult.calculate(widget.portfolio);
 
     Navigator.pushReplacement(
@@ -580,6 +768,8 @@ class _MarketExplorerSimulationScreenState
 
   Color _getAssetColor(AssetType type) {
     switch (type) {
+      case AssetType.cash:
+        return const Color(0xFFB6CFE4);
       case AssetType.fixedDeposit:
         return const Color(0xFFB6CFE4);
       case AssetType.sip:

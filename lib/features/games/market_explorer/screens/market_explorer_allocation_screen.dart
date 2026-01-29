@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 import 'dart:ui';
 
 import '../models/market_explorer_models.dart';
@@ -356,6 +355,7 @@ class _MarketExplorerAllocationScreenState
 
   Color _getAssetColor(AssetType type) {
     switch (type) {
+      case AssetType.cash: return const Color(0xFFB6CFE4);
       case AssetType.fixedDeposit: return const Color(0xFF6FB1FC);
       case AssetType.sip: return const Color(0xFF9BAD50);
       case AssetType.stocks: return const Color(0xFFFFC3CC);
@@ -365,6 +365,7 @@ class _MarketExplorerAllocationScreenState
 
   IconData _getAssetIcon(AssetType type) {
     switch (type) {
+      case AssetType.cash: return Icons.account_balance_wallet;
       case AssetType.fixedDeposit: return Icons.account_balance_wallet;
       case AssetType.sip: return Icons.spa;
       case AssetType.stocks: return Icons.show_chart;

@@ -1,15 +1,67 @@
 import 'dart:math';
 import '../models/market_explorer_models.dart';
 
+enum MarketRegime { bull, neutral, bear }
+
+extension MarketRegimeExtension on MarketRegime {
+  double get annualBias {
+    switch (this) {
+      case MarketRegime.bull:
+        return 0.06;
+      case MarketRegime.neutral:
+        return 0.0;
+      case MarketRegime.bear:
+        return -0.05;
+    }
+  }
+
+  double get volatilityMultiplier {
+    switch (this) {
+      case MarketRegime.bull:
+        return 1.1;
+      case MarketRegime.neutral:
+        return 1.0;
+      case MarketRegime.bear:
+        return 1.2;
+    }
+  }
+}
+
 /// Market simulation engine that handles portfolio growth over time
 class MarketSimulator {
   final Random _random;
   final DifficultyLevel difficulty;
+  MarketRegime _currentRegime = MarketRegime.neutral;
+  int _regimeYearsLeft = 0;
 
   MarketSimulator({
     required this.difficulty,
     int? seed,
   }) : _random = Random(seed);
+
+  void _advanceRegime() {
+    if (_regimeYearsLeft > 0) {
+      _regimeYearsLeft--;
+      return;
+    }
+
+    final roll = _random.nextDouble();
+    if (difficulty == DifficultyLevel.easy) {
+      _currentRegime = roll < 0.5
+          ? MarketRegime.bull
+          : (roll < 0.85 ? MarketRegime.neutral : MarketRegime.bear);
+    } else if (difficulty == DifficultyLevel.medium) {
+      _currentRegime = roll < 0.4
+          ? MarketRegime.bull
+          : (roll < 0.75 ? MarketRegime.neutral : MarketRegime.bear);
+    } else {
+      _currentRegime = roll < 0.25
+          ? MarketRegime.bull
+          : (roll < 0.55 ? MarketRegime.neutral : MarketRegime.bear);
+    }
+
+    _regimeYearsLeft = 1 + _random.nextInt(2);
+  }
 
   /// Simulate one year of market activity for the portfolio
   SimulationYearResult simulateYear(
@@ -18,27 +70,55 @@ class MarketSimulator {
   }) {
     portfolio.currentYear++;
 
+    _advanceRegime();
+
     // Check for market event
     MarketEvent? event = forcedEvent ??
         MarketEvent.getRandomEvent(difficulty, _random);
 
     if (event != null) {
       portfolio.eventsOccurred.add(event);
+      portfolio.activeEvents.add(
+        ActiveMarketEvent(
+          event: event,
+          remainingYears: event.duration,
+        ),
+      );
     }
+
+    final activeEvents = portfolio.activeEvents
+        .where((e) => e.remainingYears > 0)
+        .toList();
+
+    // Shared market factor for correlations
+    final marketShock =
+        _generateNormalRandom() * 0.06 * difficulty.volatilityMultiplier;
 
     // Update each asset
     Map<AssetType, double> yearReturns = {};
 
     for (var asset in portfolio.assets.values) {
+      double eventMultiplier = 1.0;
+      for (var active in activeEvents) {
+        eventMultiplier *=
+            active.event.impactMultipliers[asset.type] ?? 1.0;
+      }
+
       final returnRate = _calculateAssetReturn(
         asset.type,
-        event,
+        eventMultiplier,
+        marketShock,
       );
 
-      final newValue = asset.currentValue * (1 + returnRate);
+      final newValue = max(0.0, asset.currentValue * (1 + returnRate));
       asset.updateValue(newValue);
       yearReturns[asset.type] = returnRate * 100; // Convert to percentage
     }
+
+    for (var active in activeEvents) {
+      active.remainingYears -= 1;
+    }
+    portfolio.activeEvents.removeWhere((e) => e.remainingYears <= 0);
 
     // Update portfolio history
     portfolio.totalValueHistory.add(portfolio.totalValue);
@@ -55,24 +135,33 @@ class MarketSimulator {
   /// Calculate return for a specific asset type considering volatility and events
   double _calculateAssetReturn(
     AssetType assetType,
-    MarketEvent? event,
+    double eventMultiplier,
+    double marketShock,
   ) {
     // Start with base return rate
     double returnRate = assetType.baseReturnRate;
 
-    // Apply random volatility (normal distribution)
-    final volatilityFactor = _generateNormalRandom() * assetType.volatility;
-    returnRate += volatilityFactor;
+    final marketComponent =
+        (marketShock + _currentRegime.annualBias) * assetType.marketCorrelation;
+    final idioComponent = _generateNormalRandom() *
+        assetType.volatility *
+        (1 - assetType.marketCorrelation) *
+        _currentRegime.volatilityMultiplier;
+    returnRate += marketComponent + idioComponent;
 
     // Apply market event impact if any
-    if (event != null) {
-      final eventMultiplier = event.impactMultipliers[assetType] ?? 1.0;
-      returnRate *= eventMultiplier;
-    }
+    returnRate *= eventMultiplier;
 
     // Add difficulty-based variance
-    final difficultyVariance = _getDifficultyVariance();
-    returnRate += difficultyVariance;
+    returnRate += _getDifficultyVariance() * difficulty.volatilityMultiplier;
+
+    // Apply inflation drag for cash
+    if (assetType == AssetType.cash) {
+      returnRate -= difficulty.inflationRate;
+    }
+
+    // Prevent impossible wipeouts
+    returnRate = returnRate.clamp(-0.9, 2.0);
 
     return returnRate;
   }
