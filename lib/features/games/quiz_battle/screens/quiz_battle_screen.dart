@@ -377,6 +377,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                   title: 'Beat the Clock',
                   description: 'Answer before time runs out. Faster = more points!',
                   color: accentColor,
+                  darkColor: darkColor,
                 ),
                 const SizedBox(height: 12),
                 _buildRuleItem(
@@ -384,6 +385,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                   title: 'Build Streaks',
                   description: 'Consecutive correct answers give bonus points.',
                   color: primaryColor,
+                  darkColor: darkColor,
                 ),
                 const SizedBox(height: 12),
                 _buildRuleItem(
@@ -391,6 +393,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                   title: 'Use Power-Ups',
                   description: '50-50, Skip, Freeze Time - use them wisely!',
                   color: lightColor,
+                  darkColor: darkColor,
                 ),
                 const SizedBox(height: 24),
 
@@ -482,6 +485,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
     required String title,
     required String description,
     required Color color,
+    required Color darkColor,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -497,7 +501,7 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
               width: 1.5,
             ),
           ),
-          child: Icon(icon, color: color, size: 24),
+          child: Icon(icon, color: darkColor, size: 24),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -508,14 +512,14 @@ class _QuizBattleScreenState extends State<QuizBattleScreen>
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
               ),
               const SizedBox(height: 4),
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 217),
+                      color: darkColor,
                     ),
               ),
             ],
