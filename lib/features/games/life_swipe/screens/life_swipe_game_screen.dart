@@ -82,7 +82,7 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
 
   void _startGame() {
     setState(() {
-      scenarios = SpendingScenario.getRandomScenarios(count: 20);
+      scenarios = _buildScenarioDeck(count: 20);
       hasStarted = true;
       currentIndex = 0;
       currentBudget = totalBudget;
@@ -101,6 +101,46 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       decisions.clear();
       lowBudgetWarning = false;
     });
+  }
+
+  List<SpendingScenario> _buildScenarioDeck({int count = 20}) {
+    final deck = SpendingScenario.getRandomScenarios(count: count);
+    if (deck.length < 3) {
+      return deck;
+    }
+
+    deck.sort((a, b) => a.cost.compareTo(b.cost));
+    final chunkSize = (deck.length / 3).ceil();
+    final tier1 = deck.sublist(0, math.min(chunkSize, deck.length));
+    final tier2 = deck.sublist(
+      math.min(chunkSize, deck.length),
+      math.min(chunkSize * 2, deck.length),
+    );
+    final tier3 = deck.sublist(
+      math.min(chunkSize * 2, deck.length),
+      deck.length,
+    );
+
+    tier1.shuffle(math.Random());
+    tier2.shuffle(math.Random());
+    tier3.shuffle(math.Random());
+
+    return [...tier1, ...tier2, ...tier3];
+  }
+
+  bool _isEssentialCategory(ScenarioCategory category) {
+    return category == ScenarioCategory.education ||
+        category == ScenarioCategory.health ||
+        category == ScenarioCategory.investment ||
+        category == ScenarioCategory.emergency;
+  }
+
+  bool _isLifestyleCategory(ScenarioCategory category) {
+    return category == ScenarioCategory.food ||
+        category == ScenarioCategory.entertainment ||
+        category == ScenarioCategory.social ||
+        category == ScenarioCategory.fashion ||
+        category == ScenarioCategory.tech;
   }
 
   void _showScorePopup(String message) {
@@ -127,6 +167,60 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
 
     final scenario = scenarios[currentIndex];
     final impact = swipedRight ? scenario.acceptImpact : scenario.declineImpact;
+
+    final costRatio = scenario.cost / totalBudget;
+    final intensity = (costRatio * 40).round(); // 0-40 scale
+    final isEssential = _isEssentialCategory(scenario.category);
+    final isLifestyle = _isLifestyleCategory(scenario.category);
+
+    int happinessDelta = impact.happiness;
+    int disciplineDelta = impact.discipline;
+    int socialDelta = impact.socialLife;
+    int futureDelta = impact.investments;
+    final projectedSpent =
+        spentMoney + (swipedRight ? scenario.cost : 0);
+    final spendRatio = projectedSpent / totalBudget;
+
+    if (swipedRight) {
+      if (isEssential) {
+        disciplineDelta += (intensity * 0.6).round();
+        futureDelta += (intensity * 0.8).round();
+      }
+      if (isLifestyle) {
+        disciplineDelta -= (intensity * 0.6).round();
+        futureDelta -= (intensity * 0.4).round();
+      }
+      if (spendStreak >= 3) {
+        happinessDelta = (happinessDelta * 0.8).round();
+      }
+      if (!impact.overspendFlag) {
+        disciplineDelta += 2;
+        futureDelta += 2;
+      } else {
+        disciplineDelta -= 2;
+      }
+      if (spendRatio > 0.8 && impact.overspendFlag) {
+        disciplineDelta -= 5;
+        futureDelta -= 5;
+      }
+    } else {
+      if (isLifestyle) {
+        disciplineDelta += (intensity * 0.5).round();
+        futureDelta += (intensity * 0.3).round();
+      }
+      if (isEssential) {
+        happinessDelta -= (intensity * 0.3).round();
+        socialDelta -= (intensity * 0.2).round();
+      }
+      if (saveStreak >= 3) {
+        disciplineDelta += 2;
+        futureDelta += 2;
+      }
+      if (spendRatio > 0.8 && isLifestyle) {
+        disciplineDelta += 3;
+        futureDelta += 2;
+      }
+    }
 
     // Update scores
     setState(() {
@@ -167,10 +261,10 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
       }
 
       // Update individual scores based on new impact schema
-      happinessScore = (happinessScore + impact.happiness).clamp(0, 100);
-      disciplineScore = (disciplineScore + impact.discipline).clamp(0, 100);
-      socialScore = (socialScore + impact.socialLife).clamp(0, 100);
-      futureScore = (futureScore + impact.investments).clamp(0, 100);
+      happinessScore = (happinessScore + happinessDelta).clamp(0, 100);
+      disciplineScore = (disciplineScore + disciplineDelta).clamp(0, 100);
+      socialScore = (socialScore + socialDelta).clamp(0, 100);
+      futureScore = (futureScore + futureDelta).clamp(0, 100);
 
       // Calculate overspending penalty based on overspendFlag
       if (swipedRight && impact.overspendFlag) {
@@ -179,7 +273,6 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
         if (overspendRatio > 1.0) {
           // Use power curve for smoother penalty, with floor at 30%
           final penalty = math.pow(overspendRatio - 1, 1.5).toDouble() * 40;
-          financialHealth = (100 - penalty).clamp(30.0, 100.0);
 
           // Reduce all attributes due to money stress
           happinessScore = (happinessScore * 0.98).round().clamp(0, 100);
@@ -195,11 +288,27 @@ class _LifeSwipeGameScreenState extends State<LifeSwipeGameScreen>
             final disciplineReduction = ((overspendRatio - 1.2) * 25).round();
             disciplineScore = (disciplineScore - disciplineReduction).clamp(0, 100);
           }
+
+          final budgetRatio = (currentBudget / totalBudget).clamp(0.0, 1.0);
+          final baseHealth =
+              (budgetRatio * 60) + (disciplineScore * 0.2) + (futureScore * 0.2);
+          final overspendPenalty =
+              currentBudget < 0 ? (-currentBudget / totalBudget) * 80 : 0.0;
+          final streakBonus = saveStreak >= 3 ? 3.0 : 0.0;
+          financialHealth =
+              (baseHealth - overspendPenalty - penalty + streakBonus)
+                  .clamp(0, 100);
         }
       } else {
         // Recalculate financial health when not overspending
-        final savingsRatio = currentBudget / totalBudget;
-        financialHealth = (savingsRatio * 100).clamp(0, 100);
+        final budgetRatio = (currentBudget / totalBudget).clamp(0.0, 1.0);
+        final baseHealth =
+            (budgetRatio * 60) + (disciplineScore * 0.2) + (futureScore * 0.2);
+        final overspendPenalty =
+            currentBudget < 0 ? (-currentBudget / totalBudget) * 80 : 0.0;
+        final streakBonus = saveStreak >= 3 ? 3.0 : 0.0;
+        financialHealth =
+            (baseHealth - overspendPenalty + streakBonus).clamp(0, 100);
       }
 
       decisions.add({

@@ -29,13 +29,31 @@ class GameLogicService {
     List<dynamic>? eventChoices,
   }) async {
     try {
-      // Calculate rewards based on score
-      final int xpReward = (score * 0.5).round(); // 0.5 XP per score point
-      final int coinsReward = (score * 0.1).round(); // 0.1 coins per score point
-
       // Validate score (basic anti-cheat)
-      if (score > 1000 || score < 0) {
+      if (score > 100 || score < 0) {
         throw Exception('Invalid score');
+      }
+
+      // Validate allocations (basic integrity checks)
+      final allocationSum =
+          allocations.values.fold<int>(0, (sum, value) => sum + value);
+      if (allocationSum != 10000 ||
+          allocations.values.any((value) => value < 0)) {
+        throw Exception('Invalid allocations');
+      }
+
+      // Calculate rewards based on score (tiered for better balance)
+      int xpReward = 20 + (score * 0.7).round();
+      int coinsReward = 8 + (score * 0.2).round();
+      if (score >= 80) {
+        xpReward += 40;
+        coinsReward += 20;
+      } else if (score >= 60) {
+        xpReward += 20;
+        coinsReward += 10;
+      } else if (score < 40) {
+        xpReward = (xpReward * 0.7).round();
+        coinsReward = (coinsReward * 0.7).round();
       }
 
       // Use Firestore transaction to update user data atomically
@@ -67,11 +85,21 @@ class GameLogicService {
 
         // Save game progress
         final progressRef = userRef.collection('progress').doc('life_swipe');
+        final progressDoc = await transaction.get(progressRef);
+        final currentBest = (progressDoc.data()?['bestScore'] ?? 0) as int;
+        final newBest = score > currentBest ? score : currentBest;
+        final totalPlays = (progressDoc.data()?['totalPlays'] ?? 0) as int;
+        final newAvgScore =
+            ((progressDoc.data()?['avgScore'] ?? score) as num).toDouble();
+        final updatedAvg =
+            ((newAvgScore * totalPlays) + score) / (totalPlays + 1);
+
         transaction.set(
           progressRef,
           {
             'lastScore': score,
-            'bestScore': FieldValue.serverTimestamp(), // Will be updated by another query
+            'bestScore': newBest,
+            'avgScore': updatedAvg,
             'totalPlays': FieldValue.increment(1),
             'lastPlayedAt': FieldValue.serverTimestamp(),
             'allocations': allocations,
@@ -79,13 +107,6 @@ class GameLogicService {
           },
           SetOptions(merge: true),
         );
-
-        // Update best score if applicable
-        final progressDoc = await progressRef.get();
-        final currentBest = (progressDoc.data()?['bestScore'] ?? 0) as int;
-        if (score > currentBest) {
-          transaction.update(progressRef, {'bestScore': score});
-        }
       });
 
       // Update achievement progress for first game and games milestones

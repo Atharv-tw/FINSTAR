@@ -69,11 +69,13 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
       final seed = DateTime.now().millisecondsSinceEpoch;
 
       // Prepare allocations data for Supabase (needs to sum to 10000)
-      final total = widget.spentMoney + widget.savedMoney + widget.remainingBudget;
+      final remainingSafe = widget.remainingBudget < 0 ? 0 : widget.remainingBudget;
+      final total = widget.spentMoney + widget.savedMoney + remainingSafe;
+      final safeTotal = total == 0 ? 1 : total;
       final Map<String, int> allocations = {
-        'spent': ((widget.spentMoney / total) * 10000).round(),
-        'saved': ((widget.savedMoney / total) * 10000).round(),
-        'remaining': ((widget.remainingBudget / total) * 10000).round(),
+        'spent': ((widget.spentMoney / safeTotal) * 10000).round(),
+        'saved': ((widget.savedMoney / safeTotal) * 10000).round(),
+        'remaining': ((remainingSafe / safeTotal) * 10000).round(),
       };
 
       // Adjust to ensure sum is exactly 10000
@@ -104,18 +106,33 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
   }
 
   int _calculateOverallScore() {
-    // New weighted scoring formula:
-    // Happiness: 25%, Investments (Future): 35%, Social Life: 15%, Discipline: 25%
-    final baseScore = (widget.happinessScore * 0.25) +
-                      (widget.futureScore * 0.35) +
-                      (widget.socialScore * 0.15) +
-                      (widget.disciplineScore * 0.25);
+    final behaviorScore = (widget.happinessScore * 0.2) +
+        (widget.futureScore * 0.35) +
+        (widget.socialScore * 0.15) +
+        (widget.disciplineScore * 0.3);
 
-    // Apply Financial Health as a 30% modifier, not a destroyer
-    // 70% comes from performance metrics, 30% from financial health
-    final finalScore = (baseScore * 0.7) + (baseScore * (widget.financialHealth / 100) * 0.3);
+    final budgetScore =
+        ((widget.remainingBudget / widget.totalBudget) * 100).clamp(0, 100);
 
-    return finalScore.clamp(0, 100).toInt();
+    final overspendPenalty = widget.remainingBudget < 0
+        ? ((-widget.remainingBudget / widget.totalBudget) * 100).clamp(0, 25)
+        : 0;
+
+    final streakBonus = ((widget.maxStreak ?? 0) * 1.5).clamp(0, 10);
+
+    final spendDecisions =
+        widget.decisions.where((d) => d['accepted'] == true).length;
+    final saveDecisions = widget.decisions.length - spendDecisions;
+    final balanceBonus = saveDecisions >= spendDecisions ? 3 : -2;
+
+    final finalScore = (behaviorScore * 0.55) +
+        (budgetScore * 0.25) +
+        (widget.financialHealth * 0.2) +
+        streakBonus +
+        balanceBonus -
+        overspendPenalty;
+
+    return finalScore.clamp(0, 100).round();
   }
 
   String _getPerformanceGrade() {
