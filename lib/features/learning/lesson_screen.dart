@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:finstar_app/features/learning/widgets/quiz_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/learning_module.dart';
@@ -93,7 +94,7 @@ class _LessonScreenState extends State<LessonScreen> {
                 ),
 
                 // Navigation Buttons
-                _buildNavigationButtons(),
+                if (content.type != ContentType.quiz) _buildNavigationButtons(),
               ],
             ),
           ),
@@ -173,15 +174,15 @@ class _LessonScreenState extends State<LessonScreen> {
   Widget _buildContent(LessonContent content) {
     switch (content.type) {
       case ContentType.text:
-        return _buildTextContent(content.data);
+        return _buildTextContent(content.data ?? '');
       case ContentType.tip:
-        return _buildTipContent(content.data);
+        return _buildTipContent(content.data ?? '');
       case ContentType.example:
-        return _buildExampleContent(content.data);
+        return _buildExampleContent(content.data ?? '');
       case ContentType.image:
-        return _buildImageContent(content.data);
+        return _buildImageContent(content.data ?? '');
       case ContentType.quiz:
-        return _buildQuizContent(content.data);
+        return _buildQuizContent(content);
     }
   }
   
@@ -306,9 +307,15 @@ class _LessonScreenState extends State<LessonScreen> {
     );
   }
 
-  Widget _buildQuizContent(String data) {
+  Widget _buildQuizContent(LessonContent content) {
     return _buildGlassCard(
-      child: Text('Quiz coming soon!', style: LearningTheme.bodyText1.copyWith(color: LearningTheme.vanDyke)),
+      child: QuizWidget(
+        questions: content.quizQuestions ?? [],
+        onQuizCompleted: (correctAnswers) {
+          // You can use the correctAnswers to update the score
+          _completeLesson();
+        },
+      ),
     );
   }
 

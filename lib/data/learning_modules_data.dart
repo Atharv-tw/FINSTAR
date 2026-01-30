@@ -49,6 +49,34 @@ class LearningModulesData {
             type: ContentType.text,
             data: '🎯 Why Budget?\n\n• Never run out of money mid-month\n• Achieve goals faster (that gaming console!)\n• Less money stress = more peace',
           ),
+          LessonContent(
+            type: ContentType.quiz,
+            data: '', // data is not used for quiz
+            quizQuestions: [
+              QuizQuestion(
+                question: 'What is the main purpose of a budget?',
+                options: [
+                  'To restrict all your spending',
+                  'To track where your money is going',
+                  'To earn more money',
+                  'To invest in the stock market',
+                ],
+                correctAnswer: 1,
+                explanation: 'A budget is a plan that helps you track your income and expenses. It gives you a clear picture of where your money is going.',
+              ),
+              QuizQuestion(
+                question: 'According to the 50/30/20 rule, what does the 20% represent?',
+                options: [
+                  'Wants',
+                  'Needs',
+                  'Savings',
+                  'Taxes',
+                ],
+                correctAnswer: 2,
+                explanation: 'The 50/30/20 rule suggests allocating 50% of your income to needs, 30% to wants, and 20% to savings.',
+              ),
+            ],
+          ),
         ],
       ),
 
