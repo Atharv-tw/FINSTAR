@@ -100,9 +100,9 @@ async function refreshFullLeaderboard(
     };
   });
 
-  // Get total user count
-  const totalUsersSnapshot = await db.collection("users").count().get();
-  const totalUsers = totalUsersSnapshot.data().count;
+  // Get total user count (count() not supported in REST shim)
+  const totalUsersSnapshot = await db.collection("users").get();
+  const totalUsers = totalUsersSnapshot.size;
 
   // Save to Firestore
   await db.collection("leaderboards").doc(seasonId).set({
@@ -113,12 +113,16 @@ async function refreshFullLeaderboard(
     totalUsers,
   });
 
-  // Update Realtime Database for live leaderboard
-  await rtdb.ref("leaderboards/live").set({
-    top100: rankings,
-    updatedAt: Date.now(),
-    totalUsers,
-  });
+  // Update Realtime Database for live leaderboard (non-fatal if denied)
+  try {
+    await rtdb.ref("leaderboards/live").set({
+      top100: rankings,
+      updatedAt: Date.now(),
+      totalUsers,
+    });
+  } catch (e) {
+    console.warn("RTDB set failed:", e);
+  }
 
   console.log(`Full leaderboard updated: ${rankings.length} users, total ${totalUsers}`);
 
@@ -145,14 +149,13 @@ async function updateUserLeaderboardEntry(
   const userData = userDoc.data()!;
   const userXp = userData.xp || 0;
 
-  // Count users with more XP to get rank
+  // Count users with more XP to get rank (count() not supported in REST shim)
   const higherRankedSnapshot = await db
     .collection("users")
     .where("xp", ">", userXp)
-    .count()
     .get();
 
-  const rank = higherRankedSnapshot.data().count + 1;
+  const rank = higherRankedSnapshot.size + 1;
 
   // Update user's rank in their profile
   await db.collection("users").doc(uid).update({
@@ -171,8 +174,12 @@ async function updateUserLeaderboardEntry(
       avatarUrl: userData.avatarUrl || null,
     };
 
-    // Update in Realtime Database
-    await rtdb.ref(`leaderboards/live/entries/${uid}`).set(leaderboardEntry);
+    // Update in Realtime Database (non-fatal if denied)
+    try {
+      await rtdb.ref(`leaderboards/live/entries/${uid}`).set(leaderboardEntry);
+    } catch (e) {
+      console.warn("RTDB set failed:", e);
+    }
   }
 
   console.log(`Leaderboard updated for ${uid}: rank ${rank}`);

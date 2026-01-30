@@ -1,12 +1,16 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
 import '../../../../services/supabase_functions_service.dart';
+import '../../../../providers/auth_provider.dart';
+import '../../../../providers/user_provider.dart';
 import '../models/spending_scenario.dart';
 
-class LifeSwipeResultScreen extends StatefulWidget {
+class LifeSwipeResultScreen extends ConsumerStatefulWidget {
   final int totalBudget;
   final int remainingBudget;
   final int spentMoney;
@@ -37,15 +41,17 @@ class LifeSwipeResultScreen extends StatefulWidget {
   });
 
   @override
-  State<LifeSwipeResultScreen> createState() => _LifeSwipeResultScreenState();
+  ConsumerState<LifeSwipeResultScreen> createState() => _LifeSwipeResultScreenState();
 }
 
-class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
+class _LifeSwipeResultScreenState extends ConsumerState<LifeSwipeResultScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   int _xpEarned = 0;
   int _coinsEarned = 0;
+  bool _rewardsLoaded = false;
+  String? _rewardsError;
   final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   @override
@@ -84,13 +90,15 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
         allocations['remaining'] = allocations['remaining']! + (10000 - sum);
       }
 
+      final serializableChoices = widget.decisions.map(_serializeDecision).toList();
+
       final result = await _supabaseService.submitGameWithAchievements(
         gameType: 'life_swipe',
         gameData: {
           'seed': seed,
           'allocations': allocations,
           'score': overallScore,
-          'eventChoices': widget.decisions,
+          'eventChoices': serializableChoices,
         },
       );
 
@@ -98,11 +106,70 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
         setState(() {
           _xpEarned = result['xpEarned'] ?? 0;
           _coinsEarned = result['coinsEarned'] ?? 0;
+          _rewardsLoaded = true;
+          _rewardsError = null;
+        });
+        _refreshProfile();
+      } else if (mounted) {
+        setState(() {
+          _rewardsLoaded = true;
+          _rewardsError = (result['error'] ?? 'Rewards unavailable').toString();
         });
       }
     } catch (e) {
       debugPrint('Error saving Life Swipe results: $e');
+      if (mounted) {
+        setState(() {
+          _rewardsLoaded = true;
+          _rewardsError = 'Rewards unavailable';
+        });
+      }
     }
+  }
+
+  Future<void> _refreshProfile() async {
+    final uid = ref.read(currentUserIdProvider);
+    if (uid == null) return;
+    try {
+      await ref.read(refreshUserProfileProvider(uid).future);
+    } catch (_) {}
+  }
+
+
+  Map<String, dynamic> _serializeDecision(Map<String, dynamic> decision) {
+    final scenario = decision['scenario'] as SpendingScenario?;
+    return {
+      'accepted': decision['accepted'] == true,
+      'budgetAfter': decision['budgetAfter'],
+      if (scenario != null) 'scenario': _serializeScenario(scenario),
+    };
+  }
+
+  Map<String, dynamic> _serializeScenario(SpendingScenario scenario) {
+    return {
+      'id': scenario.id,
+      'title': scenario.title,
+      'description': scenario.description,
+      'cost': scenario.cost,
+      'category': scenario.category.name,
+      'emoji': scenario.emoji,
+      'acceptLabel': scenario.acceptLabel,
+      'declineLabel': scenario.declineLabel,
+      'consequence': scenario.consequence,
+      'benefit': scenario.benefit,
+      'acceptImpact': _serializeImpact(scenario.acceptImpact),
+      'declineImpact': _serializeImpact(scenario.declineImpact),
+    };
+  }
+
+  Map<String, dynamic> _serializeImpact(DecisionImpact impact) {
+    return {
+      'happiness': impact.happiness,
+      'investments': impact.investments,
+      'socialLife': impact.socialLife,
+      'discipline': impact.discipline,
+      'overspendFlag': impact.overspendFlag,
+    };
   }
 
   int _calculateOverallScore() {
@@ -442,74 +509,84 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                 ),
             textAlign: TextAlign.center,
           ),
-          if (_xpEarned > 0 || _coinsEarned > 0) ...[
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    children: [
-                      const Text(
-                        'XP Earned',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 14,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '+$_xpEarned',
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.successColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Colors.white.withValues(alpha: 0.3),
-                  ),
-                  Column(
-                    children: [
-                      const Text(
-                        'Coins Earned',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 14,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '+$_coinsEarned',
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.accentYellow,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 1.5,
               ),
             ),
-          ],
+            child: _rewardsLoaded
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          const Text(
+                            'XP Earned',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '+$_xpEarned',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.white.withValues(alpha: 0.3),
+                      ),
+                      Column(
+                        children: [
+                          const Text(
+                            'Coins Earned',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '+$_coinsEarned',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                : const Center(
+                    child: Text(
+                      'Calculating rewards...',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+          ),
         ],
       ),
     );

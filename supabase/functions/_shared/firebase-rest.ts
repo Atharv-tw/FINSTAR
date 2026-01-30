@@ -240,6 +240,31 @@ function toFirestoreValue(value: any): any {
   return { nullValue: null };
 }
 
+function splitFieldsAndTransforms(data: any): {
+  fields: any;
+  fieldPaths: string[];
+  transforms: any[];
+} {
+  const fields: any = {};
+  const fieldPaths: string[] = [];
+  const transforms: any[] = [];
+
+  for (const key of Object.keys(data)) {
+    const value = data[key];
+    if (value && typeof value === "object" && value._type === "increment") {
+      transforms.push({
+        fieldPath: key,
+        increment: toFirestoreValue(value._value),
+      });
+    } else {
+      fields[key] = toFirestoreValue(value);
+      fieldPaths.push(key);
+    }
+  }
+
+  return { fields, fieldPaths, transforms };
+}
+
 /**
  * Firestore Document Reference (REST API wrapper)
  */
@@ -314,12 +339,13 @@ class DocumentReference {
 
   async update(data: any): Promise<void> {
     const token = await this.getToken();
-    const fields: any = {};
-    const fieldPaths: string[] = [];
+    const { fields, fieldPaths, transforms } = splitFieldsAndTransforms(data);
 
-    for (const key of Object.keys(data)) {
-      fields[key] = toFirestoreValue(data[key]);
-      fieldPaths.push(key);
+    if (transforms.length > 0) {
+      const batch = new WriteBatch(this.projectId, this.getToken);
+      batch.update(this, data);
+      await batch.commit();
+      return;
     }
 
     const body = { fields };
@@ -604,34 +630,36 @@ class WriteBatch {
   ) {}
 
   set(docRef: DocumentReference, data: any): WriteBatch {
-    const fields: any = {};
-    for (const key of Object.keys(data)) {
-      fields[key] = toFirestoreValue(data[key]);
-    }
-    this.writes.push({
+    const { fields, transforms } = splitFieldsAndTransforms(data);
+    const write: any = {
       update: {
         name: `projects/${this.projectId}/databases/(default)/documents/${docRef.path}`,
         fields,
       },
-    });
+    };
+    if (transforms.length > 0) {
+      write.updateTransforms = transforms;
+    }
+    this.writes.push(write);
     return this;
   }
 
   update(docRef: DocumentReference, data: any): WriteBatch {
-    const fields: any = {};
-    const fieldPaths: string[] = [];
-    for (const key of Object.keys(data)) {
-      fields[key] = toFirestoreValue(data[key]);
-      fieldPaths.push(key);
-    }
-    this.writes.push({
+    const { fields, fieldPaths, transforms } = splitFieldsAndTransforms(data);
+    const write: any = {
       update: {
         name: `projects/${this.projectId}/databases/(default)/documents/${docRef.path}`,
         fields,
       },
-      updateMask: { fieldPaths },
       currentDocument: { exists: true },
-    });
+    };
+    if (fieldPaths.length > 0) {
+      write.updateMask = { fieldPaths };
+    }
+    if (transforms.length > 0) {
+      write.updateTransforms = transforms;
+    }
+    this.writes.push(write);
     return this;
   }
 
@@ -775,7 +803,7 @@ class DatabaseReference {
 
   async get(): Promise<any> {
     const token = await this.getToken();
-    const response = await fetch(`${this.url}?auth=${token}`);
+    const response = await fetch(`${this.url}?access_token=${token}`);
 
     if (!response.ok) {
       const error = await response.text();
@@ -788,7 +816,7 @@ class DatabaseReference {
 
   async set(value: any): Promise<void> {
     const token = await this.getToken();
-    const response = await fetch(`${this.url}?auth=${token}`, {
+    const response = await fetch(`${this.url}?access_token=${token}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(value),
@@ -802,7 +830,7 @@ class DatabaseReference {
 
   async update(value: any): Promise<void> {
     const token = await this.getToken();
-    const response = await fetch(`${this.url}?auth=${token}`, {
+    const response = await fetch(`${this.url}?access_token=${token}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(value),
@@ -816,7 +844,7 @@ class DatabaseReference {
 
   async remove(): Promise<void> {
     const token = await this.getToken();
-    const response = await fetch(`${this.url}?auth=${token}`, {
+    const response = await fetch(`${this.url}?access_token=${token}`, {
       method: "DELETE",
     });
 
@@ -828,7 +856,7 @@ class DatabaseReference {
 
   async push(value: any): Promise<DatabaseReference> {
     const token = await this.getToken();
-    const response = await fetch(`${this.url}?auth=${token}`, {
+    const response = await fetch(`${this.url}?access_token=${token}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(value),

@@ -3,19 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design_tokens.dart';
 import '../../core/motion_tokens.dart';
+import '../../providers/user_provider.dart';
 import '../../shared/widgets/game_coin_counter.dart';
 
 /// Play game screen with STACKED CARDS hero interface (Spec 2.1)
-class PlayGameScreen extends StatefulWidget {
+class PlayGameScreen extends ConsumerStatefulWidget {
   const PlayGameScreen({super.key});
 
   @override
-  State<PlayGameScreen> createState() => _PlayGameScreenState();
+  ConsumerState<PlayGameScreen> createState() => _PlayGameScreenState();
 }
 
-class _PlayGameScreenState extends State<PlayGameScreen>
+class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
     with TickerProviderStateMixin {
   late AnimationController _loadController;
   late AnimationController _breathingController;
@@ -23,11 +25,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   late ScrollController _scrollController;
 
   double _scrollOffset = 0;
-
-  // Mock user data
-  final int _currentXp = 750;
-  final int _xpForNextLevel = 1000;
-  final int _coins = 340;
 
   @override
   void initState() {
@@ -80,6 +77,12 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
   @override
   Widget build(BuildContext context) {
+    final userProfileAsync = ref.watch(userProfileProvider);
+    final user = userProfileAsync.asData?.value;
+    final currentXp = user?.xp ?? 0;
+    final xpForNextLevel = user?.xpForNextLevel ?? 1000;
+    final coins = user?.coins ?? 0;
+
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -130,13 +133,13 @@ class _PlayGameScreenState extends State<PlayGameScreen>
           ),
 
           // Sticky header
-          _buildStickyHeader(),
+          _buildStickyHeader(coins),
         ],
       ),
     );
   }
 
-  Widget _buildStickyHeader() {
+  Widget _buildStickyHeader(int coins) {
     final topInset = MediaQuery.of(context).padding.top;
     const headerHeight = 52.0;
     const counterScale = 0.9;
@@ -157,7 +160,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
             scale: counterScale,
             alignment: Alignment.centerLeft,
             child: GameCoinCounter(
-              coins: _coins,
+              coins: coins,
               onTap: () {
                 HapticFeedback.lightImpact();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -239,7 +242,10 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   }
 
   Widget _buildLevelProgressBar() {
-    final levelProgress = _currentXp / _xpForNextLevel;
+    final user = ref.watch(userProfileProvider).asData?.value;
+    final currentXp = user?.xp ?? 0;
+    final xpForNextLevel = user?.xpForNextLevel ?? 1000;
+    final levelProgress = xpForNextLevel == 0 ? 0.0 : currentXp / xpForNextLevel;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -296,7 +302,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                                 ),
                               ),
                               Text(
-                                '$_currentXp / $_xpForNextLevel XP',
+                                '$currentXp / $xpForNextLevel XP',
                                 style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
