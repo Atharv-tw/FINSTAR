@@ -1,4 +1,4 @@
-import 'dart:math' as math; // Import math library
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import '../../providers/user_provider.dart';
@@ -18,10 +18,9 @@ class ProgressCard extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 85.60 / 53.98, // Credit card aspect ratio
       child: Container(
-        padding: const EdgeInsets.all(20.0),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF8DB5D6), Color(0xFF7CAFD9)], // New blue gradient
+            colors: [Color(0xFF8DB5D6), Color(0xFF7CAFD9)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -34,141 +33,204 @@ class ProgressCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Stack( // Use a Stack to layer decorative elements
-          children: [
-            // Decorative elements
-            Align(
-              alignment: Alignment.center,
-              child: Transform.rotate(
-                angle: math.pi / 4, // Tilted vertically
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16.0),
+          child: Stack(
+            children: [
+              // Premium shine effect - top glossy highlight
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
                 child: Container(
-                  width: 250, // width
-                  height: 50, // height
+                  height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.3),
+                        Colors.white.withValues(alpha: 0.1),
+                        Colors.white.withValues(alpha: 0.0),
+                      ],
+                      stops: const [0.0, 0.4, 1.0],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Align(
-              alignment: const Alignment(0, 0.9), // Further increased vertical offset
-              child: Transform.rotate(
-                angle: math.pi / 4, // Tilted vertically
-                child: Container(
-                  width: 350, // width
-                  height: 70, // height
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 20,
-              right: -30,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-
-            // Card content
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Row for Chip and Logo
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Chip
-                    Container(
-                      width: 50,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFADD8E6).withValues(alpha: 0.8), // Light blue chip
-                        borderRadius: BorderRadius.circular(6),
+              // Diagonal shine streak
+              Positioned(
+                top: -60,
+                left: -100,
+                child: Transform.rotate(
+                  angle: -math.pi / 5,
+                  child: Container(
+                    width: 200,
+                    height: 500,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.0),
+                          Colors.white.withValues(alpha: 0.05),
+                          Colors.white.withValues(alpha: 0.12),
+                          Colors.white.withValues(alpha: 0.05),
+                          Colors.white.withValues(alpha: 0.0),
+                        ],
+                        stops: const [0.0, 0.3, 0.5, 0.7, 1.0],
                       ),
                     ),
-                    // Logo
-                    const Text(
-                      'FINSTAR',
-                      style: TextStyle(
+                  ),
+                ),
+              ),
+              // Subtle ambient circle glow - top right
+              Positioned(
+                top: -30,
+                right: -40,
+                child: Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.18),
+                        Colors.white.withValues(alpha: 0.0),
+                      ],
+                      stops: const [0.0, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+              // Secondary ambient glow - bottom left
+              Positioned(
+                bottom: -40,
+                left: -40,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.12),
+                        Colors.white.withValues(alpha: 0.0),
+                      ],
+                      stops: const [0.0, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+              // Card content
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Row for Chip and Logo
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Chip with subtle gradient
+                        Container(
+                          width: 50,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFFADD8E6).withValues(alpha: 0.9),
+                                const Color(0xFF9BC8DC).withValues(alpha: 0.8),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 2,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Logo
+                        const Text(
+                          'FINSTAR',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Card Number
+                    Text(
+                      'ID •••• $maskedId',
+                      style: const TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        letterSpacing: 2,
+                        letterSpacing: 1.5,
+                        fontFamily: 'monospace',
                       ),
                     ),
-                  ],
-                ),
-                // Card Number
-                Text(
-                  'ID •••• $maskedId',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-                // Row for Cardholder Name and Valid Thru
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Cardholder Name
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    // Row for Cardholder Name and Valid Thru
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'BADGE',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.white70,
-                          ),
+                        // Cardholder Name
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'BADGE',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            Text(
+                              badgeLabel,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          badgeLabel,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Balance
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'BALANCE',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.white70,
-                          ),
-                        ),
-                        Text(
-                          '${user.coins} COINS',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        // Balance
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'BALANCE',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            Text(
+                              '${user.coins} COINS',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
