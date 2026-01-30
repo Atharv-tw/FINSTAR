@@ -13,6 +13,8 @@ class ProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final badgeLabel = _badgeLabelForStreak(user.streakDays);
+    final maskedId = _maskedId(user.id);
     return AspectRatio(
       aspectRatio: 85.60 / 53.98, // Credit card aspect ratio
       child: Container(
@@ -107,12 +109,12 @@ class ProgressCard extends StatelessWidget {
                   ],
                 ),
                 // Card Number
-                const Text(
-                  '**** **** **** 1234',
-                  style: TextStyle(
-                    fontSize: 24,
+                Text(
+                  'ID •••• $maskedId',
+                  style: const TextStyle(
+                    fontSize: 20,
                     color: Colors.white,
-                    letterSpacing: 2,
+                    letterSpacing: 1.5,
                     fontFamily: 'monospace',
                   ),
                 ),
@@ -125,14 +127,14 @@ class ProgressCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'CARDHOLDER',
+                          'BADGE',
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.white70,
                           ),
                         ),
                         Text(
-                          user.displayName.toUpperCase(),
+                          badgeLabel,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -141,20 +143,20 @@ class ProgressCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    // Valid Thru
+                    // Balance
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'VALID THRU',
+                      children: [
+                        const Text(
+                          'BALANCE',
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.white70,
                           ),
                         ),
                         Text(
-                          '12/28',
-                          style: TextStyle(
+                          '${user.coins} COINS',
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -170,5 +172,33 @@ class ProgressCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _badgeLabelForStreak(int streakDays) {
+    if (streakDays >= 90) {
+      return 'FINANCE PRO';
+    }
+    if (streakDays >= 60) {
+      return 'MONEY MASTER';
+    }
+    if (streakDays >= 30) {
+      return 'BUDGET BOSS';
+    }
+    if (streakDays >= 14) {
+      return 'SAVINGS STAR';
+    }
+    if (streakDays >= 7) {
+      return 'SMART SPENDER';
+    }
+    if (streakDays >= 3) {
+      return 'ROOKIE EARNER';
+    }
+    return 'BEGINNER';
+  }
+
+  String _maskedId(String id) {
+    if (id.isEmpty) return '0000';
+    final tail = id.length >= 4 ? id.substring(id.length - 4) : id;
+    return tail.toUpperCase();
   }
 }
