@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../models/quiz_question.dart';
 import '../../../../services/mascot_service.dart';
 import '../../../../core/extensions.dart';
+import '../../../../config/theme.dart';
 
 class QuizBattleScreen extends StatefulWidget {
   const QuizBattleScreen({super.key});

@@ -447,9 +447,12 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     // Collapsed: full card height + 40px visible per additional card
     // Unfolded: all cards fully visible with gaps
     final cardHeight = screenHeight * 0.7;
-    final collapsedHeight = cardHeight + (cards.length - 1) * 40.0; // One full card + 40px per additional card
-    final unfoldedHeight = cards.length * (cardHeight + 20.0); // All cards with 20px gap
-    final stackHeight = collapsedHeight + (unfoldProgress * (unfoldedHeight - collapsedHeight));
+    final collapsedHeight =
+        cardHeight + (cards.length - 1) * 40.0; // One full card + 40px per additional card
+    final unfoldedHeight =
+        cards.length * (cardHeight + 20.0); // All cards with 20px gap
+    final stackHeight =
+        collapsedHeight + (unfoldProgress * (unfoldedHeight - collapsedHeight));
 
     return Transform.translate(
       offset: const Offset(0, -47),
@@ -460,32 +463,34 @@ class _PlayGameScreenState extends State<PlayGameScreen>
           child: Stack(
             clipBehavior: Clip.none,
             children: displayCards.asMap().entries.map((entry) {
-            final index = entry.key; // 0 is Play Games (first), 3 is Friends (last)
-            final card = entry.value;
+              final index = entry.key; // 0 is Play Games (first), 3 is Friends (last)
+              final card = entry.value;
 
-            // When collapsed (unfoldProgress = 0): Cards stacked with only 40px visible each
-            // When unfolded (unfoldProgress = 1): Cards fully separated with 20px gap
+              // When collapsed (unfoldProgress = 0): Cards stacked with only 40px visible each
+              // When unfolded (unfoldProgress = 1): Cards fully separated with 20px gap
 
-            // Calculate vertical position
-            // Collapsed: cards overlap, showing 40px of each card
-            // Unfolded: full card height + 20px gap
-            final collapsedTop = index * 70.0; // Show 70px of each card when stacked
-            final unfoldedTop = index * (cardHeight + 80.0); // Full card + gap
-            final currentTop = collapsedTop + (unfoldProgress * (unfoldedTop - collapsedTop));
+              // Calculate vertical position
+              // Collapsed: cards overlap, showing 40px of each card
+              // Unfolded: full card height + 20px gap
+              final collapsedTop = index * 70.0; // Show 70px of each card when stacked
+              final unfoldedTop = index * (cardHeight + 80.0); // Full card + gap
+              final currentTop =
+                  collapsedTop + (unfoldProgress * (unfoldedTop - collapsedTop));
 
-            return AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutQuad,
-              top: currentTop,
-              left: 13,
-              right: 13,
-                          child: _buildGlassmorphicCard(
-                            card: card,
-                            index: index,
-                            screenHeight: screenHeight,
-                            unfoldProgress: unfoldProgress,
-                          ),            );
-          }).toList(),
+              return AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutQuad,
+                top: currentTop,
+                left: 13,
+                right: 13,
+                child: _buildGlassmorphicCard(
+                  card: card,
+                  index: index,
+                  screenHeight: screenHeight,
+                  unfoldProgress: unfoldProgress,
+                ),
+              );
+            }).toList(),
           ),
         ),
       ),
@@ -528,7 +533,8 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                 children: [
                   // 1. Background Layer
                   BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
+                    filter:
+                        ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
                     child: Container(
                       decoration: BoxDecoration(
                         color: card.gradientColors[0].withValues(alpha: 0.7),
@@ -548,7 +554,8 @@ class _PlayGameScreenState extends State<PlayGameScreen>
                         // Only add outer glow if no image (images have their own visual weight)
                         BoxShadow(
                           blurRadius: 24,
-                          color: card.gradientColors[0].withValues(alpha: glowOpacity),
+                          color:
+                              card.gradientColors[0].withValues(alpha: glowOpacity),
                         ),
                       ],
                     ),
@@ -575,7 +582,11 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     Offset contentOffset = Offset.zero; // Default offset
 
     if (card.title == 'LIFE SWIPE') {
-      iconSpacing = 12.0;
+      return _LifeSwipeCardContent(
+        card: card,
+        unfoldProgress: unfoldProgress,
+        glowController: _glowController, // Pass the glow controller
+      );
     } else if (card.title == 'MARKET EXPLORER') {
       animatedFontSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
       animatedIconSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
@@ -615,15 +626,13 @@ class _PlayGameScreenState extends State<PlayGameScreen>
       ),
     );
   }
-
 }
-
-/// Grid pattern painter for hero overlay
+// Grid pattern painter for hero overlay
 class GridPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
+      ..color = Colors.white.withOpacity(0.05)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
@@ -658,4 +667,171 @@ class _CardData {
     required this.gradientColors,
     required this.route,
   });
+}
+
+// New Widget for Life Swipe Card Content
+class _LifeSwipeCardContent extends StatefulWidget {
+  final _CardData card;
+  final double unfoldProgress;
+  final AnimationController glowController;
+
+  const _LifeSwipeCardContent({
+    required this.card,
+    required this.unfoldProgress,
+    required this.glowController,
+  });
+
+  @override
+  State<_LifeSwipeCardContent> createState() => _LifeSwipeCardContentState();
+}
+
+class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _swipeAnimationController;
+  late Animation<double> _swipeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _swipeAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true); // Matches CSS animation: swipe 2s infinite ease-in-out;
+
+    _swipeAnimation = Tween<double>(begin: -20, end: 20).animate(
+      CurvedAnimation(
+        parent: _swipeAnimationController,
+        curve: Curves.easeInOut, // Corresponds to CSS ease-in-out
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _swipeAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // External animated heading placeholder - using card.title for now
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            widget.card.title,
+            style: GoogleFonts.luckiestGuy(
+              fontSize: 36,
+              color: DesignTokens.textPrimary,
+              height: 1.1,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+
+        // Card Area
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFFDDDDDD),
+                width: 2,
+              ), // Using solid border instead of dashed for simplicity
+            ),
+            child: Center(
+              child: SizedBox(
+                width: 120,
+                height: 120,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Hand animation
+                    AnimatedBuilder(
+                      animation: _swipeAnimationController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(_swipeAnimation.value, 0),
+                          child: Opacity(
+                            opacity: 0.5 +
+                                (_swipeAnimation.value.abs() /
+                                    40), // 0.5 to 1.0 based on position
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFFCCCCCC),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    // Left arrow
+                    const Positioned(
+                      left: 0,
+                      child: Icon(
+                        Icons.arrow_left,
+                        size: 40, // Larger to match font-size: 20px in CSS
+                        color: Color(0xFFBBBBBB),
+                      ),
+                    ),
+                    // Right arrow
+                    const Positioned(
+                      right: 0,
+                      child: Icon(
+                        Icons.arrow_right,
+                        size: 40, // Larger to match font-size: 20px in CSS
+                        color: Color(0xFFBBBBBB),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // Action Buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(20),
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFFE53935), width: 2),
+              ),
+              child: const Icon(
+                Icons.close,
+                size: 28,
+                color: Color(0xFFE53935),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(20),
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFF43A047), width: 2),
+              ),
+              child: const Icon(
+                Icons.favorite,
+                size: 28,
+                color: Color(0xFF43A047),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
