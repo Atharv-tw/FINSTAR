@@ -497,6 +497,84 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     );
   }
 
+  Widget _buildGlassmorphicCard({
+    required _CardData card,
+    required int index,
+    required double screenHeight,
+    required double unfoldProgress,
+  }) {
+    // Progressive blur: +4px per card
+    final blurAmount = 24.0 + (index * 4.0);
+
+    // Animated glow pulse (0.3 → 0.5 → 0.3)
+    return AnimatedBuilder(
+      animation: _glowController,
+      builder: (context, child) {
+        final glowOpacity = 0.3 + (_glowController.value * 0.2); // 0.3 to 0.5
+
+        return GestureDetector(
+          onTap: () {
+            // Navigate to game
+            HapticFeedback.mediumImpact();
+            if (card.title == 'LIFE SWIPE') {
+              context.push('/game/life-swipe/tutorial');
+            } else if (card.title == 'MARKET EXPLORER') {
+              context.push('/game/market-explorer'); // Navigate to the splash screen
+            } else {
+              context.push(card.route);
+            }
+          },
+          child: SizedBox(
+            height: screenHeight * 0.7, // Full card size (70% of screen height)
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40), // Playing card style rounded edges
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // 1. Background Layer
+                  BackdropFilter(
+                    filter:
+                        ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: card.gradientColors[0].withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+
+                  // 2. Border & Outer Glow (Applied to both)
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        // Only add outer glow if no image (images have their own visual weight)
+                        BoxShadow(
+                          blurRadius: 24,
+                          color:
+                              card.gradientColors[0].withValues(alpha: glowOpacity),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 3. Content Layer
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: _buildCollapsedCardContent(card, unfoldProgress),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCollapsedCardContent(_CardData card, double unfoldProgress) {
     double animatedFontSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
     double animatedIconSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
