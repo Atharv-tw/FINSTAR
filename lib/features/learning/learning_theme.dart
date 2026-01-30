@@ -23,7 +23,7 @@ class LearningTheme {
   );
 
   static final TextStyle bodyText1 = GoogleFonts.poppins(
-    color: columbia,
+    color: vanDyke,
     fontSize: 18,
     fontWeight: FontWeight.w500,
     height: 1.6,
