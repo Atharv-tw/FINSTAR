@@ -94,6 +94,9 @@ class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
     final totalXp = module!.totalXp;
     final progressValue =
         totalLessons == 0 ? 0.0 : (completedCount / totalLessons).clamp(0.0, 1.0);
+    debugPrint(
+      'Module ${module!.id} progress: completed=$completedCount total=$totalLessons earnedXp=$earnedXp totalXp=$totalXp',
+    );
 
     return Scaffold(
       body: Stack(

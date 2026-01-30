@@ -10,6 +10,7 @@ import '../../core/design_tokens.dart';
 import '../../core/motion_tokens.dart';
 import '../../providers/user_provider.dart';
 import '../../shared/widgets/game_coin_counter.dart';
+import '../../shared/widgets/streak_and_tips_section.dart';
 
 /// Play game screen with STACKED CARDS hero interface (Spec 2.1)
 class PlayGameScreen extends ConsumerStatefulWidget {
@@ -237,6 +238,16 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
             left: 24,
             right: 24,
             child: _buildLevelProgressBar(),
+          ),
+
+          // Streak and Tips Section right below level progress
+          Positioned(
+            top: 220,
+            left: 0,
+            right: 0,
+            child: StreakAndTipsSection(
+              streakDays: ref.watch(userProfileProvider).asData?.value?.streakDays ?? 0,
+            ),
           ),
         ],
       ),
@@ -569,11 +580,13 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
                     ),
                   ),
 
-                  // 3. Content Layer - smaller padding for Market Explorer
+                  // 3. Content Layer - smaller padding for Market Explorer, none for Quiz Battle
                   Padding(
-                    padding: card.title == 'MARKET EXPLORER' 
-                        ? const EdgeInsets.all(16) 
-                        : const EdgeInsets.all(24),
+                    padding: card.title == 'QUIZ BATTLE'
+                        ? EdgeInsets.zero
+                        : card.title == 'MARKET EXPLORER' 
+                            ? const EdgeInsets.all(16) 
+                            : const EdgeInsets.all(24),
                     child: _buildCollapsedCardContent(card, unfoldProgress),
                   ),
                 ],
@@ -604,6 +617,11 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
       );
     } else if (card.title == 'MARKET EXPLORER') {
       return _MarketExplorerCardContent(
+        card: card,
+        unfoldProgress: unfoldProgress,
+      );
+    } else if (card.title == 'QUIZ BATTLE') {
+      return _QuizBattleCardContent(
         card: card,
         unfoldProgress: unfoldProgress,
       );
@@ -978,6 +996,99 @@ class _MarketExplorerCardContent extends StatelessWidget {
         ),
       );
     }
+  }
+}
+
+// Quiz Battle card content with full image cover
+class _QuizBattleCardContent extends StatelessWidget {
+  const _QuizBattleCardContent({
+    required this.card,
+    required this.unfoldProgress,
+  });
+
+  final _CardData card;
+  final double unfoldProgress;
+
+  @override
+  Widget build(BuildContext context) {
+    // Font size: starts at 24, grows to 32
+    final double animatedFontSize = 24 + (unfoldProgress * 8);
+    
+    // Icon size: shrinks and fades as we animate
+    final double animatedIconSize = 24 * (1 - unfoldProgress * 0.5);
+    final double iconOpacity = 1 - (unfoldProgress * 0.8);
+    
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardHeight = constraints.maxHeight;
+        final cardWidth = constraints.maxWidth;
+        
+        // Animate position from top-left to center-top
+        final double targetY = cardHeight * 0.08;
+        final double animatedY = unfoldProgress * targetY;
+        
+        final double targetX = (cardWidth - 200) / 2;
+        final double animatedX = unfoldProgress * targetX;
+        
+        return Stack(
+          children: [
+            // Quiz Battle image - fills the entire card
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/images/quizbattle.jpeg',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            
+            // Animated text overlay
+            Positioned(
+              left: animatedX,
+              top: animatedY,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Icon fades out as animation progresses
+                  if (iconOpacity > 0.01)
+                    Opacity(
+                      opacity: iconOpacity,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(
+                          card.icon,
+                          size: animatedIconSize,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  
+                  // Title text
+                  Text(
+                    'QUIZ BATTLE',
+                    style: GoogleFonts.luckiestGuy(
+                      fontSize: animatedFontSize,
+                      color: Colors.white,
+                      height: 1.1,
+                      letterSpacing: 0.5,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          blurRadius: 8,
+                          offset: const Offset(2, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

@@ -26,9 +26,7 @@ class LessonProgress {
       moduleId: data['moduleId'] ?? '',
       lessonId: data['lessonId'] ?? '',
       completed: data['completed'] ?? false,
-      completedAt: data['completedAt'] != null
-          ? (data['completedAt'] as Timestamp).toDate()
-          : null,
+      completedAt: _parseDateTime(data['completedAt']),
       xpEarned: data['xpEarned'] ?? 0,
     );
   }
@@ -59,18 +57,18 @@ final learningProgressProvider = StreamProvider<Map<String, LessonProgress>>((re
       .collection('lessonProgress')
       .snapshots()
       .map((snapshot) {
+    debugPrint('lessonProgress docs: ${snapshot.docs.length}');
     final progressMap = <String, LessonProgress>{};
     for (var doc in snapshot.docs) {
       final data = doc.data();
       final lessonId = (data['lessonId'] ?? doc.id) as String;
       final moduleId = _findModuleIdForLesson(lessonId) ?? (data['moduleId'] ?? '');
+      debugPrint('lessonProgress doc=${doc.id} lessonId=$lessonId moduleId=$moduleId completed=${data['completed']} xpEarned=${data['xpEarned']}');
       final progress = LessonProgress(
         moduleId: moduleId,
         lessonId: lessonId,
         completed: data['completed'] ?? false,
-        completedAt: data['completedAt'] != null
-            ? (data['completedAt'] as Timestamp).toDate()
-            : null,
+        completedAt: _parseDateTime(data['completedAt']),
         xpEarned: data['xpEarned'] ?? 0,
       );
       progressMap['${progress.moduleId}_${progress.lessonId}'] = progress;
@@ -131,5 +129,16 @@ String? _findModuleIdForLesson(String lessonId) {
       }
     }
   } catch (_) {}
+  return null;
+}
+
+DateTime? _parseDateTime(dynamic value) {
+  if (value == null) return null;
+  if (value is Timestamp) return value.toDate();
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.tryParse(value);
+  if (value is int) {
+    return DateTime.fromMillisecondsSinceEpoch(value);
+  }
   return null;
 }

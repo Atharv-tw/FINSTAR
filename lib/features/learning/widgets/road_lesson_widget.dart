@@ -139,7 +139,9 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
     points.add(Offset(width / 2, startY));
 
     for (int i = 0; i < lessonCount; i++) {
-      final double fraction = (i + 0.8) / (lessonCount * 1.25);
+      final double spacingMultiplier =
+          (widget.module.id == 'money_basics') ? 1.2 : 1.3;
+      final double fraction = (i + 0.8) / (lessonCount * spacingMultiplier);
       final double y = startY + height * fraction;
       
       double x = (i % 2 != 0) ? width * 0.8 : width * 0.2;
