@@ -409,128 +409,251 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     );
   }
 
-  Widget _buildCardStackZone(double screenHeight, double screenWidth) {
-    final cards = [
-      _CardData(
-        title: 'LIFE SWIPE',
-        subtitle: '',
-        description: '',
-        icon: Icons.swipe_rounded,
-        gradientColors: [const Color(0xFFE1C1C6), const Color(0xFFE1C1C6)],
-        route: '/game/life-swipe',
-      ),
-      _CardData(
-        title: 'BUDGET BLITZ',
-        subtitle: '',
-        description: '',
-        icon: Icons.bolt_rounded,
-        gradientColors: [const Color(0xFFF6EDA3), const Color(0xFFF6EDA3)],
-        route: '/game/budget-blitz',
-      ),
-      _CardData(
-        title: 'MARKET EXPLORER',
-        subtitle: '',
-        description: '',
-        icon: Icons.trending_up_rounded,
-        gradientColors: [const Color(0xFF94B8C9), const Color(0xFF94B8C9)],
-        route: '/game/market-explorer',
-      ),
-      _CardData(
-        title: 'QUIZ BATTLE',
-        subtitle: '',
-        description: '',
-        icon: Icons.quiz_rounded,
-        gradientColors: [const Color(0xFF829672), const Color(0xFF829672)],
-        route: '/game/quiz-battle',
-      ),
-    ];
+    Widget _buildCardStackZone(double screenHeight, double screenWidth) {
 
-    // Card unfolding: calculate how much to unfold based on scroll
-    // Start unfolding immediately, fully unfolded at 300px
-    final unfoldProgress = (_scrollOffset / 300).clamp(0.0, 1.0);
+      final cards = [
 
-    // Keep the order: Play Games should be first when unfolded (it's visually on top of stack)
-    final displayCards = cards;
+        _CardData(
 
-    // Calculate stack height based on unfold progress
-    // Collapsed: full card height + 40px visible per additional card
-    // Unfolded: all cards fully visible with gaps
-    final cardHeight = screenHeight * 0.7;
-    final collapsedHeight = cardHeight + (cards.length - 1) * 40.0; // One full card + 40px per additional card
-    final unfoldedHeight = cards.length * (cardHeight + 20.0); // All cards with 20px gap
-    final stackHeight = collapsedHeight + (unfoldProgress * (unfoldedHeight - collapsedHeight));
+          title: 'LIFE SWIPE',
 
-    return Transform.translate(
-      offset: const Offset(0, -47),
-      child: Container(
-        padding: const EdgeInsets.only(top: 0, bottom: 24),
-        child: SizedBox(
-          height: stackHeight,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: displayCards.asMap().entries.map((entry) {
-            final index = entry.key; // 0 is Play Games (first), 3 is Friends (last)
-            final card = entry.value;
+          subtitle: '',
 
-            // When collapsed (unfoldProgress = 0): Cards stacked with only 40px visible each
-            // When unfolded (unfoldProgress = 1): Cards fully separated with 20px gap
+          description: '',
 
-            // Calculate vertical position
-            // Collapsed: cards overlap, showing 40px of each card
-            // Unfolded: full card height + 20px gap
-            final collapsedTop = index * 70.0; // Show 70px of each card when stacked
-            final unfoldedTop = index * (cardHeight + 80.0); // Full card + gap
-            final currentTop = collapsedTop + (unfoldProgress * (unfoldedTop - collapsedTop));
+          icon: Icons.swipe_rounded,
 
-            return AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutQuad,
-              top: currentTop,
-              left: 13,
-              right: 13,
-                          child: _buildGlassmorphicCard(
-                            card: card,
-                            index: index,
-                            screenHeight: screenHeight,
-                            unfoldProgress: unfoldProgress,
-                          ),            );
-          }).toList(),
-          ),
+          gradientColors: [const Color(0xFFE1C1C6), const Color(0xFFE1C1C6)],
+
+          route: '/game/life-swipe',
+
         ),
-      ),
-    );
-  }
 
-  Widget _buildGlassmorphicCard({
-    required _CardData card,
-    required int index,
-    required double screenHeight,
-    required double unfoldProgress,
-  }) {
-    // Progressive blur: +4px per card
-    final blurAmount = 24.0 + (index * 4.0);
+        _CardData(
 
-    // Animated glow pulse (0.3 → 0.5 → 0.3)
-    return AnimatedBuilder(
-      animation: _glowController,
-      builder: (context, child) {
-        final glowOpacity = 0.3 + (_glowController.value * 0.2); // 0.3 to 0.5
+          title: 'BUDGET BLITZ',
 
-        return GestureDetector(
-          onTap: () {
-            // Navigate to game
-            HapticFeedback.mediumImpact();
-            if (card.title == 'LIFE SWIPE') {
-              context.push('/game/life-swipe/tutorial');
-            } else if (card.title == 'MARKET EXPLORER') {
-              context.push('/game/market-explorer'); // Navigate to the splash screen
-            } else {
-              context.push(card.route);
-            }
-          },
-          child: Container(
-            height: screenHeight * 0.7, // Full card size (70% of screen height)
-            child: ClipRRect(
+          subtitle: '',
+
+          description: '',
+
+          icon: Icons.bolt_rounded,
+
+          gradientColors: [const Color(0xFFF6EDA3), const Color(0xFFF6EDA3)],
+
+          route: '/game/budget-blitz',
+
+        ),
+
+        _CardData(
+
+          title: 'MARKET EXPLORER',
+
+          subtitle: '',
+
+          description: '',
+
+          icon: Icons.trending_up_rounded,
+
+          gradientColors: [const Color(0xFF94B8C9), const Color(0xFF94B8C9)],
+
+          route: '/game/market-explorer',
+
+        ),
+
+        _CardData(
+
+          title: 'QUIZ BATTLE',
+
+          subtitle: '',
+
+          description: '',
+
+          icon: Icons.quiz_rounded,
+
+          gradientColors: [const Color(0xFF829672), const Color(0xFF829672)],
+
+          route: '/game/quiz-battle',
+
+        ),
+
+      ];
+
+  
+
+      // Card unfolding: calculate how much to unfold based on scroll
+
+      // Start unfolding immediately, fully unfolded at 300px
+
+      final unfoldProgress = (_scrollOffset / 300).clamp(0.0, 1.0);
+
+  
+
+      // Keep the order: Play Games should be first when unfolded (it's visually on top of stack)
+
+      final displayCards = cards;
+
+  
+
+      // Calculate stack height based on unfold progress
+
+      // Collapsed: full card height + 40px visible per additional card
+
+      // Unfolded: all cards fully visible with gaps
+
+            final adjustedCardHeight = (screenHeight * 0.7) - 35; // Reduced by 35 pixels
+
+            final collapsedHeight = adjustedCardHeight + (cards.length - 1) * 40.0; // One full card + 40px per additional card
+
+            final unfoldedHeight = cards.length * (adjustedCardHeight + 20.0); // All cards with 20px gap
+
+            final stackHeight = collapsedHeight + (unfoldProgress * (unfoldedHeight - collapsedHeight));
+
+        
+
+            return Transform.translate(
+
+              offset: const Offset(0, -47),
+
+              child: Container(
+
+                padding: const EdgeInsets.only(top: 0, bottom: 24),
+
+                child: SizedBox(
+
+                  height: stackHeight,
+
+                  child: Stack(
+
+                    clipBehavior: Clip.none,
+
+                    children: displayCards.asMap().entries.map((entry) {
+
+                    final index = entry.key; // 0 is Play Games (first), 3 is Friends (last)
+
+                    final card = entry.value;
+
+        
+
+                    // When collapsed (unfoldProgress = 0): Cards stacked with only 40px visible each
+
+                    // When unfolded (unfoldProgress = 1): Cards fully separated with 20px gap
+
+        
+
+                    // Calculate vertical position
+
+                    // Collapsed: cards overlap, showing 40px of each card
+
+                    // Unfolded: full card height + 20px gap
+
+                    final collapsedTop = index * 70.0; // Show 70px of each card when stacked
+
+                    final unfoldedTop = index * (adjustedCardHeight + 80.0); // Full card + gap
+
+                    final currentTop = collapsedTop + (unfoldProgress * (unfoldedTop - collapsedTop));
+
+        
+
+                    return AnimatedPositioned(
+
+                      duration: const Duration(milliseconds: 300),
+
+                      curve: Curves.easeOutQuad,
+
+                      top: currentTop,
+
+                      left: 13,
+
+                      right: 13,
+
+                                  child: _buildGlassmorphicCard(
+
+                                    card: card,
+
+                                    index: index,
+
+                                    screenHeight: screenHeight,
+
+                                    unfoldProgress: unfoldProgress,
+
+                                  ),
+
+                    );
+
+                  }).toList(),
+
+                  ),
+
+                ),
+
+              ),
+
+            );
+
+          }
+
+        
+
+          Widget _buildGlassmorphicCard({
+
+            required _CardData card,
+
+            required int index,
+
+            required double screenHeight,
+
+            required double unfoldProgress,
+
+          }) {
+
+            // Progressive blur: +4px per card
+
+            final blurAmount = 24.0 + (index * 4.0);
+
+        
+
+            // Animated glow pulse (0.3 → 0.5 → 0.3)
+
+            return AnimatedBuilder(
+
+              animation: _glowController,
+
+              builder: (context, child) {
+
+                final glowOpacity = 0.3 + (_glowController.value * 0.2); // 0.3 to 0.5
+
+        
+
+                return GestureDetector(
+
+                  onTap: () {
+
+                    // Navigate to game
+
+                    HapticFeedback.mediumImpact();
+
+                    if (card.title == 'LIFE SWIPE') {
+
+                      context.push('/game/life-swipe/tutorial');
+
+                    } else if (card.title == 'MARKET EXPLORER') {
+
+                      context.push('/game/market-explorer'); // Navigate to the splash screen
+
+                    } else {
+
+                      context.push(card.route);
+
+                    }
+
+                  },
+
+                  child: Container(
+
+                    height: (screenHeight * 0.7) - 35, // Reduced by 35 pixels
+
+                    child: ClipRRect(
               borderRadius: BorderRadius.circular(40), // Playing card style rounded edges
               child: Stack(
                 fit: StackFit.expand,
@@ -585,7 +708,11 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     Offset contentOffset = Offset.zero; // Default offset
 
     if (card.title == 'LIFE SWIPE') {
-      iconSpacing = 12.0;
+      return _LifeSwipeCardContent(
+        card: card,
+        unfoldProgress: unfoldProgress,
+        glowController: _glowController, // Pass the glow controller
+      );
     } else if (card.title == 'MARKET EXPLORER') {
       animatedFontSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
       animatedIconSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
@@ -625,15 +752,14 @@ class _PlayGameScreenState extends State<PlayGameScreen>
       ),
     );
   }
+  }
 
-}
-
-/// Grid pattern painter for hero overlay
+// Grid pattern painter for hero overlay
 class GridPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
+      ..color = Colors.white.withOpacity(0.05)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
@@ -670,4 +796,169 @@ class _CardData {
     required this.route,
     this.imagePath,
   });
+}
+
+// New Widget for Life Swipe Card Content
+class _LifeSwipeCardContent extends StatefulWidget {
+  final _CardData card;
+  final double unfoldProgress;
+  final AnimationController glowController;
+
+  const _LifeSwipeCardContent({
+    required this.card,
+    required this.unfoldProgress,
+    required this.glowController,
+  });
+
+  @override
+  State<_LifeSwipeCardContent> createState() => _LifeSwipeCardContentState();
+}
+
+class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _swipeAnimationController;
+  late Animation<double> _swipeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _swipeAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true); // Matches CSS animation: swipe 2s infinite ease-in-out;
+
+    _swipeAnimation = Tween<double>(begin: -20, end: 20).animate(
+      CurvedAnimation(
+        parent: _swipeAnimationController,
+        curve: Curves.easeInOut, // Corresponds to CSS ease-in-out
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _swipeAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // External animated heading placeholder - using card.title for now
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            widget.card.title,
+            style: GoogleFonts.luckiestGuy(
+              fontSize: 36,
+              color: DesignTokens.textPrimary,
+              height: 1.1,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+
+        // Card Area
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFFDDDDDD),
+                width: 2,
+              ), // Using solid border instead of dashed for simplicity
+            ),
+            child: Center(
+              child: SizedBox(
+                width: 120,
+                height: 120,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Hand animation
+                    AnimatedBuilder(
+                      animation: _swipeAnimationController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(_swipeAnimation.value, 0),
+                          child: Opacity(
+                            opacity: 0.5 +
+                                (_swipeAnimation.value.abs() /
+                                    40), // 0.5 to 1.0 based on position
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFFCCCCCC),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    // Left arrow
+                    const Positioned(
+                      left: 0,
+                      child: Icon(
+                        Icons.arrow_left,
+                        size: 40, // Larger to match font-size: 20px in CSS
+                        color: Color(0xFFBBBBBB),
+                      ),
+                    ),
+                    // Right arrow
+                    const Positioned(
+                      right: 0,
+                      child: Icon(
+                        Icons.arrow_right,
+                        size: 40, // Larger to match font-size: 20px in CSS
+                        color: Color(0xFFBBBBBB),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // Action Buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(20),
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFFE53935), width: 2),
+              ),
+              child: const Text(
+                '✖',
+                style: TextStyle(fontSize: 28, color: Color(0xFFE53935)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(20),
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFF43A047), width: 2),
+              ),
+              child: const Text(
+                '❤',
+                style: TextStyle(fontSize: 28, color: Color(0xFF43A047)),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
