@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +5,7 @@ import '../../core/design_tokens.dart';
 import '../../providers/achievements_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../shared/widgets/progress_card.dart';
 
 /// Profile Detail Screen - A modern, gamified view of user progress.
 class ProfileDetailScreen extends ConsumerStatefulWidget {
@@ -109,7 +109,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> with 
           children: [
             _buildProfileHeader(user),
             const SizedBox(height: 30),
-            _FinstarDigitalCard(user: user),
+            ProgressCard(user: user),
             const SizedBox(height: 30),
             _buildStatsGrid(user),
             const SizedBox(height: 30),
@@ -268,138 +268,6 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> with 
           error: (e, s) => const Text('Could not load achievements'),
         ),
       ],
-    );
-  }
-}
-
-class _FinstarDigitalCard extends StatefulWidget {
-  final UserProfile user;
-  const _FinstarDigitalCard({required this.user});
-
-  @override
-  State<_FinstarDigitalCard> createState() => _FinstarDigitalCardState();
-}
-
-class _FinstarDigitalCardState extends State<_FinstarDigitalCard> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  double _tiltX = 0;
-  double _tiltY = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanUpdate: (details) {
-        setState(() {
-          _tiltY += details.delta.dx * 0.01;
-          _tiltX -= details.delta.dy * 0.01;
-        });
-      },
-      onPanEnd: (details) {
-        setState(() {
-          _tiltX = 0;
-          _tiltY = 0;
-        });
-      },
-      child: Transform(
-        transform: Matrix4.identity()
-          ..setEntry(3, 2, 0.001) // perspective
-          ..rotateX(_tiltX)
-          ..rotateY(_tiltY),
-        alignment: FractionalOffset.center,
-        child: Container(
-          height: 180,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: DesignTokens.primarySolid.withOpacity(0.3),
-                blurRadius: 25,
-                spreadRadius: -10,
-                offset: const Offset(0, 15),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Stack(
-              children: [
-                // Animated Gradient Background
-                AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        gradient: SweepGradient(
-                          center: Alignment.center,
-                          transform: GradientRotation(_controller.value * 2 * 3.14159),
-                          colors: const [
-                            DesignTokens.primaryStart,
-                            DesignTokens.primaryEnd,
-                            DesignTokens.primaryStart,
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                // Glassmorphism overlay
-                BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-                // Card Content
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Finstar', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                          const Icon(Icons.wifi, color: Colors.white),
-                        ],
-                      ),
-                      const Spacer(),
-                      const Text('COIN BALANCE', style: TextStyle(color: Colors.white70, fontSize: 14)),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${widget.user.coins} Coins',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
