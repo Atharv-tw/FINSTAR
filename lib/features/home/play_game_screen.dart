@@ -774,45 +774,9 @@ class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Hand animation
-                    AnimatedBuilder(
-                      animation: _swipeAnimationController,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(_swipeAnimation.value, 0),
-                          child: Opacity(
-                            opacity: 0.5 +
-                                (_swipeAnimation.value.abs() /
-                                    40), // 0.5 to 1.0 based on position
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFFCCCCCC),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    // Left arrow
-                    const Positioned(
-                      left: 0,
-                      child: Icon(
-                        Icons.arrow_left,
-                        size: 40, // Larger to match font-size: 20px in CSS
-                        color: Color(0xFFBBBBBB),
-                      ),
-                    ),
-                    // Right arrow
-                    const Positioned(
-                      right: 0,
-                      child: Icon(
-                        Icons.arrow_right,
-                        size: 40, // Larger to match font-size: 20px in CSS
-                        color: Color(0xFFBBBBBB),
-                      ),
+                    Transform.scale(
+                      scale: 2.0,
+                      child: Image.asset('assets/images/c0emovebgpreview.png', fit: BoxFit.contain),
                     ),
                   ],
                 ),
