@@ -769,16 +769,16 @@ class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
             ),
             child: Center(
               child: SizedBox(
-                width: 120,
-                height: 120,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Transform.scale(
-                      scale: 2.0,
-                      child: Image.asset('assets/images/c0emovebgpreview.png', fit: BoxFit.contain),
-                    ),
-                  ],
+                width: 390,
+                height: 390,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/images/lifeswipewidget.jpeg',
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
                 ),
               ),
             ),

@@ -69,22 +69,6 @@ class _LifeSwipeTutorialScreenState extends State<LifeSwipeTutorialScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // Skip Button
-              Positioned(
-                top: 16,
-                right: 16,
-                child: TextButton(
-                  onPressed: _navigateToGame,
-                  child: Text(
-                    'Skip',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -124,6 +108,8 @@ class _LifeSwipeTutorialScreenState extends State<LifeSwipeTutorialScreen>
                               subtitle:
                                   "accept the expense. enjoy now, pay later",
                               icon: Icons.swipe_right_alt,
+                              showSkip: true,
+                              onSkip: _navigateToGame,
                             )
                           : _buildSwipeStep(
                               key: const ValueKey('step2'),
@@ -132,6 +118,8 @@ class _LifeSwipeTutorialScreenState extends State<LifeSwipeTutorialScreen>
                               subtitle:
                                   "skip the expense. be disciplined, build wealth.",
                               icon: Icons.swipe_left_alt,
+                              showSkip: true,
+                              onSkip: _navigateToGame,
                             ),
                     ),
                   ],
@@ -150,6 +138,8 @@ class _LifeSwipeTutorialScreenState extends State<LifeSwipeTutorialScreen>
     required String title,
     required String subtitle,
     required IconData icon,
+    required bool showSkip,
+    required VoidCallback onSkip,
   }) {
     return Column(
       key: key,
@@ -181,6 +171,20 @@ class _LifeSwipeTutorialScreenState extends State<LifeSwipeTutorialScreen>
                   color: Colors.white.withValues(alpha: 0.8),
                 ),
               ),
+              if (showSkip) ...[
+                const SizedBox(height: 55),
+                TextButton(
+                  onPressed: onSkip,
+                  child: Text(
+                    'Skip',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
