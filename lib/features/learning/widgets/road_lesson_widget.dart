@@ -74,7 +74,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
               final position = points[index + 1];
               final isLeft = (index % 2 != 0);
 
-              final bool isLocked = (index == 0) ? false : !widget.module.lessons[index - 1].isCompleted;
+              final bool isLocked = false;
               
               final lessonIcon = _buildLessonIcon(lesson, isLocked);
               final lessonText = _buildLessonText(lesson, widget.module.gradientColors[0], isLeft);
@@ -139,7 +139,8 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
     points.add(Offset(width / 2, startY));
 
     for (int i = 0; i < lessonCount; i++) {
-      final double fraction = (i + 0.8) / (lessonCount * 1.25);
+      final double spacingMultiplier = (widget.module.id == 'money_basics') ? 1.2 : 1.3;
+      final double fraction = (i + 0.8) / (lessonCount * spacingMultiplier);
       final double y = startY + height * fraction;
       
       double x = (i % 2 != 0) ? width * 0.8 : width * 0.2;
