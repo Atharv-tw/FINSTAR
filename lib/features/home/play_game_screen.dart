@@ -580,13 +580,9 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
                     ),
                   ),
 
-                  // 3. Content Layer - smaller padding for Market Explorer, none for Quiz Battle
+                  // 3. Content Layer
                   Padding(
-                    padding: card.title == 'QUIZ BATTLE'
-                        ? EdgeInsets.zero
-                        : card.title == 'MARKET EXPLORER' 
-                            ? const EdgeInsets.all(16) 
-                            : const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(24),
                     child: _buildCollapsedCardContent(card, unfoldProgress),
                   ),
                 ],
@@ -599,7 +595,10 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
   }
 
   Widget _buildCollapsedCardContent(_CardData card, double unfoldProgress) {
-    double animatedFontSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
+    // Market Explorer has smaller final size
+    double animatedFontSize = card.title == 'MARKET EXPLORER'
+        ? 24 + (unfoldProgress * 6)  // 24 to 30
+        : 24 + (unfoldProgress * 12); // Default: 24 to 36
     double animatedIconSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
     double iconSpacing = 8.0; // Default spacing
     Offset contentOffset = Offset.zero; // Default offset
@@ -612,16 +611,6 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
       );
     } else if (card.title == 'BUDGET BLITZ') {
       return _BudgetBlitzCardContent(
-        card: card,
-        unfoldProgress: unfoldProgress,
-      );
-    } else if (card.title == 'MARKET EXPLORER') {
-      return _MarketExplorerCardContent(
-        card: card,
-        unfoldProgress: unfoldProgress,
-      );
-    } else if (card.title == 'QUIZ BATTLE') {
-      return _QuizBattleCardContent(
         card: card,
         unfoldProgress: unfoldProgress,
       );
@@ -1011,11 +1000,11 @@ class _QuizBattleCardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Font size: starts at 24, grows to 32
-    final double animatedFontSize = 24 + (unfoldProgress * 8);
+    // Font size: starts at 32, grows to 36
+    final double animatedFontSize = 32 + (unfoldProgress * 4);
     
     // Icon size: shrinks and fades as we animate
-    final double animatedIconSize = 24 * (1 - unfoldProgress * 0.5);
+    final double animatedIconSize = 28 * (1 - unfoldProgress * 0.5);
     final double iconOpacity = 1 - (unfoldProgress * 0.8);
     
     return LayoutBuilder(
@@ -1023,9 +1012,10 @@ class _QuizBattleCardContent extends StatelessWidget {
         final cardHeight = constraints.maxHeight;
         final cardWidth = constraints.maxWidth;
         
-        // Animate position from top-left to center-top
+        // Start a bit lower (20px down), animate to 8% from top
+        final double startY = 20.0;
         final double targetY = cardHeight * 0.08;
-        final double animatedY = unfoldProgress * targetY;
+        final double animatedY = startY + (unfoldProgress * (targetY - startY));
         
         final double targetX = (cardWidth - 200) / 2;
         final double animatedX = unfoldProgress * targetX;
