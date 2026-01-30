@@ -10,7 +10,6 @@ import '../../core/design_tokens.dart';
 import '../../core/motion_tokens.dart';
 import '../../providers/user_provider.dart';
 import '../../shared/widgets/game_coin_counter.dart';
-import '../../shared/widgets/streak_and_tips_section.dart';
 
 /// Play game screen with STACKED CARDS hero interface (Spec 2.1)
 class PlayGameScreen extends ConsumerStatefulWidget {
@@ -85,6 +84,7 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
     final currentXp = user?.xp ?? 0;
     final xpForNextLevel = user?.xpForNextLevel ?? 1000;
     final coins = user?.coins ?? 0;
+    final streakDays = user?.streakDays ?? 0;
 
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -136,13 +136,13 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
           ),
 
           // Sticky header
-          _buildStickyHeader(coins),
+          _buildStickyHeader(coins, streakDays),
         ],
       ),
     );
   }
 
-  Widget _buildStickyHeader(int coins) {
+  Widget _buildStickyHeader(int coins, int streakDays) {
     final topInset = MediaQuery.of(context).padding.top;
     const headerHeight = 52.0;
     const counterScale = 0.9;
@@ -158,23 +158,30 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Gaming-style coin counter (left side)
-          Transform.scale(
-            scale: counterScale,
-            alignment: Alignment.centerLeft,
-            child: GameCoinCounter(
-              coins: coins,
-              onTap: () {
-                HapticFeedback.lightImpact();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Coin shop coming soon!'),
-                    duration: Duration(seconds: 1),
-                  ),
-                );
-              },
-              showPlusButton: false,
-            ),
+          // Coin + streak row (left side)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Transform.scale(
+                scale: counterScale,
+                alignment: Alignment.centerLeft,
+                child: GameCoinCounter(
+                  coins: coins,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Coin shop coming soon!'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  showPlusButton: false,
+                ),
+              ),
+              const SizedBox(width: 10),
+              _buildStreakPill(streakDays),
+            ],
           ),
           // Shop icon button (right side)
           GestureDetector(
@@ -216,6 +223,35 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
     );
   }
 
+  Widget _buildStreakPill(int streakDays) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.deepOrange.withOpacity(0.22),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.local_fire_department_rounded,
+            color: Colors.deepOrange,
+            size: 16,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '$streakDays',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.deepOrange,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHeroSection(double height) {
     // Parallax: scale 1.0 → 0.4, blur 0 → 10px, translateY 0 → -120px
 
@@ -231,8 +267,6 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
             ),
           ),
 
-          // Level Progress Bar above panda
-
           Positioned(
             top: 97,
             left: 24,
@@ -240,15 +274,51 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
             child: _buildLevelProgressBar(),
           ),
 
-          // Streak and Tips Section right below level progress
           Positioned(
-            top: 220,
+            top: 240,
             left: 0,
             right: 0,
-            child: StreakAndTipsSection(
-              streakDays: ref.watch(userProfileProvider).asData?.value?.streakDays ?? 0,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'PLAY',
+                    style: GoogleFonts.luckiestGuy(
+                      fontSize: 70,
+                      color: const Color(0xFF5A3B2E),
+                      height: 0.95,
+                      letterSpacing: 1.2,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    'GAMES',
+                    style: GoogleFonts.luckiestGuy(
+                      fontSize: 75,
+                      color: const Color(0xFF5A3B2E),
+                      height: 0.95,
+                      letterSpacing: 1.5,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+
         ],
       ),
     );
@@ -259,6 +329,7 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
     final currentXp = user?.xp ?? 0;
     final xpForNextLevel = user?.xpForNextLevel ?? 1000;
     final levelProgress = xpForNextLevel == 0 ? 0.0 : currentXp / xpForNextLevel;
+    final level = user?.level ?? 1;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -273,131 +344,149 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
               child: Transform.translate(
                 offset: Offset(0, (1 - animValue) * -20),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                     child: Container(
-                      padding: const EdgeInsets.all(12), // Reduced padding
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0B0B0D).withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF111218).withValues(alpha: 0.72),
+                            const Color(0xFF0B0B0D).withValues(alpha: 0.6),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(22),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: Colors.white.withValues(alpha: 0.12),
                           width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                            color: Colors.black.withValues(alpha: 0.25),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
                           ),
                           BoxShadow(
                             color: DesignTokens.primaryStart.withValues(alpha: 0.25),
-                            blurRadius: 24,
-                            spreadRadius: 1,
+                            blurRadius: 30,
+                            spreadRadius: 2,
                           ),
                         ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Level progress label and XP
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Level Progress',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                                    ),
+                                    child: Text(
+                                      'LEVEL $level',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.6,
+                                        color: Colors.white.withValues(alpha: 0.9),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Progress',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                    ),
+                                  ),
+                                ],
                               ),
                               Text(
                                 '$currentXp / $xpForNextLevel XP',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
                                   color: Colors.white.withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16), // Increased spacing
-                          // Progress bar with star
+                          const SizedBox(height: 14),
                           SizedBox(
-                            height: 24, // Increased height for the star
+                            height: 20,
                             child: TweenAnimationBuilder<double>(
                               tween: Tween(begin: 0.0, end: levelProgress),
                               duration: const Duration(milliseconds: 1200),
                               curve: Curves.easeOutQuart,
                               builder: (context, value, child) {
+                                final clamped = value.clamp(0.0, 1.0);
+                                const double knobSize = 34;
                                 return Stack(
-                                  clipBehavior: Clip.none, // Allow star to overflow
+                                  clipBehavior: Clip.none,
                                   alignment: Alignment.centerLeft,
                                   children: [
-                                    // Background bar
                                     Container(
-                                      height: 12, // Bar height
+                                      height: 10,
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
+                                        color: Colors.white.withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(999),
                                       ),
                                     ),
-                                    // Progress bar with glow
-                                    Container(
-                                      height: 12, // Bar height
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(6),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: DesignTokens.primaryStart
-                                                .withValues(alpha: 0.4),
-                                            blurRadius: 8,
-                                            spreadRadius: 0,
-                                          ),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: FractionallySizedBox(
-                                          alignment: Alignment.centerLeft,
-                                          widthFactor: value,
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  DesignTokens.primaryStart,
-                                                  DesignTokens.primaryEnd
-                                                ],
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(999),
+                                      child: FractionallySizedBox(
+                                        alignment: Alignment.centerLeft,
+                                        widthFactor: clamped,
+                                        child: Container(
+                                          height: 10,
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                DesignTokens.primaryStart,
+                                                DesignTokens.primaryEnd,
+                                              ],
                                             ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: DesignTokens.primaryStart.withValues(alpha: 0.5),
+                                                blurRadius: 10,
+                                                spreadRadius: 1,
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ),
                                     ),
-                                    // Star slider
                                     Positioned(
-                                      left: (barWidth * value) - 24, // Position star at the end of progress
-                                      child: DecoratedBox(
+                                      left: (barWidth - knobSize) * clamped,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
+                                          color: Colors.white.withValues(alpha: 0.9),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.white.withValues(alpha: 0.5),
+                                              color: Colors.white.withValues(alpha: 0.6),
                                               blurRadius: 8,
-                                              spreadRadius: 2,
+                                              spreadRadius: 1,
                                             ),
                                           ],
                                         ),
                                         child: const Icon(
-                                          Icons.star,
-                                          color: Colors.white,
-                                          size: 24, // Increased size to make it more prominent
+                                          Icons.bolt_rounded,
+                                          color: Color(0xFF1A1A1A),
+                                          size: 14,
                                         ),
                                       ),
                                     ),
