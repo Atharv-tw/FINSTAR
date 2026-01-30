@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/theme.dart';
-import '../../../../core/design_tokens.dart';
 import '../../../../services/supabase_functions_service.dart';
 import '../models/spending_scenario.dart';
 
@@ -47,9 +46,6 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
   late Animation<double> _fadeAnimation;
   int _xpEarned = 0;
   int _coinsEarned = 0;
-  bool _leveledUp = false;
-  int _newLevel = 0;
-  List<Map<String, dynamic>> _unlockedAchievements = [];
   final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   @override
@@ -100,16 +96,6 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
         setState(() {
           _xpEarned = result['xpEarned'] ?? 0;
           _coinsEarned = result['coinsEarned'] ?? 0;
-          _leveledUp = result['leveledUp'] ?? false;
-          _newLevel = result['newLevel'] ?? 0;
-
-          // Handle achievements from Supabase response
-          if (result['achievements'] != null &&
-              result['achievements']['newlyUnlocked'] != null) {
-            _unlockedAchievements = List<Map<String, dynamic>>.from(
-              result['achievements']['newlyUnlocked'],
-            );
-          }
         });
       }
     } catch (e) {
@@ -130,34 +116,6 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
     final finalScore = (baseScore * 0.7) + (baseScore * (widget.financialHealth / 100) * 0.3);
 
     return finalScore.clamp(0, 100).toInt();
-  }
-
-  int _calculateBudgetScore() {
-    final remainingBudget = widget.remainingBudget;
-    final totalBudget = widget.totalBudget;
-
-    // If over budget (negative remaining), severe penalty
-    if (remainingBudget < 0) {
-      final overBudgetPercent = (remainingBudget.abs() / totalBudget);
-      if (overBudgetPercent >= 0.5) return 0; // 50%+ over budget = 0 points
-      if (overBudgetPercent >= 0.3) return 10; // 30-50% over = 10 points
-      if (overBudgetPercent >= 0.1) return 25; // 10-30% over = 25 points
-      return 40; // <10% over = 40 points
-    }
-
-    // Calculate savings rate (remaining / total)
-    final savingsRate = remainingBudget / totalBudget;
-
-    // Score based on savings rate
-    if (savingsRate >= 0.70) return 100; // Saved 70%+ = Perfect
-    if (savingsRate >= 0.60) return 95;  // Saved 60-70% = Excellent
-    if (savingsRate >= 0.50) return 90;  // Saved 50-60% = Great
-    if (savingsRate >= 0.40) return 80;  // Saved 40-50% = Very Good
-    if (savingsRate >= 0.30) return 70;  // Saved 30-40% = Good
-    if (savingsRate >= 0.20) return 60;  // Saved 20-30% = Decent
-    if (savingsRate >= 0.10) return 50;  // Saved 10-20% = Average
-    if (savingsRate >= 0.05) return 40;  // Saved 5-10% = Below Average
-    return 30; // Saved <5% = Poor
   }
 
   String _getPerformanceGrade() {
@@ -303,7 +261,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: healthColor.withOpacity(0.1),
+              color: healthColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -396,7 +354,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -421,14 +379,14 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color, color.withOpacity(0.8)],
+          colors: [color, color.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -439,7 +397,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
           Text(
             'Overall Grade',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
           ),
           const SizedBox(height: 16),
@@ -455,7 +413,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
           Text(
             '${_calculateOverallScore()}/100',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
           ),
           const SizedBox(height: 16),
@@ -472,10 +430,10 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
               ),
@@ -507,7 +465,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
                   Container(
                     width: 1,
                     height: 40,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                   Column(
                     children: [
@@ -772,33 +730,6 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSummaryRow(String label, String value, Color color,
-      {bool isLarge = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-        ),
-        Text(
-          value,
-          style: isLarge
-              ? Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                  )
-              : Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                  ),
-        ),
-      ],
     );
   }
 
@@ -1223,225 +1154,7 @@ class _LifeSwipeResultScreenState extends State<LifeSwipeResultScreen>
     );
   }
 
-  Widget _buildBudgetDonutChart() {
-    final spentPercent = (widget.spentMoney / widget.totalBudget * 100);
-    final savedPercent = (widget.savedMoney / widget.totalBudget * 100);
-    final remainingPercent = (widget.remainingBudget / widget.totalBudget * 100);
 
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white,
-            const Color(0xFFF8F9FA),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: Colors.black.withValues(alpha: 0.05),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primaryColor.withValues(alpha: 0.2), AppTheme.primaryColor.withValues(alpha: 0.1)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.donut_large, color: AppTheme.primaryColor, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Budget Breakdown',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1A1A1A),
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-
-          // Enhanced donut chart with better center display
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                height: 240,
-                width: 240,
-                child: CustomPaint(
-                  painter: EnhancedDonutChartPainter(
-                    spentAmount: widget.spentMoney.toDouble(),
-                    savedAmount: widget.savedMoney.toDouble(),
-                    remainingAmount: widget.remainingBudget.toDouble(),
-                  ),
-                ),
-              ),
-              // Center content
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '₹${widget.totalBudget}',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1A1A1A),
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Total Budget',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-
-          // Modern legend with cards
-          Column(
-            children: [
-              _buildModernLegendItem(
-                icon: Icons.shopping_cart,
-                label: 'Spent',
-                amount: '₹${widget.spentMoney}',
-                percentage: '${spentPercent.toStringAsFixed(1)}%',
-                color: const Color(0xFFEF4444),
-              ),
-              const SizedBox(height: 12),
-              _buildModernLegendItem(
-                icon: Icons.savings,
-                label: 'Saved',
-                amount: '₹${widget.savedMoney}',
-                percentage: '${savedPercent.toStringAsFixed(1)}%',
-                color: const Color(0xFF22C55E),
-              ),
-              const SizedBox(height: 12),
-              _buildModernLegendItem(
-                icon: Icons.account_balance_wallet,
-                label: 'Remaining',
-                amount: '₹${widget.remainingBudget}',
-                percentage: '${remainingPercent.toStringAsFixed(1)}%',
-                color: const Color(0xFF3B82F6),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModernLegendItem({
-    required IconData icon,
-    required String label,
-    required String amount,
-    required String percentage,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color, color.withValues(alpha: 0.8)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(icon, color: Colors.white, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF6B7280),
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      amount,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: const Color(0xFF1A1A1A),
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        percentage,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: color,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAchievements() {
     return Container(
@@ -2037,7 +1750,7 @@ class EnhancedDonutChartPainter extends CustomPainter {
 
     // Add subtle inner shadow effect
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.05)
+      ..color = Colors.black.withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 

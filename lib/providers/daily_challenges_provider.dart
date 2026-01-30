@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import 'auth_provider.dart';
+import 'package:flutter/foundation.dart';
 
 /// Daily challenge model
 class DailyChallenge {
@@ -172,7 +173,7 @@ Future<void> generateDailyChallenges(String userId) async {
       .get();
 
   if (existingChallenges.docs.isNotEmpty) {
-    print('Daily challenges already exist for today');
+    debugPrint('Daily challenges already exist for today');
     return;
   }
 
@@ -214,7 +215,7 @@ Future<void> generateDailyChallenges(String userId) async {
   }
 
   await batch.commit();
-  print('Generated ${selectedTemplates.length} daily challenges for user $userId');
+  debugPrint('Generated ${selectedTemplates.length} daily challenges for user $userId');
 }
 
 /// Update challenge progress
@@ -263,7 +264,7 @@ final updateChallengeProgressProvider = Provider((ref) {
     await batch.commit();
 
     if (isNowComplete) {
-      print('Challenge completed: $challengeId - +${challenge.xpReward} XP, +${challenge.coinsReward} coins');
+      debugPrint('Challenge completed: $challengeId - +${challenge.xpReward} XP, +${challenge.coinsReward} coins');
     }
   };
 });

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../config/cloudinary_config.dart';
+import 'package:flutter/foundation.dart';
 
 /// Cloudinary Service for Image Uploads
 ///
@@ -28,7 +29,7 @@ class CloudinaryService {
       );
       return image;
     } catch (e) {
-      print('Error picking image: $e');
+      debugPrint('Error picking image: $e');
       return null;
     }
   }
@@ -44,7 +45,7 @@ class CloudinaryService {
       );
       return image;
     } catch (e) {
-      print('Error taking photo: $e');
+      debugPrint('Error taking photo: $e');
       return null;
     }
   }
@@ -79,7 +80,7 @@ class CloudinaryService {
       );
       request.files.add(multipartFile);
 
-      print('Uploading image to Cloudinary...');
+      debugPrint('Uploading image to Cloudinary...');
       final response = await request.send();
       final responseData = await response.stream.bytesToString();
 
@@ -88,18 +89,18 @@ class CloudinaryService {
         final uploadedPublicId = jsonResponse['public_id'] as String;
         final secureUrl = jsonResponse['secure_url'] as String;
 
-        print('Upload successful!');
-        print('Public ID: $uploadedPublicId');
-        print('URL: $secureUrl');
+        debugPrint('Upload successful!');
+        debugPrint('Public ID: $uploadedPublicId');
+        debugPrint('URL: $secureUrl');
 
         return uploadedPublicId;
       } else {
-        print('Upload failed: ${response.statusCode}');
-        print('Response: $responseData');
+        debugPrint('Upload failed: ${response.statusCode}');
+        debugPrint('Response: $responseData');
         return null;
       }
     } catch (e) {
-      print('Error uploading image: $e');
+      debugPrint('Error uploading image: $e');
       return null;
     }
   }
@@ -130,7 +131,7 @@ class CloudinaryService {
   Future<bool> deleteImage(String publicId) async {
     // TODO: Implement server-side deletion with API secret
     // For free tier without backend, you can manually delete from Cloudinary dashboard
-    print('Note: Image deletion should be done via Cloudinary dashboard');
+    debugPrint('Note: Image deletion should be done via Cloudinary dashboard');
     return false;
   }
 }

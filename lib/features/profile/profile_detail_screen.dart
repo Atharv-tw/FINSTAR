@@ -488,7 +488,6 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
     );
   }
 
-  // _buildAchievementRail is now removed
 
   Widget _buildBadgeChip(Achievement achievement) {
     final baseColor = achievement.color;

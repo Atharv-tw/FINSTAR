@@ -25,7 +25,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
   double _scrollOffset = 0;
 
   // Mock user data
-  final int _userLevel = 5;
   final int _currentXp = 750;
   final int _xpForNextLevel = 1000;
   final int _coins = 340;
@@ -87,10 +86,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     // Hero at constant 55% height
     final heroHeightPercent = 0.55;
     final heroHeight = (screenHeight * heroHeightPercent).clamp(100.0, 480.0);
-    final parallaxProgress = (_scrollOffset / 400).clamp(0.0, 1.0);
-    final mascotScale = 1.0 - (parallaxProgress * 0.6); // 1.0 → 0.4
-    final mascotBlur = parallaxProgress * 10; // 0 → 10px
-    final mascotTranslateY = -parallaxProgress * 120; // 0 → -120px
 
     return Scaffold(
       body: Stack(
@@ -217,10 +212,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
   Widget _buildHeroSection(double height) {
     // Parallax: scale 1.0 → 0.4, blur 0 → 10px, translateY 0 → -120px
-    final parallaxProgress = (_scrollOffset / 400).clamp(0.0, 1.0);
-    final mascotScale = 1.0 - (parallaxProgress * 0.6); // 1.0 → 0.4
-    final mascotBlur = parallaxProgress * 10; // 0 → 10px
-    final mascotTranslateY = -parallaxProgress * 120; // 0 → -120px
 
     return SizedBox(
       height: height,
@@ -433,269 +424,6 @@ class _PlayGameScreenState extends State<PlayGameScreen>
 
           title: 'BUDGET BLITZ',
 
-          subtitle: '',
-
-          description: '',
-
-          icon: Icons.bolt_rounded,
-
-          gradientColors: [const Color(0xFFF6EDA3), const Color(0xFFF6EDA3)],
-
-          route: '/game/budget-blitz',
-
-        ),
-
-        _CardData(
-
-          title: 'MARKET EXPLORER',
-
-          subtitle: '',
-
-          description: '',
-
-          icon: Icons.trending_up_rounded,
-
-          gradientColors: [const Color(0xFF94B8C9), const Color(0xFF94B8C9)],
-
-          route: '/game/market-explorer',
-
-        ),
-
-        _CardData(
-
-          title: 'QUIZ BATTLE',
-
-          subtitle: '',
-
-          description: '',
-
-          icon: Icons.quiz_rounded,
-
-          gradientColors: [const Color(0xFF829672), const Color(0xFF829672)],
-
-          route: '/game/quiz-battle',
-
-        ),
-
-      ];
-
-  
-
-      // Card unfolding: calculate how much to unfold based on scroll
-
-      // Start unfolding immediately, fully unfolded at 300px
-
-      final unfoldProgress = (_scrollOffset / 300).clamp(0.0, 1.0);
-
-  
-
-      // Keep the order: Play Games should be first when unfolded (it's visually on top of stack)
-
-      final displayCards = cards;
-
-  
-
-      // Calculate stack height based on unfold progress
-
-      // Collapsed: full card height + 40px visible per additional card
-
-      // Unfolded: all cards fully visible with gaps
-
-            final adjustedCardHeight = (screenHeight * 0.7) - 35; // Reduced by 35 pixels
-
-            final collapsedHeight = adjustedCardHeight + (cards.length - 1) * 40.0; // One full card + 40px per additional card
-
-            final unfoldedHeight = cards.length * (adjustedCardHeight + 20.0); // All cards with 20px gap
-
-            final stackHeight = collapsedHeight + (unfoldProgress * (unfoldedHeight - collapsedHeight));
-
-        
-
-            return Transform.translate(
-
-              offset: const Offset(0, -47),
-
-              child: Container(
-
-                padding: const EdgeInsets.only(top: 0, bottom: 24),
-
-                child: SizedBox(
-
-                  height: stackHeight,
-
-                  child: Stack(
-
-                    clipBehavior: Clip.none,
-
-                    children: displayCards.asMap().entries.map((entry) {
-
-                    final index = entry.key; // 0 is Play Games (first), 3 is Friends (last)
-
-                    final card = entry.value;
-
-        
-
-                    // When collapsed (unfoldProgress = 0): Cards stacked with only 40px visible each
-
-                    // When unfolded (unfoldProgress = 1): Cards fully separated with 20px gap
-
-        
-
-                    // Calculate vertical position
-
-                    // Collapsed: cards overlap, showing 40px of each card
-
-                    // Unfolded: full card height + 20px gap
-
-                    final collapsedTop = index * 70.0; // Show 70px of each card when stacked
-
-                    final unfoldedTop = index * (adjustedCardHeight + 80.0); // Full card + gap
-
-                    final currentTop = collapsedTop + (unfoldProgress * (unfoldedTop - collapsedTop));
-
-        
-
-                    return AnimatedPositioned(
-
-                      duration: const Duration(milliseconds: 300),
-
-                      curve: Curves.easeOutQuad,
-
-                      top: currentTop,
-
-                      left: 13,
-
-                      right: 13,
-
-                                  child: _buildGlassmorphicCard(
-
-                                    card: card,
-
-                                    index: index,
-
-                                    screenHeight: screenHeight,
-
-                                    unfoldProgress: unfoldProgress,
-
-                                  ),
-
-                    );
-
-                  }).toList(),
-
-                  ),
-
-                ),
-
-              ),
-
-            );
-
-          }
-
-        
-
-          Widget _buildGlassmorphicCard({
-
-            required _CardData card,
-
-            required int index,
-
-            required double screenHeight,
-
-            required double unfoldProgress,
-
-          }) {
-
-            // Progressive blur: +4px per card
-
-            final blurAmount = 24.0 + (index * 4.0);
-
-        
-
-            // Animated glow pulse (0.3 → 0.5 → 0.3)
-
-            return AnimatedBuilder(
-
-              animation: _glowController,
-
-              builder: (context, child) {
-
-                final glowOpacity = 0.3 + (_glowController.value * 0.2); // 0.3 to 0.5
-
-        
-
-                return GestureDetector(
-
-                  onTap: () {
-
-                    // Navigate to game
-
-                    HapticFeedback.mediumImpact();
-
-                    if (card.title == 'LIFE SWIPE') {
-
-                      context.push('/game/life-swipe/tutorial');
-
-                    } else if (card.title == 'MARKET EXPLORER') {
-
-                      context.push('/game/market-explorer'); // Navigate to the splash screen
-
-                    } else {
-
-                      context.push(card.route);
-
-                    }
-
-                  },
-
-                  child: Container(
-
-                    height: (screenHeight * 0.7) - 35, // Reduced by 35 pixels
-
-                    child: ClipRRect(
-              borderRadius: BorderRadius.circular(40), // Playing card style rounded edges
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // 1. Background Layer
-                  BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: card.gradientColors[0].withOpacity(0.7),
-                      ),
-                    ),
-                  ),
-
-                  // 2. Border & Outer Glow (Applied to both)
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        // Only add outer glow if no image (images have their own visual weight)
-                        if (card.imagePath == null)
-                          BoxShadow(
-                            blurRadius: 24,
-                            color: card.gradientColors[0].withValues(alpha: glowOpacity),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  // 3. Content Layer
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: _buildCollapsedCardContent(card, unfoldProgress),
-                  ),
-                ],
-              ),
-            ),
-          ),
         );
       },
     );
@@ -752,8 +480,7 @@ class _PlayGameScreenState extends State<PlayGameScreen>
       ),
     );
   }
-  }
-
+}
 // Grid pattern painter for hero overlay
 class GridPatternPainter extends CustomPainter {
   @override
@@ -785,7 +512,6 @@ class _CardData {
   final IconData icon;
   final List<Color> gradientColors;
   final String route;
-  final String? imagePath;
 
   _CardData({
     required this.title,
@@ -794,7 +520,6 @@ class _CardData {
     required this.icon,
     required this.gradientColors,
     required this.route,
-    this.imagePath,
   });
 }
 

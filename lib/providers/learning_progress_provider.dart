@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_provider.dart';
+import 'package:flutter/foundation.dart';
 
 /// Learning progress model
 class LessonProgress {
@@ -101,7 +102,7 @@ final completeLessonProvider = Provider((ref) {
     });
 
     await batch.commit();
-    print('Lesson completed: $moduleId/$lessonId - +$xpReward XP');
+    debugPrint('Lesson completed: $moduleId/$lessonId - +$xpReward XP');
   };
 });
 
@@ -122,6 +123,6 @@ final moduleProgressProvider = Provider.family<double, String>((ref, moduleId) {
       return completedCount / totalLessons;
     },
     loading: () => 0.0,
-    error: (_, __) => 0.0,
+    error: (error, stack) => 0.0,
   );
 });

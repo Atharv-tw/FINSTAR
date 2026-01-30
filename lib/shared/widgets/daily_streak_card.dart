@@ -54,25 +54,25 @@ class _DailyStreakCardState extends State<DailyStreakCard>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFFFF6B4A).withOpacity(0.35),
-                        const Color(0xFFFF8E53).withOpacity(0.35),
+                        const Color(0xFFFF6B4A).withValues(alpha: 0.35),
+                        const Color(0xFFFF8E53).withValues(alpha: 0.35),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFFFF6B4A).withOpacity(0.5),
+                      color: const Color(0xFFFF6B4A).withValues(alpha: 0.5),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: Colors.black.withValues(alpha: 0.15),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
                       BoxShadow(
-                        color: const Color(0xFFFF6B4A).withOpacity(0.3),
+                        color: const Color(0xFFFF6B4A).withValues(alpha: 0.3),
                         blurRadius: 20,
                         spreadRadius: 2,
                       ),
@@ -95,10 +95,10 @@ class _DailyStreakCardState extends State<DailyStreakCard>
                                 shape: BoxShape.circle,
                                 gradient: SweepGradient(
                                   colors: [
-                                    const Color(0xFFFF6B4A).withOpacity(0.0),
-                                    const Color(0xFFFF6B4A).withOpacity(0.6),
-                                    const Color(0xFFFF8E53).withOpacity(0.6),
-                                    const Color(0xFFFF6B4A).withOpacity(0.0),
+                                    const Color(0xFFFF6B4A).withValues(alpha: 0.0),
+                                    const Color(0xFFFF6B4A).withValues(alpha: 0.6),
+                                    const Color(0xFFFF8E53).withValues(alpha: 0.6),
+                                    const Color(0xFFFF6B4A).withValues(alpha: 0.0),
                                   ],
                                   stops: const [0.0, 0.3, 0.7, 1.0],
                                 ),
@@ -117,7 +117,7 @@ class _DailyStreakCardState extends State<DailyStreakCard>
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFFF6B4A).withOpacity(0.6),
+                                  color: const Color(0xFFFF6B4A).withValues(alpha: 0.6),
                                   blurRadius: 12,
                                   spreadRadius: 2,
                                 ),
@@ -176,7 +176,7 @@ class _DailyStreakCardState extends State<DailyStreakCard>
                                   fontFamily: 'Poppins',
                                   fontSize: 11,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                 ),
                               ),
                               const SizedBox(width: 4),
@@ -228,7 +228,7 @@ class _DailyStreakCardState extends State<DailyStreakCard>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   blurRadius: 4,
                   spreadRadius: 1,
                 ),

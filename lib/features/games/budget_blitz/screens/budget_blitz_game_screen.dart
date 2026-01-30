@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:finstar_app/features/games/budget_blitz/widgets/animated_game_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -89,7 +88,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
         });
       }
     } catch (e) {
-      print('Error loading high score: $e');
+      debugPrint('Error loading high score: $e');
     }
   }
 
@@ -524,7 +523,6 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
     return AnimatedBuilder(
       animation: fallingExpense.controller,
       builder: (context, child) {
-        final screenWidth = MediaQuery.of(context).size.width;
         // Use a constraint to limit chip width and center it properly
         return Positioned(
           left: 20,
@@ -667,7 +665,7 @@ class _BudgetBlitzGameScreenState extends State<BudgetBlitzGameScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: (DesignTokens.tealPastelGradient as LinearGradient).colors.first.withValues(alpha: 0.4),
+              color: (DesignTokens.tealPastelGradient).colors.first.withValues(alpha: 0.4),
               blurRadius: 30,
             ),
           ],

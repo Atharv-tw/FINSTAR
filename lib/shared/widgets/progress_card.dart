@@ -2,7 +2,6 @@ import 'dart:math' as math; // Import math library
 
 import 'package:flutter/material.dart';
 import '../../providers/user_provider.dart';
-import '../../core/design_tokens.dart';
 
 class ProgressCard extends StatelessWidget {
   final UserProfile user;
@@ -27,7 +26,7 @@ class ProgressCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -44,7 +43,7 @@ class ProgressCard extends StatelessWidget {
                   width: 250, // width
                   height: 50, // height
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -58,7 +57,7 @@ class ProgressCard extends StatelessWidget {
                   width: 350, // width
                   height: 70, // height
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -71,7 +70,7 @@ class ProgressCard extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -91,7 +90,7 @@ class ProgressCard extends StatelessWidget {
                       width: 50,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFADD8E6).withOpacity(0.8), // Light blue chip
+                        color: const Color(0xFFADD8E6).withValues(alpha: 0.8), // Light blue chip
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),

@@ -17,6 +17,13 @@ enum QuizCategory {
   general,
 }
 
+enum AnswerOutcome {
+  correct,
+  wrong,
+  skipped,
+  timeout,
+}
+
 class QuizQuestion {
   final String id;
   final String question;
@@ -564,6 +571,8 @@ class QuizQuestion {
     ];
   }
 
+  static final List<String> _recentQuestionIds = [];
+
   static List<QuizQuestion> getRandomQuestions({
     int count = 10,
     QuizDifficulty? difficulty,
@@ -587,16 +596,44 @@ class QuizQuestion {
   }
 
   static List<QuizQuestion> getMixedDifficultyQuiz({int count = 10}) {
-    final questions = getAllQuestions();
+    var questions = getAllQuestions();
     questions.shuffle(Random());
 
-    // Try to get balanced mix
-    final easy = questions.where((q) => q.difficulty == QuizDifficulty.easy).take(4).toList();
-    final medium = questions.where((q) => q.difficulty == QuizDifficulty.medium).take(4).toList();
-    final hard = questions.where((q) => q.difficulty == QuizDifficulty.hard).take(2).toList();
+    // Avoid immediate repeats if possible
+    final filtered = questions.where((q) => !_recentQuestionIds.contains(q.id)).toList();
+    if (filtered.length >= count) {
+      questions = filtered;
+    }
 
-    final mixed = [...easy, ...medium, ...hard];
-    mixed.shuffle(Random());
-    return mixed.take(count).toList();
+    int easyCount = (count * 0.3).round();
+    int hardCount = (count * 0.2).round();
+    if (easyCount < 2) easyCount = 2;
+    if (hardCount < 2) hardCount = 2;
+    int mediumCount = count - easyCount - hardCount;
+    if (mediumCount < 0) {
+      mediumCount = 0;
+      easyCount = count - hardCount;
+    }
+
+    final easy = questions.where((q) => q.difficulty == QuizDifficulty.easy).toList()..shuffle(Random());
+    final medium = questions.where((q) => q.difficulty == QuizDifficulty.medium).toList()..shuffle(Random());
+    final hard = questions.where((q) => q.difficulty == QuizDifficulty.hard).toList()..shuffle(Random());
+
+    final mixed = [
+      ...easy.take(easyCount),
+      ...medium.take(mediumCount),
+      ...hard.take(hardCount),
+    ];
+
+    // Progression: easy -> medium -> hard
+    final ordered = [...mixed];
+    final result = ordered.take(count).toList();
+
+    _recentQuestionIds.addAll(result.map((q) => q.id));
+    if (_recentQuestionIds.length > 20) {
+      _recentQuestionIds.removeRange(0, _recentQuestionIds.length - 20);
+    }
+
+    return result;
   }
 }

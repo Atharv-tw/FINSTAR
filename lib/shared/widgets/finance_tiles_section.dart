@@ -1,16 +1,12 @@
-import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/learning_progress_provider.dart';
-import '../../core/design_tokens.dart';
 
 class FinanceTilesSection extends ConsumerStatefulWidget {
   final ScrollController? scrollController;
-  FinanceTilesSection({super.key, this.scrollController});
+  const FinanceTilesSection({super.key, this.scrollController});
 
   @override
   ConsumerState<FinanceTilesSection> createState() => _FinanceTilesSectionState();

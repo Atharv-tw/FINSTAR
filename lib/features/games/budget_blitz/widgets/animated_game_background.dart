@@ -58,7 +58,7 @@ class _BackgroundPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (var shape in _shapes) {
       final offset = shape.getOffset(_animationValue, size);
-      final paint = Paint()..color = shape.color.withOpacity(0.5);
+      final paint = Paint()..color = shape.color.withValues(alpha: 0.5);
       canvas.drawCircle(offset, shape.size, paint);
     }
   }
@@ -70,19 +70,18 @@ class _BackgroundPainter extends CustomPainter {
 }
 
 class _MovingShape {
-  final Random _random;
   final Color color;
   final double size;
   final double speed;
   final double initialX;
   final double initialY;
 
-  _MovingShape(this._random, Size canvasSize)
-      : color = Colors.white.withOpacity(_random.nextDouble() * 0.2 + 0.05),
-        size = _random.nextDouble() * 20 + 10,
-        speed = _random.nextDouble() * 50 + 20,
-        initialX = _random.nextDouble() * canvasSize.width,
-        initialY = _random.nextDouble() * canvasSize.height;
+  _MovingShape(Random random, Size canvasSize)
+      : color = Colors.white.withValues(alpha: random.nextDouble() * 0.2 + 0.05),
+        size = random.nextDouble() * 20 + 10,
+        speed = random.nextDouble() * 50 + 20,
+        initialX = random.nextDouble() * canvasSize.width,
+        initialY = random.nextDouble() * canvasSize.height;
 
   Offset getOffset(double animationValue, Size canvasSize) {
     final double dx = (initialX + animationValue * speed) % canvasSize.width;

@@ -47,11 +47,11 @@ class _FloatingOrbsState extends State<FloatingOrbs>
 
   Color _getRandomColor() {
     final colors = [
-      const Color(0xFFFF6B9D).withOpacity(0.25), // Pink
-      const Color(0xFF9D6BFF).withOpacity(0.25), // Purple
-      const Color(0xFF6BCDFF).withOpacity(0.25), // Blue
-      const Color(0xFFFFB66B).withOpacity(0.25), // Orange
-      const Color(0xFFFFF06B).withOpacity(0.22), // Yellow
+      const Color(0xFFFF6B9D).withValues(alpha: 0.25), // Pink
+      const Color(0xFF9D6BFF).withValues(alpha: 0.25), // Purple
+      const Color(0xFF6BCDFF).withValues(alpha: 0.25), // Blue
+      const Color(0xFFFFB66B).withValues(alpha: 0.25), // Orange
+      const Color(0xFFFFF06B).withValues(alpha: 0.22), // Yellow
     ];
     return colors[_random.nextInt(colors.length)];
   }
@@ -112,7 +112,7 @@ class OrbsPainter extends CustomPainter {
         ..shader = RadialGradient(
           colors: [
             orb.color,
-            orb.color.withOpacity(0.0),
+            orb.color.withValues(alpha: 0.0),
           ],
           stops: const [0.0, 1.0],
         ).createShader(

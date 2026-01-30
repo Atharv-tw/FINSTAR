@@ -48,7 +48,7 @@ class FirebaseServiceFree {
       _rtdb.setPersistenceCacheSizeBytes(10000000); // 10MB cache
     }
 
-    print('Firebase initialized with offline persistence (Free tier)');
+    debugPrint('Firebase initialized with offline persistence (Free tier)');
   }
 
   // ============================================
@@ -65,11 +65,7 @@ class FirebaseServiceFree {
   Future<UserCredential> signInWithGoogle() async {
     try {
       // Trigger Google Sign-In flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
-
-      if (googleUser == null) {
-        throw Exception('Google sign-in cancelled');
-      }
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
       // Obtain auth details
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
@@ -89,10 +85,10 @@ class FirebaseServiceFree {
       // Save FCM token for push notifications
       await NotificationService().saveTokenAfterLogin();
 
-      print('Google sign-in successful: ${userCredential.user?.uid}');
+      debugPrint('Google sign-in successful: ${userCredential.user?.uid}');
       return userCredential;
     } catch (e) {
-      print('Google sign-in error: $e');
+      debugPrint('Google sign-in error: $e');
       rethrow;
     }
   }
