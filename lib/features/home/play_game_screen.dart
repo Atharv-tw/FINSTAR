@@ -954,26 +954,16 @@ class _BudgetBlitzGameState extends State<_BudgetBlitzGame> {
             alignment: Alignment(itemX, itemY),
             child: Text(
               currentItem,
-              style: const TextStyle(fontSize: 40),
+              style: const TextStyle(fontSize: 25), // Decreased font size for smaller emojis
             ),
           ),
 
           // Shopping cart
           Align(
             alignment: Alignment(cartX, 0.9),
-            child: Container(
-              width: 80,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF393027),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Text(
-                  '🛒',
-                  style: TextStyle(fontSize: 24),
-                ),
-              ),
+            child: const Text(
+              '🛒',
+              style: TextStyle(fontSize: 40), // Increased font size for bigger cart
             ),
           ),
         ],
@@ -989,7 +979,7 @@ class _GameConsole extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20), // Changed padding
       decoration: BoxDecoration(
         color: const Color(0xFFF6EDA3), // Console color
         borderRadius: BorderRadius.circular(20),
@@ -998,13 +988,13 @@ class _GameConsole extends StatelessWidget {
         children: [
           // Screen
           Expanded(
-            flex: 3,
+            flex: 3, // Increased flex for bigger screen
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade800, width: 4),
+                border: Border.all(color: Colors.grey.shade800, width: 12), // Wider border
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(5),
