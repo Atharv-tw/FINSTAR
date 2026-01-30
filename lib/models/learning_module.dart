@@ -64,13 +64,15 @@ enum ContentType {
 /// Lesson Content Model
 class LessonContent {
   final ContentType type;
-  final String data;
+  final String? data;
   final Map<String, dynamic>? metadata;
+  final List<QuizQuestion>? quizQuestions;
 
   LessonContent({
     required this.type,
-    required this.data,
+    this.data,
     this.metadata,
+    this.quizQuestions,
   });
 }
 

@@ -50,10 +50,14 @@ class FirebaseServiceFree {
       _rtdb.setPersistenceCacheSizeBytes(10000000); // 10MB cache
     }
 
-    await _googleSignIn.initialize(
-      serverClientId:
-          '479746642557-0u721aiehm5hcfjen542u156jnqstijq.apps.googleusercontent.com',
-    );
+    if (!kIsWeb) {
+      await _googleSignIn.initialize(
+        serverClientId:
+            '479746642557-0u721aiehm5hcfjen542u156jnqstijq.apps.googleusercontent.com',
+      );
+    } else {
+      await _googleSignIn.initialize();
+    }
     _googleSignInInitialized = true;
 
     debugPrint('Firebase initialized with offline persistence (Free tier)');
@@ -73,10 +77,14 @@ class FirebaseServiceFree {
   Future<UserCredential> signInWithGoogle() async {
     try {
       if (!_googleSignInInitialized) {
-        await _googleSignIn.initialize(
-          serverClientId:
-              '479746642557-0u721aiehm5hcfjen542u156jnqstijq.apps.googleusercontent.com',
-        );
+        if (!kIsWeb) {
+          await _googleSignIn.initialize(
+            serverClientId:
+                '479746642557-0u721aiehm5hcfjen542u156jnqstijq.apps.googleusercontent.com',
+          );
+        } else {
+          await _googleSignIn.initialize();
+        }
         _googleSignInInitialized = true;
       }
 
