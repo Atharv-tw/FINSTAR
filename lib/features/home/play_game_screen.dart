@@ -1017,7 +1017,7 @@ class _GameConsole extends StatelessWidget {
           Expanded(
             flex: 1,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Changed to spaceBetween
               children: [
                 // D-pad
                 SizedBox(
@@ -1033,7 +1033,7 @@ class _GameConsole extends StatelessWidget {
                           color: const Color(0xFFFFFFF0),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withAlpha((255 * 0.3).round()),
+                              color: Colors.black.withOpacity(0.3),
                               blurRadius: 5,
                               offset: const Offset(0, 3),
                             ),
@@ -1047,7 +1047,7 @@ class _GameConsole extends StatelessWidget {
                           color: const Color(0xFFFFFFF0),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withAlpha((255 * 0.3).round()),
+                              color: Colors.black.withOpacity(0.3),
                               blurRadius: 5,
                               offset: const Offset(0, 3),
                             ),
@@ -1057,6 +1057,9 @@ class _GameConsole extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Added a SizedBox for spacing after D-pad
+                const SizedBox(width: 30), // Increased gap
+
                 // Slanting buttons
                 Row(
                   children: [
@@ -1070,7 +1073,7 @@ class _GameConsole extends StatelessWidget {
                           borderRadius: BorderRadius.circular(5),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withAlpha((255 * 0.3).round()),
+                              color: Colors.black.withOpacity(0.3),
                               blurRadius: 5,
                               offset: const Offset(0, 3),
                             ),
@@ -1089,7 +1092,7 @@ class _GameConsole extends StatelessWidget {
                           borderRadius: BorderRadius.circular(5),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withAlpha((255 * 0.3).round()),
+                              color: Colors.black.withOpacity(0.3),
                               blurRadius: 5,
                               offset: const Offset(0, 3),
                             ),
@@ -1099,20 +1102,26 @@ class _GameConsole extends StatelessWidget {
                     ),
                   ],
                 ),
+                // Added a SizedBox for spacing before A/B buttons
+                const SizedBox(width: 30), // Increased gap
+
                 // A and B Buttons
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 20.0), // More diagonal
-                      child: _buildConsoleButton('A'), // Label will be removed inside _buildConsoleButton
-                    ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, top: 10.0), // More diagonal
-                      child: _buildConsoleButton('B'), // Label will be removed inside _buildConsoleButton
-                    ),
-                  ],
+                Transform.translate( // Wrap Column with Transform.translate
+                  offset: const Offset(-2.0, 0), // Shift left by 2 pixels
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20.0), // More diagonal
+                        child: _buildConsoleButton('A'), // Label will be removed inside _buildConsoleButton
+                      ),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20.0, top: 10.0), // More diagonal
+                        child: _buildConsoleButton('B'), // Label will be removed inside _buildConsoleButton
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -1131,7 +1140,7 @@ class _GameConsole extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha((255 * 0.3).round()),
+            color: Colors.black.withOpacity(0.3),
             blurRadius: 5,
             offset: const Offset(0, 3),
           ),
