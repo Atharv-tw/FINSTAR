@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -593,6 +595,11 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
         unfoldProgress: unfoldProgress,
         glowController: _glowController, // Pass the glow controller
       );
+    } else if (card.title == 'BUDGET BLITZ') {
+      return _BudgetBlitzCardContent(
+        card: card,
+        unfoldProgress: unfoldProgress,
+      );
     } else if (card.title == 'MARKET EXPLORER') {
       animatedFontSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
       animatedIconSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
@@ -826,6 +833,326 @@ class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
           ],
         ),
       ],
+    );
+  }
+}
+
+// New Widget for Budget Blitz Game Content
+class _BudgetBlitzCardContent extends StatelessWidget {
+  const _BudgetBlitzCardContent({
+    required this.card,
+    required this.unfoldProgress,
+  });
+
+  final _CardData card;
+  final double unfoldProgress;
+
+  @override
+  Widget build(BuildContext context) {
+    double animatedFontSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
+    double animatedIconSize = 24 + (unfoldProgress * 12); // Default: 24 to 36
+    double iconSpacing = 8.0; // Default spacing
+    Offset contentOffset = Offset.zero; // Default offset
+
+    final Alignment animatedAlignment =
+        Alignment.lerp(Alignment.topLeft, Alignment.topCenter, unfoldProgress)!;
+
+    return Column(
+      children: [
+        Align(
+          alignment: animatedAlignment,
+          child: Transform.translate(
+            offset: contentOffset,
+            child: Row(
+              mainAxisSize: MainAxisSize.min, // To keep the Row compact
+              children: [
+                Icon(
+                  card.icon,
+                  size: animatedIconSize,
+                  color: DesignTokens.textPrimary,
+                ),
+                SizedBox(width: iconSpacing),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    card.title,
+                    style: GoogleFonts.luckiestGuy(
+                      fontSize: animatedFontSize,
+                      color: DesignTokens.textPrimary,
+                      height: 1.1,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Expanded(child: _GameConsole(child: _BudgetBlitzGame())),
+      ],
+    );
+  }
+}
+
+class _BudgetBlitzGame extends StatefulWidget {
+  const _BudgetBlitzGame({super.key});
+
+  @override
+  State<_BudgetBlitzGame> createState() => _BudgetBlitzGameState();
+}
+
+class _BudgetBlitzGameState extends State<_BudgetBlitzGame> {
+  double cartX = 0.0;
+  double itemX = 0.0;
+  double itemY = -1.0;
+
+  final Random random = Random();
+  late Timer timer;
+
+  final List<String> items = ['ðŸ‘Ÿ', 'ðŸŽ', 'ðŸ’°'];
+  String currentItem = 'ðŸŽ';
+
+  @override
+  void initState() {
+    super.initState();
+    spawnItem();
+
+    timer = Timer.periodic(const Duration(milliseconds: 30), (timer) {
+      setState(() {
+        itemY += 0.02;
+
+        if (itemY > 1.1) {
+          spawnItem();
+        }
+
+        // collision check
+        if ((itemY > 0.8) && (cartX - itemX).abs() < 0.2) {
+          spawnItem();
+        }
+      });
+    });
+  }
+
+  void spawnItem() {
+    itemX = random.nextDouble() * 2 - 1;
+    itemY = -1.2;
+    currentItem = items[random.nextInt(items.length)];
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        setState(() {
+          cartX += details.delta.dx / 150;
+          cartX = cartX.clamp(-1.0, 1.0);
+        });
+      },
+      child: Stack(
+        children: [
+          // Falling item
+          Align(
+            alignment: Alignment(itemX, itemY),
+            child: Text(
+              currentItem,
+              style: const TextStyle(fontSize: 25), // Decreased font size for smaller emojis
+            ),
+          ),
+
+          // Shopping cart
+          Align(
+            alignment: Alignment(cartX, 0.9),
+            child: const Text(
+              'ðŸ›’',
+              style: TextStyle(fontSize: 40), // Increased font size for bigger cart
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GameConsole extends StatelessWidget {
+  const _GameConsole({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20), // Changed padding
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6EDA3), // Console color
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          // Screen
+          Expanded(
+            flex: 3, // Increased flex for bigger screen
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey.shade800, width: 12), // Wider border
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: child,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Controls
+          Expanded(
+            flex: 1,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Changed to spaceBetween
+              children: [
+                // D-pad
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 25,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFFF0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 25,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFFF0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Added a SizedBox for spacing after D-pad
+                const SizedBox(width: 30), // Increased gap
+
+                // Slanting buttons
+                Row(
+                  children: [
+                    Transform.rotate(
+                      angle: -pi / 6,
+                      child: Container(
+                        width: 40, // Made smaller
+                        height: 20, // Made smaller
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFFF0),
+                          borderRadius: BorderRadius.circular(5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Transform.rotate(
+                      angle: -pi / 6,
+                      child: Container(
+                        width: 40, // Made smaller
+                        height: 20, // Made smaller
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFFF0),
+                          borderRadius: BorderRadius.circular(5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Added a SizedBox for spacing before A/B buttons
+                const SizedBox(width: 30), // Increased gap
+
+                // A and B Buttons
+                Transform.translate( // Wrap Column with Transform.translate
+                  offset: const Offset(-2.0, 0), // Shift left by 2 pixels
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20.0), // More diagonal
+                        child: _buildConsoleButton('A'), // Label will be removed inside _buildConsoleButton
+                      ),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20.0, top: 10.0), // More diagonal
+                        child: _buildConsoleButton('B'), // Label will be removed inside _buildConsoleButton
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConsoleButton(String label) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFFF0),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }
