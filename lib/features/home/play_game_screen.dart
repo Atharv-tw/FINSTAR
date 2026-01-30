@@ -400,32 +400,100 @@ class _PlayGameScreenState extends State<PlayGameScreen>
     );
   }
 
-    Widget _buildCardStackZone(double screenHeight, double screenWidth) {
+  Widget _buildCardStackZone(double screenHeight, double screenWidth) {
+    final cards = [
+      _CardData(
+        title: 'LIFE SWIPE',
+        subtitle: '',
+        description: '',
+        icon: Icons.swipe_rounded,
+        gradientColors: [const Color(0xFFE1C1C6), const Color(0xFFE1C1C6)],
+        route: '/game/life-swipe',
+      ),
+      _CardData(
+        title: 'BUDGET BLITZ',
+        subtitle: '',
+        description: '',
+        icon: Icons.bolt_rounded,
+        gradientColors: [const Color(0xFFF6EDA3), const Color(0xFFF6EDA3)],
+        route: '/game/budget-blitz',
+      ),
+      _CardData(
+        title: 'MARKET EXPLORER',
+        subtitle: '',
+        description: '',
+        icon: Icons.trending_up_rounded,
+        gradientColors: [const Color(0xFF94B8C9), const Color(0xFF94B8C9)],
+        route: '/game/market-explorer',
+      ),
+      _CardData(
+        title: 'QUIZ BATTLE',
+        subtitle: '',
+        description: '',
+        icon: Icons.quiz_rounded,
+        gradientColors: [const Color(0xFF829672), const Color(0xFF829672)],
+        route: '/game/quiz-battle',
+      ),
+    ];
 
-      final cards = [
+    // Card unfolding: calculate how much to unfold based on scroll
+    // Start unfolding immediately, fully unfolded at 300px
+    final unfoldProgress = (_scrollOffset / 300).clamp(0.0, 1.0);
 
-        _CardData(
+    // Keep the order: Play Games should be first when unfolded (it's visually on top of stack)
+    final displayCards = cards;
 
-          title: 'LIFE SWIPE',
+    // Calculate stack height based on unfold progress
+    // Collapsed: full card height + 40px visible per additional card
+    // Unfolded: all cards fully visible with gaps
+    final cardHeight = screenHeight * 0.7;
+    final collapsedHeight =
+        cardHeight + (cards.length - 1) * 40.0; // One full card + 40px per additional card
+    final unfoldedHeight =
+        cards.length * (cardHeight + 20.0); // All cards with 20px gap
+    final stackHeight =
+        collapsedHeight + (unfoldProgress * (unfoldedHeight - collapsedHeight));
 
-          subtitle: '',
+    return Transform.translate(
+      offset: const Offset(0, -47),
+      child: Container(
+        padding: const EdgeInsets.only(top: 0, bottom: 24),
+        child: SizedBox(
+          height: stackHeight,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: displayCards.asMap().entries.map((entry) {
+              final index = entry.key; // 0 is Play Games (first), 3 is Friends (last)
+              final card = entry.value;
 
-          description: '',
+              // When collapsed (unfoldProgress = 0): Cards stacked with only 40px visible each
+              // When unfolded (unfoldProgress = 1): Cards fully separated with 20px gap
 
-          icon: Icons.swipe_rounded,
+              // Calculate vertical position
+              // Collapsed: cards overlap, showing 40px of each card
+              // Unfolded: full card height + 20px gap
+              final collapsedTop = index * 70.0; // Show 70px of each card when stacked
+              final unfoldedTop = index * (cardHeight + 80.0); // Full card + gap
+              final currentTop =
+                  collapsedTop + (unfoldProgress * (unfoldedTop - collapsedTop));
 
-          gradientColors: [const Color(0xFFE1C1C6), const Color(0xFFE1C1C6)],
-
-          route: '/game/life-swipe',
-
+              return AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutQuad,
+                top: currentTop,
+                left: 13,
+                right: 13,
+                child: _buildGlassmorphicCard(
+                  card: card,
+                  index: index,
+                  screenHeight: screenHeight,
+                  unfoldProgress: unfoldProgress,
+                ),
+              );
+            }).toList(),
+          ),
         ),
-
-        _CardData(
-
-          title: 'BUDGET BLITZ',
-
-        );
-      },
+      ),
     );
   }
 
@@ -663,9 +731,10 @@ class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: Color(0xFFE53935), width: 2),
               ),
-              child: const Text(
-                '✖',
-                style: TextStyle(fontSize: 28, color: Color(0xFFE53935)),
+              child: const Icon(
+                Icons.close,
+                size: 28,
+                color: Color(0xFFE53935),
               ),
             ),
             ElevatedButton(
@@ -676,9 +745,10 @@ class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: Color(0xFF43A047), width: 2),
               ),
-              child: const Text(
-                '❤',
-                style: TextStyle(fontSize: 28, color: Color(0xFF43A047)),
+              child: const Icon(
+                Icons.favorite,
+                size: 28,
+                color: Color(0xFF43A047),
               ),
             ),
           ],
