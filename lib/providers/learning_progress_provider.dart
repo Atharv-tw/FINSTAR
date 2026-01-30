@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_provider.dart';
 import 'package:flutter/foundation.dart';
+import '../data/learning_modules_data.dart';
+import '../services/supabase_functions_service.dart';
 
 /// Learning progress model
 class LessonProgress {
@@ -54,12 +56,23 @@ final learningProgressProvider = StreamProvider<Map<String, LessonProgress>>((re
   return firestore
       .collection('users')
       .doc(userId)
-      .collection('learningProgress')
+      .collection('lessonProgress')
       .snapshots()
       .map((snapshot) {
     final progressMap = <String, LessonProgress>{};
     for (var doc in snapshot.docs) {
-      final progress = LessonProgress.fromFirestore(doc.data());
+      final data = doc.data();
+      final lessonId = (data['lessonId'] ?? doc.id) as String;
+      final moduleId = _findModuleIdForLesson(lessonId) ?? (data['moduleId'] ?? '');
+      final progress = LessonProgress(
+        moduleId: moduleId,
+        lessonId: lessonId,
+        completed: data['completed'] ?? false,
+        completedAt: data['completedAt'] != null
+            ? (data['completedAt'] as Timestamp).toDate()
+            : null,
+        xpEarned: data['xpEarned'] ?? 0,
+      );
       progressMap['${progress.moduleId}_${progress.lessonId}'] = progress;
     }
     return progressMap;
@@ -73,36 +86,14 @@ final completeLessonProvider = Provider((ref) {
     required String lessonId,
     int xpReward = 50,
   }) async {
-    final userId = ref.read(currentUserIdProvider);
-    if (userId == null) throw Exception('User not authenticated');
-
-    final firestore = FirebaseFirestore.instance;
-    final batch = firestore.batch();
-
-    // Mark lesson as complete
-    final lessonDocRef = firestore
-        .collection('users')
-        .doc(userId)
-        .collection('learningProgress')
-        .doc('${moduleId}_$lessonId');
-
-    batch.set(lessonDocRef, {
-      'moduleId': moduleId,
-      'lessonId': lessonId,
-      'completed': true,
-      'completedAt': FieldValue.serverTimestamp(),
-      'xpEarned': xpReward,
-    });
-
-    // Award XP to user
-    final userDocRef = firestore.collection('users').doc(userId);
-    batch.update(userDocRef, {
-      'xp': FieldValue.increment(xpReward),
-      'lastActiveDate': FieldValue.serverTimestamp(),
-    });
-
-    await batch.commit();
-    debugPrint('Lesson completed: $moduleId/$lessonId - +$xpReward XP');
+    final result = await SupabaseFunctionsService().completeLessonWithAchievements(
+      lessonId: lessonId,
+    );
+    if (result['success'] == true) {
+      debugPrint('Lesson completed (Supabase): $moduleId/$lessonId');
+    } else {
+      throw Exception(result['error'] ?? 'Failed to complete lesson');
+    }
   };
 });
 
@@ -117,12 +108,28 @@ final moduleProgressProvider = Provider.family<double, String>((ref, moduleId) {
           .where((p) => p.moduleId == moduleId && p.completed)
           .length;
 
-      // TODO: Get total lessons from module data
-      // For now, assume 5 lessons per module
-      const totalLessons = 5;
-      return completedCount / totalLessons;
+      int totalLessons = 0;
+      try {
+        totalLessons = LearningModulesData.getModuleById(moduleId).lessons.length;
+      } catch (_) {
+        totalLessons = 0;
+      }
+      return totalLessons == 0 ? 0.0 : completedCount / totalLessons;
     },
     loading: () => 0.0,
     error: (error, stack) => 0.0,
   );
 });
+
+String? _findModuleIdForLesson(String lessonId) {
+  try {
+    for (final module in LearningModulesData.allModules) {
+      for (final lesson in module.lessons) {
+        if (lesson.id == lessonId) {
+          return module.id;
+        }
+      }
+    }
+  } catch (_) {}
+  return null;
+}

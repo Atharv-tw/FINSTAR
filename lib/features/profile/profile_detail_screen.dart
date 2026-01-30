@@ -295,7 +295,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> with 
           mainAxisSpacing: 16,
           childAspectRatio: 1.2,
           children: [
-            _StatCard(label: 'Lessons Done', value: '12', icon: Icons.library_books_rounded, color: Colors.blue),
+            _StatCard(label: 'Lessons Done', value: '${user.lessonsCompleted}', icon: Icons.library_books_rounded, color: Colors.blue),
             _StatCard(label: 'XP Earned', value: '${user.xp}', icon: Icons.auto_awesome_rounded, color: Colors.purple),
             _StatCard(label: 'Current Streak', value: '${user.streakDays} Days', icon: Icons.local_fire_department_rounded, color: Colors.deepOrange),
             _StatCard(label: 'Leaderboard', value: '#24', icon: Icons.leaderboard_rounded, color: Colors.green),

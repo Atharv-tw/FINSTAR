@@ -2,13 +2,15 @@ import 'package:finstar_app/features/learning/widgets/road_lesson_widget.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/learning_module.dart';
 import '../../data/learning_modules_data.dart';
 import 'learning_theme.dart';
 import '../../shared/widgets/dynamic_nature_background.dart';
+import '../../providers/learning_progress_provider.dart';
 
 /// Module Detail Screen - Shows all lessons in a module
-class ModuleDetailScreen extends StatefulWidget {
+class ModuleDetailScreen extends ConsumerStatefulWidget {
   final String moduleId;
 
   const ModuleDetailScreen({
@@ -17,10 +19,10 @@ class ModuleDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<ModuleDetailScreen> createState() => _ModuleDetailScreenState();
+  ConsumerState<ModuleDetailScreen> createState() => _ModuleDetailScreenState();
 }
 
-class _ModuleDetailScreenState extends State<ModuleDetailScreen>
+class _ModuleDetailScreenState extends ConsumerState<ModuleDetailScreen>
     with SingleTickerProviderStateMixin {
   LearningModule? module;
   late AnimationController _animationController;
@@ -76,6 +78,23 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
       return _buildErrorScreen();
     }
 
+    final progressAsync = ref.watch(learningProgressProvider);
+    final progressMap = progressAsync.asData?.value ?? {};
+    for (final lesson in module!.lessons) {
+      final key = '${module!.id}_${lesson.id}';
+      lesson.isCompleted = progressMap[key]?.completed ?? false;
+    }
+    final completedCount = progressMap.values
+        .where((p) => p.moduleId == module!.id && p.completed)
+        .length;
+    final totalLessons = module!.lessons.length;
+    final earnedXp = progressMap.values
+        .where((p) => p.moduleId == module!.id)
+        .fold<int>(0, (sum, p) => sum + p.xpEarned);
+    final totalXp = module!.totalXp;
+    final progressValue =
+        totalLessons == 0 ? 0.0 : (completedCount / totalLessons).clamp(0.0, 1.0);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -101,7 +120,13 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      _buildProgressCard(),
+                      _buildProgressCard(
+                        completedCount: completedCount,
+                        totalLessons: totalLessons,
+                        earnedXp: earnedXp,
+                        totalXp: totalXp,
+                        progressValue: progressValue,
+                      ),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -236,7 +261,13 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
     );
   }
 
-  Widget _buildProgressCard() {
+  Widget _buildProgressCard({
+    required int completedCount,
+    required int totalLessons,
+    required int earnedXp,
+    required int totalXp,
+    required double progressValue,
+  }) {
     return _buildGlassCard(
       child: Column(
         children: [
@@ -245,20 +276,20 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
             children: [
               Text('Progress', style: LearningTheme.button.copyWith(color: Colors.white)),
               Text(
-                '${module!.completedLessons} / ${module!.lessons.length} lessons',
+                '$completedCount / $totalLessons lessons',
                 style: LearningTheme.button.copyWith(color: Colors.white),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          _buildProgressBar(),
+          _buildProgressBar(progressValue),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('XP Earned', style: LearningTheme.button.copyWith(color: Colors.white)),
               Text(
-                '${module!.earnedXp} / ${module!.totalXp} XP',
+                '$earnedXp / $totalXp XP',
                 style: LearningTheme.button.copyWith(color: LearningTheme.olivine),
               ),
             ],
@@ -268,7 +299,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
     );
   }
 
-  Widget _buildProgressBar() {
+  Widget _buildProgressBar(double progressValue) {
     return Container(
       height: 10,
       decoration: BoxDecoration(
@@ -278,7 +309,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(5),
         child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: module!.progress),
+          tween: Tween(begin: 0.0, end: progressValue),
           duration: const Duration(milliseconds: 1500),
           curve: Curves.easeOutQuart,
           builder: (context, value, child) {

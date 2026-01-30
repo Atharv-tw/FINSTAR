@@ -569,9 +569,11 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
                     ),
                   ),
 
-                  // 3. Content Layer
+                  // 3. Content Layer - smaller padding for Market Explorer
                   Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: card.title == 'MARKET EXPLORER' 
+                        ? const EdgeInsets.all(16) 
+                        : const EdgeInsets.all(24),
                     child: _buildCollapsedCardContent(card, unfoldProgress),
                   ),
                 ],
@@ -601,9 +603,10 @@ class _PlayGameScreenState extends ConsumerState<PlayGameScreen>
         unfoldProgress: unfoldProgress,
       );
     } else if (card.title == 'MARKET EXPLORER') {
-      animatedFontSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
-      animatedIconSize = 24 + (unfoldProgress * 2); // Animate from 24 to 26
-      contentOffset = const Offset(-8.0, 0); // Shift left for Market Explorer
+      return _MarketExplorerCardContent(
+        card: card,
+        unfoldProgress: unfoldProgress,
+      );
     }
 
     final Alignment animatedAlignment =
@@ -837,6 +840,147 @@ class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
   }
 }
 
+class _MarketExplorerCardContent extends StatelessWidget {
+  const _MarketExplorerCardContent({
+    required this.card,
+    required this.unfoldProgress,
+  });
+
+  final _CardData card;
+  final double unfoldProgress;
+
+  @override
+  Widget build(BuildContext context) {
+    // Animation parameters for the heading
+    // Start: small text at top-left, single line "MARKET EXPLORER"
+    // End: larger text centered inside calculator screen, two lines "MARKET" / "EXPLORER"
+    
+    // Font size: 24 -> 20 (shrinks as it moves into the screen)
+    final double animatedFontSize = 24 - (unfoldProgress * 4);
+    
+    // Icon size: shrinks and fades as we animate into the screen
+    final double animatedIconSize = 24 * (1 - unfoldProgress);
+    final double iconOpacity = 1 - unfoldProgress;
+    
+    // The calculator screen is approximately at 8-22% from top of the image
+    // Target center for text: ~16% from top
+    // Card padding is 24px, so we need to calculate the offset relative to the padded area
+    
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardHeight = constraints.maxHeight;
+        final cardWidth = constraints.maxWidth;
+        
+        // Calculate target Y position (inside calculator screen)
+        // Calculator screen center is approximately 16% from top of the image area
+        // The image fills from top of the card (after we remove the old header space)
+        final double targetY = cardHeight * 0.10; // 10% from top
+        
+        // Animate vertical position: start at 0 (top), end inside calculator screen
+        final double animatedY = unfoldProgress * targetY;
+        
+        // Animate horizontal position: start at left edge, end at center
+        final double targetX = (cardWidth - 150) / 2; // Approximate center for text block
+        final double animatedX = unfoldProgress * targetX;
+        
+        return Stack(
+          children: [
+            // Calculator image - fills the entire card
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/images/marketexplorercalc.jpeg',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            
+            // Animated text overlay
+            Positioned(
+              left: animatedX,
+              top: animatedY,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Icon fades out as animation progresses
+                  if (iconOpacity > 0.01)
+                    Opacity(
+                      opacity: iconOpacity,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(
+                          card.icon,
+                          size: animatedIconSize,
+                          color: DesignTokens.textPrimary,
+                        ),
+                      ),
+                    ),
+                  
+                  // Text transitions from single line to two lines
+                  _buildAnimatedText(animatedFontSize),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  Widget _buildAnimatedText(double fontSize) {
+    // Crossfade between single line and two line versions
+    if (unfoldProgress < 0.5) {
+      // First half: show single line, fading out
+      final double opacity = 1 - (unfoldProgress * 2);
+      return Opacity(
+        opacity: opacity.clamp(0.0, 1.0),
+        child: Text(
+          'MARKET EXPLORER',
+          style: GoogleFonts.luckiestGuy(
+            fontSize: fontSize,
+            color: DesignTokens.textPrimary,
+            height: 1.1,
+            letterSpacing: 0.5,
+          ),
+        ),
+      );
+    } else {
+      // Second half: show two lines, fading in
+      final double opacity = (unfoldProgress - 0.5) * 2;
+      const double twoLineFontSize = 34.0; // Larger size for two-line format
+      return Opacity(
+        opacity: opacity.clamp(0.0, 1.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'MARKET',
+              style: GoogleFonts.luckiestGuy(
+                fontSize: twoLineFontSize,
+                color: const Color(0xFF2D5A4A), // Darker color for visibility on screen
+                height: 1.1,
+                letterSpacing: 0.5,
+              ),
+            ),
+            Text(
+              'EXPLORER',
+              style: GoogleFonts.luckiestGuy(
+                fontSize: twoLineFontSize,
+                color: const Color(0xFF2D5A4A), // Darker color for visibility on screen
+                height: 1.1,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+}
+
 // New Widget for Budget Blitz Game Content
 class _BudgetBlitzCardContent extends StatelessWidget {
   const _BudgetBlitzCardContent({
@@ -909,8 +1053,12 @@ class _BudgetBlitzGameState extends State<_BudgetBlitzGame> {
   final Random random = Random();
   late Timer timer;
 
-  final List<String> items = ['ðŸ‘Ÿ', 'ðŸŽ', 'ðŸ’°'];
-  String currentItem = 'ðŸŽ';
+  final List<IconData> items = [
+    Icons.shopping_bag,
+    Icons.apple,
+    Icons.attach_money,
+  ];
+  IconData currentItem = Icons.apple;
 
   @override
   void initState() {
@@ -959,18 +1107,20 @@ class _BudgetBlitzGameState extends State<_BudgetBlitzGame> {
           // Falling item
           Align(
             alignment: Alignment(itemX, itemY),
-            child: Text(
+            child: Icon(
               currentItem,
-              style: const TextStyle(fontSize: 25), // Decreased font size for smaller emojis
+              size: 26,
+              color: Colors.white,
             ),
           ),
 
           // Shopping cart
           Align(
             alignment: Alignment(cartX, 0.9),
-            child: const Text(
-              'ðŸ›’',
-              style: TextStyle(fontSize: 40), // Increased font size for bigger cart
+            child: const Icon(
+              Icons.shopping_cart,
+              size: 40,
+              color: Colors.white,
             ),
           ),
         ],

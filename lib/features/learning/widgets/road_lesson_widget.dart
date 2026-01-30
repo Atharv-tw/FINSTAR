@@ -74,7 +74,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
               final position = points[index + 1];
               final isLeft = (index % 2 != 0);
 
-              final bool isLocked = (index == 0) ? false : !widget.module.lessons[index - 1].isCompleted;
+              final bool isLocked = false;
               
               final lessonIcon = _buildLessonIcon(lesson, isLocked);
               final lessonText = _buildLessonText(lesson, widget.module.gradientColors[0], isLeft);

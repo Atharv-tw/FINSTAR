@@ -6,6 +6,7 @@ import '../../models/learning_module.dart';
 import '../../data/learning_modules_data.dart';
 import 'learning_theme.dart';
 import '../../shared/widgets/nature_background.dart';
+import '../../services/supabase_functions_service.dart';
 
 /// Lesson Screen - Displays lesson content
 class LessonScreen extends StatefulWidget {
@@ -27,6 +28,8 @@ class _LessonScreenState extends State<LessonScreen> {
   late Lesson lesson;
   int currentContentIndex = 0;
   bool isCompleted = false;
+  bool _isSubmitting = false;
+  final SupabaseFunctionsService _supabaseService = SupabaseFunctionsService();
 
   @override
   void initState() {
@@ -53,18 +56,42 @@ class _LessonScreenState extends State<LessonScreen> {
     }
   }
 
-  void _completeLesson() {
+  Future<void> _completeLesson() async {
+    if (_isSubmitting) return;
     setState(() {
-      lesson.isCompleted = true;
-      isCompleted = true;
+      _isSubmitting = true;
     });
 
-    // Show completion dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => _buildCompletionDialog(),
+    final result = await _supabaseService.completeLessonWithAchievements(
+      lessonId: lesson.id,
     );
+
+    if (!mounted) return;
+
+    if (result['success'] == true) {
+      setState(() {
+        lesson.isCompleted = true;
+        isCompleted = true;
+        _isSubmitting = false;
+      });
+
+      // Show completion dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildCompletionDialog(),
+      );
+    } else {
+      setState(() {
+        _isSubmitting = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['error']?.toString() ?? 'Could not save lesson progress'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
@@ -342,7 +369,7 @@ class _LessonScreenState extends State<LessonScreen> {
           Expanded(
             flex: currentContentIndex > 0 ? 1 : 2,
             child: ElevatedButton(
-              onPressed: _nextContent,
+              onPressed: _isSubmitting ? null : _nextContent,
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.zero,
                 backgroundColor: LearningTheme.olivine,
@@ -352,7 +379,9 @@ class _LessonScreenState extends State<LessonScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Center(
                   child: Text(
-                    isLastContent ? 'Complete Lesson' : 'Continue',
+                    isLastContent
+                        ? (_isSubmitting ? 'Saving...' : 'Complete Lesson')
+                        : 'Continue',
                     style: LearningTheme.button.copyWith(color: LearningTheme.white),
                   ),
                 ),

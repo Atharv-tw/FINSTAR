@@ -11,6 +11,8 @@ import '../../shared/widgets/streak_title_bar.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/app_startup_provider.dart';
 import '../../shared/widgets/nature_background.dart';
+import '../../providers/learning_progress_provider.dart';
+import '../../data/learning_modules_data.dart';
 
 /// FINSTAR Home Screen - Redesigned for maximum impact
 class BasicHomeScreen extends ConsumerStatefulWidget {
@@ -89,6 +91,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
 
     // Get real user data from Firebase
     final userDataAsync = ref.watch(userProfileProvider);
+    final learningProgressAsync = ref.watch(learningProgressProvider);
 
     return Scaffold(
       body: Stack(
@@ -102,6 +105,16 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
               if (userData == null) {
                 return const Center(child: Text('No user data'));
               }
+
+              final progressMap = learningProgressAsync.asData?.value ?? {};
+              final totalLessons = LearningModulesData.allModules
+                  .fold<int>(0, (sum, module) => sum + module.lessons.length);
+              final completedLessons = progressMap.values
+                  .where((p) => p.completed)
+                  .length;
+              final studyProgress = totalLessons == 0
+                  ? 0.0
+                  : (completedLessons / totalLessons).clamp(0.0, 1.0);
 
               return SingleChildScrollView(
                 controller: _scrollController,
@@ -127,7 +140,7 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Progress Section with Panda
-                          _buildProgressWithPandaSection(screenWidth, userData),
+                          _buildProgressWithPandaSection(screenWidth, userData, studyProgress),
 
                           const SizedBox(height: 31),
 
@@ -204,10 +217,9 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
     );
   }
 
-  Widget _buildProgressWithPandaSection(double screenWidth, dynamic userData) {
+  Widget _buildProgressWithPandaSection(double screenWidth, dynamic userData, double studyProgress) {
     // Calculate XP for next level
     final xpForNextLevel = (userData.level * 1000);
-    final studyProgress = 0.65; // TODO: Calculate from learning progress
     return AnimatedBuilder(
       animation: Listenable.merge([_progressController, _pandaController, _breathingController]),
       builder: (context, child) {

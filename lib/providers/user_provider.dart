@@ -12,6 +12,7 @@ class UserProfile {
   final int level;
   final int coins;
   final int streakDays;
+  final int lessonsCompleted;
   final String lastActiveDate;
   final bool isPremium;
   final DateTime? joinDate;
@@ -25,6 +26,7 @@ class UserProfile {
     required this.level,
     required this.coins,
     required this.streakDays,
+    required this.lessonsCompleted,
     required this.lastActiveDate,
     this.isPremium = false,
     this.joinDate,
@@ -41,6 +43,7 @@ class UserProfile {
       level: data['level'] ?? 1,
       coins: data['coins'] ?? 200,
       streakDays: data['streakDays'] ?? 0,
+      lessonsCompleted: data['lessonsCompleted'] ?? 0,
       lastActiveDate: data['lastActiveDate'] ?? '',
       isPremium: data['isPremium'] ?? false,
       joinDate: data['joinDate'] != null
