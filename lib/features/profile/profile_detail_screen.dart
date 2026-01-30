@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_tokens.dart';
 import '../../providers/achievements_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -103,7 +104,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> with 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+        padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -241,13 +242,51 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> with 
 
   Widget _buildStatsGrid(UserProfile user) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Text(
-          "Your Stats",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: DesignTokens.textDarkPrimary),
+        // Centered heading with line separators
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      DesignTokens.textDarkSecondary.withOpacity(0.3),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "Your Stats",
+                style: GoogleFonts.manrope(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: DesignTokens.textDarkPrimary,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      DesignTokens.textDarkSecondary.withOpacity(0.3),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
@@ -257,7 +296,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> with 
           childAspectRatio: 1.2,
           children: [
             _StatCard(label: 'Lessons Done', value: '12', icon: Icons.library_books_rounded, color: Colors.blue),
-            _StatCard(label: 'Coins Earned', value: '${user.coins}', icon: Icons.monetization_on_rounded, color: Colors.amber),
+            _StatCard(label: 'XP Earned', value: '${user.xp}', icon: Icons.auto_awesome_rounded, color: Colors.purple),
             _StatCard(label: 'Current Streak', value: '${user.streakDays} Days', icon: Icons.local_fire_department_rounded, color: Colors.deepOrange),
             _StatCard(label: 'Leaderboard', value: '#24', icon: Icons.leaderboard_rounded, color: Colors.green),
           ],
@@ -287,8 +326,9 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> with 
         const SizedBox(height: 12),
         achievementsAsync.when(
           data: (achievements) => SizedBox(
-            height: 120,
+            height: 148,
             child: ListView.separated(
+              padding: const EdgeInsets.only(top: 6, bottom: 6),
               scrollDirection: Axis.horizontal,
               itemCount: achievements.length,
               separatorBuilder: (context, index) => const SizedBox(width: 12),
@@ -298,6 +338,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> with 
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, s) => const Text('Could not load achievements'),
         ),
+        const SizedBox(height: 40),
       ],
     );
   }
