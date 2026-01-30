@@ -9,11 +9,13 @@ import '../learning_theme.dart';
 class RoadLessonWidget extends StatefulWidget {
   final LearningModule module;
   final ValueNotifier<double> scrollProgress;
+  final ValueChanged<double>? onHeightCalculated; // Corrected: this needs to be a field of StatefulWidget
 
   const RoadLessonWidget({
     super.key,
     required this.module,
     required this.scrollProgress,
+    this.onHeightCalculated, // New callback
   });
 
   @override
@@ -21,6 +23,8 @@ class RoadLessonWidget extends StatefulWidget {
 }
 
 class _RoadLessonWidgetState extends State<RoadLessonWidget> {
+  // ... existing code ...
+
   @override
   void initState() {
     super.initState();
@@ -42,21 +46,29 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final points = _getLessonPoints(constraints.biggest, widget.module.lessons.length);
-        final path = _createPathThroughPoints(points, constraints.biggest);
         
+        // Report height if callback is provided
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (widget.onHeightCalculated != null) {
+            final double contentHeight = points.last.dy + 50 + 20; // Last point Y + half trophy height + padding
+            widget.onHeightCalculated!(contentHeight);
+          }
+        });
+
         return Stack(
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
               child: CustomPaint(
-                painter: _RoadPainter(path: path),
+                painter: _RoadPainter(points: points, lessonCount: widget.module.lessons.length),
               ),
             ),
             Positioned(
-              left: points.first.dx - 30,
-              top: points.first.dy - 30,
-              child: _buildFlag(),
+              left: points.last.dx - 40, // Center the 80x80 node
+              top: points.last.dy - 40, // Center the 80x80 node
+              child: _buildEndNode(),
             ),
+
             ...List.generate(widget.module.lessons.length, (index) {
               final lesson = widget.module.lessons[index];
               final position = points[index + 1];
@@ -66,29 +78,6 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
               
               final lessonIcon = _buildLessonIcon(lesson, isLocked);
               final lessonText = _buildLessonText(lesson, widget.module.gradientColors[0], isLeft);
-
-              Widget lessonRow;
-              if (isLeft) {
-                lessonRow = Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    lessonText,
-                    const SizedBox(width: 5),
-                    lessonIcon,
-                  ],
-                );
-              } else {
-                lessonRow = Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    lessonIcon,
-                    const SizedBox(width: 5),
-                    lessonText,
-                  ],
-                );
-              }
 
               return Positioned(
                 top: position.dy - 55, // Center vertically
@@ -107,7 +96,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        if (!isLeft) ...[ // Icon on left, text on right
+                        if (!isLeft) ...[
                           SizedBox(width: math.max(20, position.dx - 30 - 15 - (60 + 5))), // Empty space on left, ensure min 20
                           lessonIcon,
                           const SizedBox(width: 15), // Spacing
@@ -117,7 +106,7 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
                               child: lessonText, // lessonText is shrink-wrapped
                             ),
                           ),
-                        ] else ...[ // Text on left, icon on right
+                        ] else ...[
                           Expanded( // Text will be in this expanded area
                             child: Align(
                               alignment: Alignment.center, // Center the text within this remaining space
@@ -156,27 +145,11 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       double x = (i % 2 != 0) ? width * 0.8 : width * 0.2;
       points.add(Offset(x, y));
     }
+    // Add an extra point to extend the road further and center it for the end node
+    final double lastY = points.last.dy;
+    const double extendedDistance = 150.0; // Increase extension distance
+    points.add(Offset(width / 2, lastY + extendedDistance)); // Extend and center horizontally
     return points;
-  }
-
-  Path _createPathThroughPoints(List<Offset> points, Size size) {
-    final path = Path();
-    if (points.isEmpty) return path;
-
-    path.moveTo(points[0].dx, points[0].dy);
-
-    for (int i = 0; i < points.length - 1; i++) {
-      final p1 = points[i];
-      final p2 = points[i+1];
-      
-      final double cp1x = p1.dx;
-      final double cp1y = p1.dy + (p2.dy - p1.dy) * 0.6;
-      final double cp2x = p2.dx;
-      final double cp2y = p2.dy - (p2.dy - p1.dy) * 0.6;
-
-      path.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
-    }
-    return path;
   }
 
   String _formatTitle(String title) {
@@ -192,24 +165,6 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
     final firstLine = words.sublist(0, 2).join(' ');
     final secondLine = words.sublist(2).join(' ');
     return '$firstLine\n$secondLine';
-  }
-
-  Widget _buildFlag() {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.7),
-            spreadRadius: 2,
-            blurRadius: 7,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: const Icon(Icons.flag, color: Colors.white, size: 30),
-    );
   }
 
   Widget _buildLessonText(Lesson lesson, Color color, bool isLeft) {
@@ -248,10 +203,10 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isLocked ? const Color(0xFF757575) : const Color(0xFF4CAF50), 
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 3),
+        border: Border.all(color: Colors.white.withOpacity(0.9), width: 3),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.7),
+            color: Colors.black.withOpacity(0.7),
             spreadRadius: 3,
             blurRadius: 8,
             offset: const Offset(0, 4),
@@ -265,7 +220,74 @@ class _RoadLessonWidgetState extends State<RoadLessonWidget> {
       ),
     );
   }
-}
+
+  Widget _buildEndNode() {
+    return Column(
+      mainAxisSize: MainAxisSize.min, // Wrap content tightly
+      children: [
+        Container( // Trophy cup
+          width: 70, // Slightly smaller cup
+          height: 70,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [Colors.yellow.shade400, Colors.amber.shade800],
+              center: Alignment.topLeft,
+              radius: 0.9,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.amber.withOpacity(0.5),
+                blurRadius: 15,
+                spreadRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 5,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Icon(
+              Icons.emoji_events,
+              color: Colors.white.withOpacity(0.95),
+              size: 48, // Adjusted size
+              shadows: const [
+                Shadow(
+                  color: Colors.black45,
+                  blurRadius: 2,
+                  offset: Offset(0.5, 0.5),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Container( // Trophy base
+          width: 90, // Wider base
+          height: 15,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10), // Rounded corners for capsule look
+            gradient: LinearGradient(
+              colors: [Colors.brown.shade700, Colors.grey.shade800], // Darker, metallic look
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.4),
+                blurRadius: 8,
+                spreadRadius: 1,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+} // Closing brace for _RoadLessonWidgetState
 
 class _LessonLabelClipper extends CustomClipper<Path> {
   final bool isLeft;
@@ -310,62 +332,97 @@ class _LessonLabelClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _RoadPainter extends CustomPainter {
-  final Path path;
+  final List<Offset> points;
+  final int lessonCount;
 
-  _RoadPainter({required this.path});
+  _RoadPainter({required this.points, required this.lessonCount});
+
+  Path _createPathThroughPoints() { // Return a single Path
+    final path = Path();
+    if (points.isEmpty) return path;
+
+    path.moveTo(points[0].dx, points[0].dy);
+
+    for (int i = 0; i < points.length - 1; i++) {
+      final p1 = points[i];
+      final p2 = points[i+1];
+      
+      final double cp1x = p1.dx;
+      final double cp1y = p1.dy + (p2.dy - p1.dy) * 0.6;
+      final double cp2x = p2.dx;
+      final double cp2y = p2.dy - (p2.dy - p1.dy) * 0.6;
+
+      path.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy); // Add to the single path
+    }
+    return path;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
+    final Path roadPath = _createPathThroughPoints(); // Now gets a single Path
+
+    // Constant road properties
+    const double roadWidth = 50.0;
+    const Color roadColor = Color(0xFF6D4C41);
+    const Color borderColor = Color(0xFF4E342E);
+    const double shadowWidth = 60.0;
+    const double dashedLineStrokeWidth = 2.0;
+    const double dashLen = 15.0;
+    const double dashGap = 15.0;
+
+    // Shadow Paint
     final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.5)
+      ..color = Colors.black.withOpacity(0.5)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 60.0
+      ..strokeWidth = shadowWidth
       ..strokeCap = StrokeCap.round
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
-    canvas.drawPath(path, shadowPaint);
-    
-    final roadPaint = Paint()
-      ..color = const Color(0xFF6D4C41) 
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 50.0
-      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(roadPath, shadowPaint); // Draw the single path
 
+    // Border Paint
     final borderPaint = Paint()
-      ..color = const Color(0xFF4E342E) 
+      ..color = borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 56.0
+      ..strokeWidth = roadWidth + 6.0
       ..strokeCap = StrokeCap.round;
+    canvas.drawPath(roadPath, borderPaint); // Draw the single path
 
-    final dashedPaint = Paint()
-      ..color = const Color(0xFFBCAAA4).withValues(alpha: 0.8) 
+    // Road Paint
+    final roadPaint = Paint()
+      ..color = roadColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = roadWidth
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(roadPath, roadPaint); // Draw the single path
 
-    canvas.drawPath(path, borderPaint);
-    canvas.drawPath(path, roadPaint);
+    // Dashed Line Paint
+    final dashedPaint = Paint()
+      ..color = const Color(0xFFBCAAA4).withOpacity(0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = dashedLineStrokeWidth;
 
-    final pathMetrics = path.computeMetrics();
+    // Draw dashed lines on the single path
+    final pathMetrics = roadPath.computeMetrics();
     for (final metric in pathMetrics) {
-      double distance = 20.0; 
+      double distance = 20.0;
       while (distance < metric.length) {
-        const double len = 15.0;
-        if (distance + len > metric.length) break;
-        
+        if (distance + dashLen > metric.length) break;
+
         canvas.drawPath(
-          metric.extractPath(distance, distance + len),
+          metric.extractPath(distance, distance + dashLen),
           dashedPaint,
         );
-        distance += len + 15.0; 
+        distance += dashLen + dashGap;
       }
     }
   }
 
   @override
   bool shouldRepaint(covariant _RoadPainter oldDelegate) {
-    return oldDelegate.path != oldDelegate.path;
+    return oldDelegate.points != points || oldDelegate.lessonCount != lessonCount;
   }
 }

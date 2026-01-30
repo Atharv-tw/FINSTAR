@@ -27,6 +27,7 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
   String? errorMessage;
   late ScrollController _scrollController;
   final ValueNotifier<double> _scrollProgress = ValueNotifier(0.0);
+  double? _roadWidgetHeight; // State variable to hold the height from RoadLessonWidget
 
   @override
   void initState() {
@@ -108,14 +109,20 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen>
               ),
               SliverToBoxAdapter(
                 child: SizedBox(
-                  height: module!.lessons.length * 200.0,
+                  height: _roadWidgetHeight ?? (module!.lessons.length * 200.0), // Use reported height or fallback
                   child: RoadLessonWidget(
                     module: module!,
                     scrollProgress: _scrollProgress,
+                    onHeightCalculated: (height) {
+                      if (_roadWidgetHeight != height) { // Only update if height changed to avoid unnecessary rebuilds
+                        setState(() {
+                          _roadWidgetHeight = height;
+                        });
+                      }
+                    },
                   ),
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 40)),
             ],
           ),
           _buildFixedHeader(),
