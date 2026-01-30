@@ -714,19 +714,43 @@ class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
 
   @override
   Widget build(BuildContext context) {
+    double animatedFontSize = 24 + (widget.unfoldProgress * 12); // Default: 24 to 36
+    double animatedIconSize = 24 + (widget.unfoldProgress * 12); // Default: 24 to 36
+    double iconSpacing = 8.0; // Default spacing
+    Offset contentOffset = Offset.zero; // Default offset
+
+    final Alignment animatedAlignment =
+        Alignment.lerp(Alignment.topLeft, Alignment.topCenter, widget.unfoldProgress)!;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // External animated heading placeholder - using card.title for now
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            widget.card.title,
-            style: GoogleFonts.luckiestGuy(
-              fontSize: 36,
-              color: DesignTokens.textPrimary,
-              height: 1.1,
-              letterSpacing: 0.5,
+        Align(
+          alignment: animatedAlignment,
+          child: Transform.translate(
+            offset: contentOffset,
+            child: Row(
+              mainAxisSize: MainAxisSize.min, // To keep the Row compact
+              children: [
+                Icon(
+                  widget.card.icon,
+                  size: animatedIconSize,
+                  color: DesignTokens.textPrimary,
+                ),
+                SizedBox(width: iconSpacing),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    widget.card.title,
+                    style: GoogleFonts.luckiestGuy(
+                      fontSize: animatedFontSize,
+                      color: DesignTokens.textPrimary,
+                      height: 1.1,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -750,45 +774,9 @@ class _LifeSwipeCardContentState extends State<_LifeSwipeCardContent>
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Hand animation
-                    AnimatedBuilder(
-                      animation: _swipeAnimationController,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(_swipeAnimation.value, 0),
-                          child: Opacity(
-                            opacity: 0.5 +
-                                (_swipeAnimation.value.abs() /
-                                    40), // 0.5 to 1.0 based on position
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFFCCCCCC),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    // Left arrow
-                    const Positioned(
-                      left: 0,
-                      child: Icon(
-                        Icons.arrow_left,
-                        size: 40, // Larger to match font-size: 20px in CSS
-                        color: Color(0xFFBBBBBB),
-                      ),
-                    ),
-                    // Right arrow
-                    const Positioned(
-                      right: 0,
-                      child: Icon(
-                        Icons.arrow_right,
-                        size: 40, // Larger to match font-size: 20px in CSS
-                        color: Color(0xFFBBBBBB),
-                      ),
+                    Transform.scale(
+                      scale: 2.0,
+                      child: Image.asset('assets/images/c0emovebgpreview.png', fit: BoxFit.contain),
                     ),
                   ],
                 ),
