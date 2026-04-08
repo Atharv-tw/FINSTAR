@@ -214,6 +214,14 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
       ),
         ],
       ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 70), // Avoid overlap with bottom nav
+        child: FloatingActionButton(
+          onPressed: () => context.push('/chat'),
+          backgroundColor: DesignTokens.primarySolid,
+          child: const Icon(Icons.auto_awesome, color: Colors.white),
+        ),
+      ),
     );
   }
 
