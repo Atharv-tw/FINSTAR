@@ -12,6 +12,7 @@ import '../features/learn/learn_screen.dart';
 import '../features/leaderboard/leaderboard_screen.dart';
 import '../features/friends/friends_screen.dart';
 import '../features/profile/profile_screen.dart';
+import '../features/chat/chat_screen.dart';
 import '../features/learning/module_detail_screen.dart';
 import '../features/learning/lesson_screen.dart';
 import '../features/games/life_swipe/screens/life_swipe_game_screen.dart';
@@ -258,6 +259,13 @@ class AppRouter {
         path: '/challenges',
         name: 'challenges',
         builder: (context, state) => const DailyChallengesScreen(),
+      ),
+
+      // AI Chat
+      GoRoute(
+        path: '/chat',
+        name: 'chat',
+        builder: (context, state) => const ChatScreen(),
       ),
     ],
 
