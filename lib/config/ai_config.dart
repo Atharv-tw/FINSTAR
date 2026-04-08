@@ -1,9 +1,10 @@
 class AIConfig {
   /// Replace with your Gemini API Key
   /// Get one at: https://aistudio.google.com/app/apikey
-  static const String geminiApiKey = 'YOUR_GEMINI_API_KEY_HERE';
+  static const String geminiApiKey = 'AIzaSyAv9dqSUgbTvDQI7aa0TxvCgi-RzLKPGhE';
   
-  static const String modelName = 'gemini-1.5-flash';
+  // Preferred model (fallbacks are handled in AIService)
+  static const String modelName = 'gemini-1.5-flash-latest';
 
   static const String systemPrompt = '''
 You are "Finstar AI Coach", a helpful and beginner-friendly finance assistant.
