@@ -215,11 +215,79 @@ class _BasicHomeScreenState extends ConsumerState<BasicHomeScreen>
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 70), // Avoid overlap with bottom nav
-        child: FloatingActionButton(
-          onPressed: () => context.push('/chat'),
-          backgroundColor: DesignTokens.primarySolid,
-          child: const Icon(Icons.auto_awesome, color: Colors.white),
+        padding: const EdgeInsets.only(bottom: 66, right: 4),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.push('/chat'),
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 88,
+              height: 88,
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    top: 14,
+                    child: Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            DesignTokens.secondarySolid.withValues(alpha: 0.22),
+                            DesignTokens.primarySolid.withValues(alpha: 0.18),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: DesignTokens.primarySolid.withValues(alpha: 0.18),
+                            blurRadius: 22,
+                            spreadRadius: 8,
+                          ),
+                          BoxShadow(
+                            color: DesignTokens.secondarySolid.withValues(alpha: 0.14),
+                            blurRadius: 30,
+                            spreadRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 12,
+                    child: Container(
+                      width: 40,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: DesignTokens.accentSolid.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: [
+                          BoxShadow(
+                            color: DesignTokens.accentSolid.withValues(alpha: 0.08),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 78,
+                    height: 78,
+                    child: Image.asset(
+                      'assets/images/finstar_aibot_transparent.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

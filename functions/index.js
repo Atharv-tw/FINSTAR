@@ -5,7 +5,7 @@
  * Region: asia-south1 (Mumbai) for low latency
  */
 
-const {onCall, HttpsError} = require('firebase-functions/v2/https');
+const {onCall, onRequest, HttpsError} = require('firebase-functions/v2/https');
 const {onDocumentCreated} = require('firebase-functions/v2/firestore');
 const {onSchedule} = require('firebase-functions/v2/scheduler');
 const {setGlobalOptions} = require('firebase-functions/v2');
@@ -50,6 +50,22 @@ const STREAK_BONUSES = {
   14: {xp: 200, coins: 100},
   30: {xp: 500, coins: 200},
 };
+
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const AI_SYSTEM_PROMPT = `
+You are "Finstar AI Coach", a helpful and beginner-friendly finance assistant.
+
+Your role:
+- Answer ONLY finance-related questions.
+- If the question is NOT related to finance, politely refuse.
+
+Rules:
+- Keep answers simple, clear, and easy to understand.
+- Avoid complex jargon.
+- Give practical examples when possible.
+- Keep responses short.
+- Be accurate and avoid guessing.
+`;
 
 // ============================================
 // HELPER FUNCTIONS
@@ -415,6 +431,105 @@ exports.purchaseItem = onCall(async (request) => {
       itemId,
     };
   });
+});
+
+// ============================================
+// HTTPS: AI Chat Proxy
+// ============================================
+
+exports.chatWithAI = onRequest(async (request, response) => {
+  response.set('Access-Control-Allow-Origin', '*');
+  response.set('Access-Control-Allow-Headers', 'Content-Type');
+  response.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+
+  if (request.method === 'OPTIONS') {
+    response.status(204).send('');
+    return;
+  }
+
+  if (request.method !== 'POST') {
+    response.status(405).json({error: 'Method not allowed'});
+    return;
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    response.status(500).json({
+      error: 'Missing GEMINI_API_KEY in Firebase Functions environment.',
+    });
+    return;
+  }
+
+  const message = request.body?.message;
+  const rawHistory = Array.isArray(request.body?.history) ? request.body.history : [];
+
+  if (!message || typeof message !== 'string') {
+    response.status(400).json({error: 'message is required'});
+    return;
+  }
+
+  const history = rawHistory
+      .filter((item) => item && typeof item.text === 'string' && typeof item.role === 'string')
+      .slice(-12)
+      .map((item) => ({
+        role: item.role === 'model' ? 'model' : 'user',
+        parts: [{text: item.text}],
+      }));
+
+  const contents = history.concat([
+    {
+      role: 'user',
+      parts: [{text: message.trim()}],
+    },
+  ]);
+
+  try {
+    const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{text: AI_SYSTEM_PROMPT}],
+            },
+            contents,
+          }),
+        },
+    );
+
+    const data = await geminiResponse.json();
+
+    if (!geminiResponse.ok) {
+      console.error('Gemini API error:', data);
+      response.status(geminiResponse.status).json({
+        error: data?.error?.message || 'Gemini request failed.',
+      });
+      return;
+    }
+
+    const text = data?.candidates?.[0]?.content?.parts
+        ?.map((part) => part?.text || '')
+        .join('')
+        .trim();
+
+    if (!text) {
+      response.status(502).json({error: 'Gemini returned an empty response.'});
+      return;
+    }
+
+    response.status(200).json({
+      text,
+      model: GEMINI_MODEL,
+    });
+  } catch (error) {
+    console.error('chatWithAI failed:', error);
+    response.status(500).json({
+      error: 'AI proxy request failed.',
+    });
+  }
 });
 
 // ============================================
