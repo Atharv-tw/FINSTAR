@@ -5,23 +5,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/ai_config.dart';
 
 final aiServiceProvider = Provider<AIService>((ref) {
-  return AIService();
+  if (AIConfig.useGroq) {
+    return GroqAIService();
+  } else {
+    return GeminiAIService();
+  }
 });
 
-class AIService {
+abstract class AIService {
+  Future<String> sendMessage(String message);
+  void resetChat();
+}
+
+class GeminiAIService implements AIService {
   late GenerativeModel _model;
   late ChatSession _chat;
   int _modelIndex = 0;
   bool _hasTriedDiscovery = false;
 
-  static const List<String> _fallbackModels = [
-    AIConfig.modelName,
+  static final List<String> _fallbackModels = [
+    AIConfig.geminiModelName,
     'gemini-1.5-flash-latest',
     'gemini-1.5-pro-latest',
     'gemini-1.0-pro',
   ];
 
-  AIService() {
+  GeminiAIService() {
     _initModel(_fallbackModels[_modelIndex]);
   }
 
@@ -75,14 +84,14 @@ class AIService {
     return null;
   }
 
+  @override
   Future<String> sendMessage(String message) async {
-    if (AIConfig.geminiApiKey == 'YOUR_GEMINI_API_KEY_HERE') {
+    if (AIConfig.geminiApiKey == 'YOUR_GEMINI_API_KEY_HERE' || AIConfig.geminiApiKey.isEmpty) {
       return "Please configure your Gemini API Key in lib/config/ai_config.dart to use the Finstar AI Coach.";
     }
 
     for (var attempt = 0; attempt < _fallbackModels.length; attempt++) {
       try {
-        // Prepend system prompt to the very first message in the session
         final prompt = _chat.history.isEmpty
             ? "${AIConfig.systemPrompt}\n\nUser Question: $message"
             : message;
@@ -123,7 +132,62 @@ class AIService {
     return "Error: Unable to find a supported model for this API key.";
   }
 
+  @override
   void resetChat() {
     _chat = _model.startChat();
+  }
+}
+
+class GroqAIService implements AIService {
+  final List<Map<String, String>> _history = [];
+
+  GroqAIService() {
+    _history.add({'role': 'system', 'content': AIConfig.systemPrompt});
+  }
+
+  @override
+  Future<String> sendMessage(String message) async {
+    if (AIConfig.groqApiKey == 'YOUR_GROQ_API_KEY_HERE' || AIConfig.groqApiKey.isEmpty) {
+      return "Please configure your Groq API Key in lib/config/ai_config.dart to use the Finstar AI Coach.";
+    }
+
+    final uri = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
+    
+    _history.add({'role': 'user', 'content': message});
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${AIConfig.groqApiKey}',
+        },
+        body: jsonEncode({
+          'model': AIConfig.groqModelName,
+          'messages': _history,
+          'temperature': 0.7,
+        }),
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final assistantMessage = data['choices'][0]['message']['content'] as String;
+        
+        _history.add({'role': 'assistant', 'content': assistantMessage});
+        
+        return assistantMessage;
+      } else {
+        final error = jsonDecode(response.body);
+        return "Groq Error: ${error['error']['message'] ?? 'Unknown error'} (Status: ${response.statusCode})";
+      }
+    } catch (e) {
+      return "Error: ${e.toString()}";
+    }
+  }
+
+  @override
+  void resetChat() {
+    _history.clear();
+    _history.add({'role': 'system', 'content': AIConfig.systemPrompt});
   }
 }

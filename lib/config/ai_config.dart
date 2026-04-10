@@ -1,10 +1,17 @@
 class AIConfig {
+  /// AI Provider selection
+  static const bool useGroq = true; // Set to true to use Groq, false for Gemini
+
   /// Replace with your Gemini API Key
   /// Get one at: https://aistudio.google.com/app/apikey
-  static const String geminiApiKey = 'AIzaSyAv9dqSUgbTvDQI7aa0TxvCgi-RzLKPGhE';
+  static const String geminiApiKey = 'Groq_key';
   
-  // Preferred model (fallbacks are handled in AIService)
-  static const String modelName = 'gemini-1.5-flash-latest';
+  /// Replace with your Groq API Key
+  /// Get one at: https://console.groq.com/keys
+  static const String groqApiKey = 'Groq_key';
+  // Preferred models
+  static const String geminiModelName = 'gemini-1.5-flash-latest';
+  static const String groqModelName = 'llama-3.3-70b-versatile';
 
   static const String systemPrompt = '''
 You are "Finstar AI Coach", a helpful and beginner-friendly finance assistant.
